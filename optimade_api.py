@@ -8,31 +8,31 @@ import re
 OPTiMaDe
 """
 
-## Default / config
-api_versions = [ "v0.9.5", "v1", "v0.8.5", "v0.9.4" , "v1.1" ]
-# api_versions = [ "v0.9.5" ]
+# Default / config
+# api_versions = ["v0.9.5", "v1", "v0.8.5", "v0.9.4", "v1.1"]
+api_versions = ["v0.9.5"]
 api_version_latest = sorted(api_versions)[-1]
 base_url = "http://127.0.0.1:5000/optimade/"
 
 response_limit_default = 100
 response_format_default = 'json'
-response_fields_default = [ 'type', 'id', 'attributes', 'links', 'meta',
-    'relationships' ]
+response_fields_default = ['type', 'id', 'attributes', 'links', 'meta', 'relationships']
 
 response_limit = response_limit_default
 db_max_limit = 1000
 
-formats = [ 'json' ]
+formats = ['json']
 response_format = response_format_default
 
 user_email_address = 'anonymous@optimade.com'
 
 response_fields = response_fields_default
 
-## Endpoints
-entry_listings = [ 'computers', 'nodes', 'calculations', 'data', 'codes',
-    'structures', 'kpoints', 'bands', 'upfs', 'cifs', 'users', 'groups' ]
+# Endpoints
+entry_listings = ['computers', 'nodes', 'calculations', 'data', 'codes',
+                  'structures', 'kpoints', 'bands', 'upfs', 'cifs', 'users', 'groups']
 # entry_listings = [ 'structures' ]
+
 
 ################################ FUNCTIONS #####################################
 
@@ -67,6 +67,7 @@ def api_versions_as_tuples(api_versions, cut="PATCH"):
 
     return version_tuple_list
 
+
 def json_error(status=400, title="ValueError", detail=None, pointer="/",
                parameter=None):
     """
@@ -87,6 +88,7 @@ def json_error(status=400, title="ValueError", detail=None, pointer="/",
     }
 
     return error
+
 
 def common_response(endpoint):
     """
@@ -119,6 +121,7 @@ def common_response(endpoint):
     }
 
     return response
+
 
 def baseurl_info(response):
     """
@@ -167,14 +170,14 @@ def baseurl_info(response):
 
     # Base URL "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/" ,
+        "type": "info",
+        "id": "/",
         "attributes": {
-            "api_version": api_version_latest ,
+            "api_version": api_version_latest,
             "available_api_versions": available_api_versions,
-            "formats": formats ,
+            "formats": formats,
             "entry_types_by_format": {
-                "json": [ 'structure' ]
+                "json": ['structure']
             }
         }
     }
@@ -182,6 +185,7 @@ def baseurl_info(response):
     response["data"].append(data)
 
     return response
+
 
 def structure_info(response):
     """
@@ -190,28 +194,29 @@ def structure_info(response):
 
     # /structures "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/structures" ,
-        "description": "a structure" ,
+        "type": "info",
+        "id": "/structures",
+        "description": "a structure",
         "properties": {
             "nelements": {
-                "description": "number of elements" ,
+                "description": "number of elements",
                 "unit": None
             },
             "elements": {
-                "description": "list of elements" ,
+                "description": "list of elements",
                 "unit": None
             }
         },
-        "formats": [ 'json' ] ,
+        "formats": ['json'],
         "output_fields_by_format": {
-            "json": [ "nelements", "elements" ]
+            "json": ["nelements", "elements"]
         }
     }
 
     response["data"].append(data)
 
     return response
+
 
 def calculation_info(response):
     """
@@ -220,18 +225,18 @@ def calculation_info(response):
 
     # /calculation "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/calculations" ,
-        "description": "a calculation" ,
+        "type": "info",
+        "id": "/calculations",
+        "description": "a calculation",
         "properties": {
             "code": {
-                "description": "code used for calculation" ,
+                "description": "code used for calculation",
                 "unit": None
             }
         },
-        "formats": [ 'json' ] ,
+        "formats": ['json'],
         "output_fields_by_format": {
-            "json": [ "code" ]
+            "json": ["code"]
         }
     }
 
@@ -239,12 +244,13 @@ def calculation_info(response):
 
     return response
 
+
 def valid_version(api_version):
-    '''
+    """
     :api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
 
     return boolean
-    '''
+    """
 
     chk_version = baseurl_info({"data": []})
     chk_version = chk_version["data"][0]["attributes"]["available_api_versions"]
@@ -259,12 +265,13 @@ def valid_version(api_version):
 
     return valid
 
+
 def legacy_version(api_version):
-    '''
+    """
     :api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
 
     return boolean
-    '''
+    """
 
     if not valid_version(api_version): raise ValueError
 
@@ -286,6 +293,7 @@ def legacy_version(api_version):
 
     else:
         return True
+
 
 def query_response_limit(limit):
     """
@@ -314,6 +322,7 @@ def query_response_limit(limit):
         error = json_error(status=403, detail=msg, parameter="response_limit")
         return error
 
+
 def query_response_format(format):
     """
     Only allowed formats: jsonapi / json
@@ -339,6 +348,7 @@ def query_response_format(format):
         error = json_error(status=418, detail=msg, parameter=response_format)
         return error
 
+
 def query_email_address(email):
     """
     :email: string, new specified user e-mail-address
@@ -353,6 +363,7 @@ def query_email_address(email):
         global user_email_address
         user_email_address = email
         return "200"
+
 
 def query_response_fields(fields):
     """
@@ -377,20 +388,22 @@ def query_response_fields(fields):
     response_fields = fields
     return "200"
 
+
 # Function mapping for queries
 query_parameters = {
     'filter': None ,
-    'response_format': query_response_format ,
-    'email_address': query_email_address ,
-    'response_limit': query_response_limit ,
+    'response_format': query_response_format,
+    'email_address': query_email_address,
+    'response_limit': query_response_limit,
     'response_fields': query_response_fields
 }
 
 # Function mapping for <entry_listing>/info/
 entry_listing_infos = {
-    'structures': structure_info ,
+    'structures': structure_info,
     'calculations': calculation_info
 }
+
 
 ################################## CLASSES #####################################
 
@@ -430,13 +443,12 @@ class TreeToPy(Transformer):
     true = lambda self, _: True
     false = lambda self, _: False
 
-
-
     # def VALUE(self, )
     #     pass
     # pass
 
 ################################################################################
+
 
 """
 Flask app
@@ -444,9 +456,10 @@ Flask app
 
 from flask import Flask, url_for, request, redirect, jsonify
 
-app=Flask(__name__)
+app = Flask(__name__)
 
 nl = '<br/>'
+
 
 @app.route('/')
 def index():
@@ -474,7 +487,7 @@ def optimade():
     out += str(filt) + 2*nl
 
     for k in filt:
-        out+= k + 2*nl
+        out += k + 2*nl
 
     def get_condition(condition):
         if isinstance(condition, tuple) and len(condition) == 3:
@@ -488,24 +501,24 @@ def optimade():
         if isinstance(v, list):
             for i in v:
                 i = get_condition(i)
-                out+= str(i) + " - " + "second" + 2*nl
+                out += str(i) + " - " + "second" + 2*nl
                 if isinstance(i, list):
                     for j in i:
                         j = get_condition(j)
-                        out+= str(j) + " - " + "third" + 2*nl
+                        out += str(j) + " - " + "third" + 2*nl
                         if isinstance(j, list):
                             for k in j:
                                 k = get_condition(k)
-                                out+= str(k) + " - " + "fourth" + 2*nl
+                                out += str(k) + " - " + "fourth" + 2*nl
                                 if isinstance(k, list):
-                                    for l in k:
-                                        l = get_condition(l)
-                                        out+= str(l) + " - " + "fifth" + 2*nl
-
+                                    for lm in k:
+                                        lm = get_condition(lm)
+                                        out += str(lm) + " - " + "fifth" + 2*nl
     return out
 
+
 @app.route('/optimade/v<api_version>/')
-def api_version(api_version):
+def vapi_version(api_version):
     if re.match(r'[\d.?]+', api_version): # TODO: Make regexp better to determine version syntax
         if valid_version(api_version) and not legacy_version(api_version):
             #  Latest version
@@ -520,6 +533,7 @@ def api_version(api_version):
         # InputError
         return "bad request", 400
 
+
 @app.route('/<path:endpoint>/info/')
 def info(endpoint):
     base_api_url = base_url.split('/')[-2]
@@ -527,7 +541,7 @@ def info(endpoint):
     endpoint = endpoint.split('/')
 
     if endpoint[0] != base_api_url:
-        #error
+        # error
         return '/'.join(endpoint) + "/info" + nl + "Error 400: Bad request", 400
 
     elif len(endpoint) == 1:
@@ -570,7 +584,6 @@ def info(endpoint):
             response = entry_listing_infos[entry_listing](response)
             return jsonify(response)
 
-
         # response = common_response("/" + '/'.join(endpoint[1:]) + "/info")
         # TODO: Create func() to return info for each entry_listing with different version
         # return jsonify(response)
@@ -578,17 +591,19 @@ def info(endpoint):
     # else not valid path
     return '/'.join(endpoint) + "/info" + nl + "Error 400: Bad request - last else clause", 400
 
+
 @app.route('/optimade/all')
 def all():
 
     return "Return all entries"
+
 
 @app.route('/optimade/structures')
 def structures():
     # Get possible queries
     queries = request.args
 
-    ## BASE response
+    # BASE response
     representation = "/structures"
     if queries: representation += "?"
     response = common_response(representation)
@@ -605,7 +620,7 @@ def structures():
         response["meta"]["query"]["representation"] += representation
 
         if query in query_parameters:
-            ## Valid query key
+            # Valid query key
 
             if query != "filter": # Filter query is treated separately
                 eval = query_parameters[query](query_value)
@@ -638,8 +653,7 @@ def structures():
             msg = "Invalid query parameter: '" + query + "' Legal query parameters: "
             for param in query_parameters: msg += "'" + param + "',"
             msg = msg[:-1]
-            error = json_error(status=418, detail=msg, pointer="/structures",
-                    parameter=query)
+            error = json_error(status=418, detail=msg, pointer="/structures", parameter=query)
             if "errors" in response:
                 response["errors"].append(error)
             else:
