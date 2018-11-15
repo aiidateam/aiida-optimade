@@ -2,6 +2,7 @@
 
 import re
 
+
 """ 
 Utils
 
@@ -9,6 +10,7 @@ Utility functions
 
 TODO: Should be updated so that it ONLY contains utility functions
 """
+
 
 def api_versions_as_tuples(api_versions, cut="PATCH"):
     """
@@ -41,8 +43,8 @@ def api_versions_as_tuples(api_versions, cut="PATCH"):
 
     return version_tuple_list
 
-def json_error(status=400, title="ValueError", detail=None, pointer="/",
-               parameter=None):
+
+def json_error(status=400, title="ValueError", detail=None, pointer="/", parameter=None):
     """
     JSON API Error Object
     https://jsonapi.org/format/#error-objects
@@ -51,16 +53,17 @@ def json_error(status=400, title="ValueError", detail=None, pointer="/",
     """
 
     error = {
-        "status": str(status) ,
-        "title": title ,
-        "detail": detail ,
+        "status": str(status),
+        "title": title,
+        "detail": detail,
         "source": {
-            "pointer": pointer ,
+            "pointer": pointer,
             "parameter": parameter
         }
     }
 
     return error
+
 
 def common_response(endpoint):
     """
@@ -77,22 +80,23 @@ def common_response(endpoint):
 
     response = {
         "links": {
-            "next": None ,
+            "next": None,
             "base_url": base_url + api_version + "/"
         },
         "meta": {
             "query": {
                 "representation": endpoint
             },
-            "api_version": api_version_latest ,
-            "time_stamp": datetime.utcnow().strftime( '%Y-%m-%dT%H:%M:%SZ' ) ,
-            "data_returned": 1 ,            # General case
-            "more_data_available": False ,  # General case
+            "api_version": api_version_latest,
+            "time_stamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "data_returned": 1,            # General case
+            "more_data_available": False,  # General case
         },
         "data": []
     }
 
     return response
+
 
 def baseurl_info(response):
     """
@@ -141,14 +145,14 @@ def baseurl_info(response):
 
     # Base URL "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/" ,
+        "type": "info",
+        "id": "/",
         "attributes": {
-            "api_version": api_version_latest ,
+            "api_version": api_version_latest,
             "available_api_versions": available_api_versions,
-            "formats": formats ,
+            "formats": formats,
             "entry_types_by_format": {
-                "json": [ 'structure' ]
+                "json": ['structure']
             }
         }
     }
@@ -156,6 +160,7 @@ def baseurl_info(response):
     response["data"].append(data)
 
     return response
+
 
 def structure_info(response):
     """
@@ -164,28 +169,29 @@ def structure_info(response):
 
     # /structures "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/structures" ,
-        "description": "a structure" ,
+        "type": "info",
+        "id": "/structures",
+        "description": "a structure",
         "properties": {
             "nelements": {
-                "description": "number of elements" ,
+                "description": "number of elements",
                 "unit": None
             },
             "elements": {
-                "description": "list of elements" ,
+                "description": "list of elements",
                 "unit": None
             }
         },
-        "formats": [ 'json' ] ,
+        "formats": ['json'],
         "output_fields_by_format": {
-            "json": [ "nelements", "elements" ]
+            "json": ["nelements", "elements"]
         }
     }
 
     response["data"].append(data)
 
     return response
+
 
 def calculation_info(response):
     """
@@ -194,18 +200,18 @@ def calculation_info(response):
 
     # /calculation "/info"-response
     data = {
-        "type": "info" ,
-        "id": "/calculations" ,
-        "description": "a calculation" ,
+        "type": "info",
+        "id": "/calculations",
+        "description": "a calculation",
         "properties": {
             "code": {
-                "description": "code used for calculation" ,
+                "description": "code used for calculation",
                 "unit": None
             }
         },
-        "formats": [ 'json' ] ,
+        "formats": ['json'],
         "output_fields_by_format": {
-            "json": [ "code" ]
+            "json": ["code"]
         }
     }
 
@@ -213,12 +219,13 @@ def calculation_info(response):
 
     return response
 
+
 def valid_version(api_version):
-    '''
+    """
     :api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
 
     return boolean
-    '''
+    """
 
     chk_version = baseurl_info({"data": []})
     chk_version = chk_version["data"][0]["attributes"]["available_api_versions"]
@@ -232,6 +239,7 @@ def valid_version(api_version):
             api_version == '.'.join(version_list[:-1]):     valid = True
 
     return valid
+
 
 def legacy_version(api_version):
     '''
@@ -261,6 +269,7 @@ def legacy_version(api_version):
     else:
         return True
 
+
 def query_response_limit(limit):
     """
     :limit: integer as string, new queried response_limit
@@ -288,7 +297,8 @@ def query_response_limit(limit):
         error = json_error(status=403, detail=msg, parameter="response_limit")
         return error
 
-def query_response_format(format):
+
+def query_response_format(fmt):
     """
     Only allowed formats: jsonapi / json
 
@@ -298,20 +308,21 @@ def query_response_format(format):
 
     global response_format
 
-    if format in [ "default", "jsonapi", "json" ]:
+    if fmt in [ "default", "jsonapi", "json" ]:
         response_format = response_format_default
         return "200"
-    elif format in formats:
-        response_format = format
+    elif fmt in formats:
+        response_format = fmt
         return "200"
     else:
         # Not (yet) allowed format
-        msg = "Requested format '" + format + \
+        msg = "Requested format '" + fmt + \
               "' not allowed or not yet implemented. Implemented formats: "
-        for format in formats: msg += "'" + format + "',"
+        for fmt in formats: msg += "'" + fmt + "',"
         msg = msg[:-1]
         error = json_error(status=418, detail=msg, parameter=response_format)
         return error
+
 
 def query_email_address(email):
     """
@@ -327,6 +338,7 @@ def query_email_address(email):
         global user_email_address
         user_email_address = email
         return "200"
+
 
 def query_response_fields(fields):
     """
@@ -351,17 +363,18 @@ def query_response_fields(fields):
     response_fields = fields
     return "200"
 
+
 # Function mapping for queries
 query_parameters = {
-    'filter': None ,
-    'response_format': query_response_format ,
-    'email_address': query_email_address ,
-    'response_limit': query_response_limit ,
+    'filter': None,
+    'response_format': query_response_format,
+    'email_address': query_email_address,
+    'response_limit': query_response_limit,
     'response_fields': query_response_fields
 }
 
 # Function mapping for <entry_listing>/info/
 entry_listing_infos = {
-    'structures': structure_info ,
+    'structures': structure_info,
     'calculations': calculation_info
 }
