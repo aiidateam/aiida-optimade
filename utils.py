@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import re
+import config
+from datetime import datetime
 
 
 """ 
@@ -76,18 +78,18 @@ def common_response(endpoint):
         endpoint_list.remove(api_version)
         endpoint = '/'.join(endpoint_list)
     else:
-        api_version = api_version_latest
+        api_version = config.API_VERSION_LATEST
 
     response = {
         "links": {
             "next": None,
-            "base_url": base_url + api_version + "/"
+            "base_url": config.BASE_URL + api_version + "/"
         },
         "meta": {
             "query": {
                 "representation": endpoint
             },
-            "api_version": api_version_latest,
+            "api_version": config.API_VERSION_LATEST,
             "time_stamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
             "data_returned": 1,            # General case
             "more_data_available": False,  # General case
@@ -113,7 +115,7 @@ def baseurl_info(response):
     #     o General entry listing         "/all"
     """
 
-    tuple_versions = sorted(api_versions_as_tuples(api_versions), reverse=True)
+    tuple_versions = sorted(api_versions_as_tuples(config.API_VERSIONS), reverse=True)
 
     # Create "available_api_versions"-dict with latest version
     last_ver = tuple_versions[0]
@@ -121,7 +123,7 @@ def baseurl_info(response):
         version_url = '.'.join(last_ver[:2])
     else:
         version_url = last_ver[0]
-    available_api_versions = {'.'.join(last_ver): base_url + "v" + version_url + "/"}
+    available_api_versions = {'.'.join(last_ver): config.BASE_URL + "v" + version_url + "/"}
 
     # Add legacy versions to "available_api_versions"
     for cur_ver in tuple_versions[1:]:
@@ -138,7 +140,7 @@ def baseurl_info(response):
             version_url = cur_ver[0]
 
         # Add current legacy version to "available_api_versions"
-        available_api_versions['.'.join(cur_ver)] = base_url + "v" + version_url + "/"
+        available_api_versions['.'.join(cur_ver)] = config.BASE_URL + "v" + version_url + "/"
 
         # Update previously added version
         last_ver = cur_ver
@@ -148,9 +150,9 @@ def baseurl_info(response):
         "type": "info",
         "id": "/",
         "attributes": {
-            "api_version": api_version_latest,
+            "api_version": config.API_VERSION_LATEST,
             "available_api_versions": available_api_versions,
-            "formats": formats,
+            "formats": config.FORMATS,
             "entry_types_by_format": {
                 "json": ['structure']
             }
@@ -251,7 +253,7 @@ def legacy_version(api_version):
     if not valid_version(api_version): raise ValueError
 
     api_version_list = api_version.split('.')
-    api_version_latest_list = list(api_versions_as_tuples([api_version_latest])[0])
+    api_version_latest_list = list(api_versions_as_tuples([config.API_VERSION_LATEST])[0])
 
     # Latest MAJOR.MINOR.PATCH version chosen
     if len(api_version_list) == 3 and api_version_list == api_version_latest_list:
@@ -279,7 +281,7 @@ def query_response_limit(limit):
     global response_limit
 
     if limit == "default":
-        response_limit = response_limit_default
+        response_limit = config.RESPONSE_LIMIT_DEFAULT
         return "200"
 
     try:
@@ -289,11 +291,11 @@ def query_response_limit(limit):
         error = json_error(detail=msg, parameter="response_limit")
         return error
 
-    if limit <= db_max_limit:
+    if limit <= config.DB_MAX_LIMIT:
         response_limit = limit
         return "200"
     else:
-        msg = "Request not allowed by database. Max response_limit = " + str(db_max_limit)
+        msg = "Request not allowed by database. Max response_limit = " + str(config.DB_MAX_LIMIT)
         error = json_error(status=403, detail=msg, parameter="response_limit")
         return error
 
@@ -309,16 +311,16 @@ def query_response_format(fmt):
     global response_format
 
     if fmt in [ "default", "jsonapi", "json" ]:
-        response_format = response_format_default
+        response_format = config.RESPONSE_FORMAT_DEFAULT
         return "200"
-    elif fmt in formats:
+    elif fmt in config.FORMATS:
         response_format = fmt
         return "200"
     else:
         # Not (yet) allowed format
         msg = "Requested format '" + fmt + \
               "' not allowed or not yet implemented. Implemented formats: "
-        for fmt in formats: msg += "'" + fmt + "',"
+        for fmt in config.FORMATS: msg += "'" + fmt + "',"
         msg = msg[:-1]
         error = json_error(status=418, detail=msg, parameter=response_format)
         return error
@@ -352,9 +354,9 @@ def query_response_fields(fields):
     for field in fields:
         if field == "default":
             # Reset response_fields to default
-            response_fields = response_fields_default
+            response_fields = config.RESPONSE_FIELDS_DEFAULT
             return "200"
-        elif field not in response_fields_default:
+        elif field not in config.RESPONSE_FIELDS_DEFAULT:
             # Not valid field
             msg = "Requested field '" + field + "' is not valid"
             error = json_error(status=418, detail=msg, parameter="response_fields")
