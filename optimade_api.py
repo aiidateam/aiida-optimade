@@ -3,7 +3,8 @@ from optimade.filter import Parser
 from lark import Transformer
 import re
 import config
-from utils import valid_version, legacy_version, common_response, baseurl_info, entry_listing_infos, query_parameters, json_error
+from utils import valid_version, legacy_version, common_response, baseurl_info, entry_listing_infos, query_parameters, \
+    json_error
 
 """
 OPTiMaDe
@@ -43,9 +44,14 @@ class TreeToPy(Transformer):
     andcomparison = list
     comparison = tuple
 
-    null = lambda self, _: None
-    true = lambda self, _: True
-    false = lambda self, _: False
+    def null(self, _):
+        return None
+
+    def true(self, _):
+        return True
+
+    def false(self, _):
+        return False
 
     # def VALUE(self, )
     #     pass
