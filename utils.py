@@ -67,7 +67,7 @@ def json_error(status=400, title="ValueError", detail=None, pointer="/", paramet
     return error
 
 
-def common_response(endpoint):
+def common_response(endpoint, base_url):
     """
     :endpoint: String with part of URL following the base URL
     """
@@ -83,7 +83,7 @@ def common_response(endpoint):
     response = {
         "links": {
             "next": None,
-            "base_url": config.BASE_URL + api_version + "/"
+            "base_url": base_url  # config.BASE_URL + api_version + "/"
         },
         "meta": {
             "query": {
@@ -224,9 +224,9 @@ def calculation_info(response):
 
 def valid_version(api_version):
     """
-    :api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
+    :param api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
 
-    return boolean
+    :return: boolean
     """
 
     chk_version = baseurl_info({"data": []})
@@ -244,11 +244,11 @@ def valid_version(api_version):
 
 
 def legacy_version(api_version):
-    '''
-    :api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
+    """
+    :param api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
 
-    return boolean
-    '''
+    :return: boolean
+    """
 
     if not valid_version(api_version): raise ValueError
 
@@ -274,8 +274,8 @@ def legacy_version(api_version):
 
 def query_response_limit(limit):
     """
-    :limit: integer as string, new queried response_limit
-            if limit=default, response_limit will be reset to default
+    :param limit: integer as string, new queried response_limit
+                  if limit=default, response_limit will be reset to default
     """
 
     global response_limit
@@ -380,3 +380,22 @@ entry_listing_infos = {
     'structures': structure_info,
     'calculations': calculation_info
 }
+
+##### FROM AiiDA CODE #####
+
+
+def list_routes():
+    """List available routes"""
+    from six.moves import urllib
+    from flask import current_app
+
+    output = []
+    for rule in current_app.url_map.iter_rules():
+        if rule.endpoint == "static":
+            continue
+
+        methods = ','.join(rule.methods)
+        line = urllib.parse.unquote("{:15s} {:20s} {}".format(rule.endpoint, methods, rule))
+        output.append(line)
+
+    return sorted(set(output))

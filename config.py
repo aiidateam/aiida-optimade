@@ -2,9 +2,10 @@
 
 # Default / config
 # API_VERSIONS = ["v0.9.5", "v1", "v0.8.5", "v0.9.4", "v1.1"]
+PREFIX = "/optimade"
 API_VERSIONS = ["v0.9.5"]
 API_VERSION_LATEST = sorted(API_VERSIONS)[-1]
-BASE_URL = "http://127.0.0.1:5000/optimade/"
+BASE_URL = "http://127.0.0.1:5000" + PREFIX
 
 RESPONSE_LIMIT_DEFAULT = 100
 RESPONSE_FORMAT_DEFAULT = 'json'
