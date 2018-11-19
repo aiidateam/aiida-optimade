@@ -3,9 +3,9 @@
 from optimade.filter import Parser
 from transformers import TreeToPy
 import re
-import config
-from utils import valid_version, legacy_version, common_response, baseurl_info, entry_listing_infos, query_parameters, \
-    json_error
+import common.config as config
+from common.utils import valid_version, legacy_version, common_response, baseurl_info, entry_listing_infos, query_parameters, \
+    json_error, all_info
 from flask import url_for, request, redirect, jsonify
 from flask_restful import Resource
 
@@ -81,63 +81,55 @@ class ApiVersion(Resource):
 
 class Info(Resource):
     def get(self):
-        base_api_url = config.PREFIX.split('/')[-1]
 
-        endpoint = request.path.split('/')
-        endpoint = endpoint[1:-1]
+        # Decode url-path
+        path = request.path
+        endpoint = path.split('/')[3]
 
-        if endpoint[0] != base_api_url:
-            # error
-            return '/'.join(endpoint) + "/info" + nl + "Error 400: Bad request, no optimade", 400
+        # base_api_url = config.PREFIX.split('/')[1]
 
-        elif len(endpoint) == 1:
-            # /optimade/info
-            response = common_response("/info", request.path)
+        # endpoint = request.path.split('/')
+        # endpoint = endpoint[1:-1]
+
+        # if endpoint[0] != base_api_url:
+        #     # error
+        #     return '/'.join(endpoint) + "/info" + nl + "Error 400: Bad request, no optimade", 400
+
+        if endpoint == 'info':
+            # /info
+            response = common_response("/info", config.BASE_URL)
             response = baseurl_info(response)
             return jsonify(response)
 
-        elif len(endpoint) == 2 and endpoint[-1] in config.ENTRY_LISTINGS:
-            # /optimade/<entry_listing>/info
-            entry_listing = endpoint[-1]
-            response = common_response("/" + entry_listing + "/info", request.path)
-            response = entry_listing_infos[entry_listing](response)
+        elif endpoint == 'all':
+            # /all/info
+            response = common_response("/all/info", config.BASE_URL)
+            response = all_info(response)
             return jsonify(response)
 
-        elif len(endpoint) == 2 and valid_version(endpoint[-1][1:]):
-            # /optimade/v<api_version>/info
-            api_version = endpoint[-1][1:]
-            if legacy_version(api_version):
-                # Legal legacy version
-                return "/info of legal legacy version: v" + api_version
-            else:
-                # Latest version. Equivalent to "/optimade/info"
-                response = common_response("/v" + api_version + "/info", request.path)
-                response = baseurl_info(response)
-                return jsonify(response)
+        elif endpoint in config.ENTRY_LISTINGS:
+            # /<entry_listing>/info
+            response = common_response("/" + endpoint + "/info", config.BASE_URL)
+            response = entry_listing_infos[endpoint](response)
+            return jsonify(response)
 
-        elif len(endpoint) == 3 and valid_version(endpoint[-2][1:]) \
-                and endpoint[-1] in config.ENTRY_LISTINGS:
-            # /optimade/v<api_version>/<entry_listing>/info
-            api_version = endpoint[1][1:]
-            entry_listing = endpoint[-1]
-
-            if legacy_version(api_version):
-                # Legal legacy version
-                return endpoint[-1] + "/info of legal legacy version: v" + api_version
-            else:
-                # Latest version. Equivalent to "/optimade/<entry_listing>/info"
-                response = common_response("/" + "/".join(endpoint[1:]) + "/info", request.path)
-                response = entry_listing_infos[entry_listing](response)
-                return jsonify(response)
-
-        # else not valid path
-        return '/'.join(endpoint) + nl + "Error 400: Bad request - last else clause", 400
+        else:
+            # Not valid path
+            msg="Bad request. Endpoint '{}' not recognized.".format(endpoint)
+            response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=path)])
+            return response, response["errors"][0]["status"]
 
 
 class All(Resource):
     def get(self):
+        # Get possible queries
+        queries = request.args
+        base_url = request.url_root + config.PREFIX[1:]
 
-        return "Return all entries"
+        # BASE response
+        response = common_response(request.full_path, base_url)
+
+        return jsonify(response)
 
 
 class Structure(Resource):
@@ -147,10 +139,7 @@ class Structure(Resource):
         base_url = request.url_root + config.PREFIX[1:]
 
         # BASE response
-        representation = "/structures"
-        if queries:
-            representation += "?"
-        response = common_response(representation, base_url)
+        response = common_response(request.full_path, base_url)
 
         for query in queries:
             # Get value of query

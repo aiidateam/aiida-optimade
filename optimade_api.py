@@ -3,7 +3,7 @@
 from flask import Flask
 from flask_restful import Api
 from resources import *
-import config
+import common.config as config
 
 """
 Flask app - OPTiMaDe
@@ -28,6 +28,8 @@ api.add_resource(
 api.add_resource(
     Info,
     '/info',
+    '/all/info',
+    '/structures/info',
     endpoint='info'
 )
 
@@ -40,7 +42,6 @@ api.add_resource(
 api.add_resource(
     Structure,
     '/structures',
-    '/structures/info',
     endpoint='structures'
 )
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-import config
+import common.config as config
 from datetime import datetime
 
 
@@ -164,15 +164,56 @@ def baseurl_info(response):
     return response
 
 
-def structure_info(response):
-    """
-    :response: Existing dict of response
+def all_info(response):
     """
 
-    # /structures "/info"-response
+    :param response:
+    :return:
+    """
+
+    # "/all/info"-response
     data = {
         "type": "info",
-        "id": "/structures",
+        "id": "/all/",
+        "description": "general entry listing endpoint",
+        "properties": {
+            "filter": {
+                "description": "Filter all entries by separate entry-listing properties"
+            },
+            "response_fields": {
+                "description": "Comma-delimited set of fields to be provided in the output"
+            },
+            "response_format": {
+                "description": "Requested output format. Standard: 'jsonapi'"
+            },
+            "response_limit": {
+                "description": "Numerical limit on the number of entries returned"
+            },
+            "email_address": {
+                "description": "E-mail address of user making the request"
+            }
+        },
+        "formats": ['json'],
+        "output_fields_by_format": dict()
+    }
+
+    data["output_fields_by_format"] = dict(json=[key for key in data["properties"]])
+
+    response["data"].append(data)
+
+    return response
+
+
+def structure_info(response):
+    """
+    :param response: Existing dict of response
+    :return:
+    """
+
+    # "/structures/info"-response
+    data = {
+        "type": "info",
+        "id": "/structures/",
         "description": "a structure",
         "properties": {
             "nelements": {
@@ -185,10 +226,10 @@ def structure_info(response):
             }
         },
         "formats": ['json'],
-        "output_fields_by_format": {
-            "json": ["nelements", "elements"]
-        }
+        "output_fields_by_format": dict()
     }
+
+    data["output_fields_by_format"] = dict(json=[key for key in data["properties"]])
 
     response["data"].append(data)
 
@@ -200,7 +241,7 @@ def calculation_info(response):
     :response: Existing dict of response
     """
 
-    # /calculation "/info"-response
+    # "/calculation/info"-response
     data = {
         "type": "info",
         "id": "/calculations",
