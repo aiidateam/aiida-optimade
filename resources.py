@@ -2,11 +2,9 @@
 
 from optimade.filter import Parser
 from transformers import TreeToPy
-import re
 import common.config as config
-from common.utils import valid_version, legacy_version, common_response, baseurl_info, entry_listing_infos, query_parameters, \
-    json_error, all_info
-from flask import url_for, request, redirect, jsonify
+from common.utils import common_response, baseurl_info, entry_listing_infos, all_info, query_parameters, json_error
+from flask import request, jsonify
 from flask_restful import Resource
 
 nl = '<br/>'
@@ -62,111 +60,151 @@ class Optimade(Resource):
         return out
 
 
-class ApiVersion(Resource):
-    def get(self, api_version):
-        if re.match(r'[\d.?]+', api_version):  # TODO: Make regexp better to determine version syntax
-            if valid_version(api_version) and not legacy_version(api_version):
-                #  Latest version
-                return redirect(url_for('optimade'))
-            elif valid_version(api_version):
-                # Valid legacy version
-                return 'You are looking at valid legacy OPTiMaDe version: ' + api_version
-            else:
-                # Invalid version
-                return 'You are looking at an INVALID OPTiMaDe version: ' + api_version + ' - last option', 400
-        else:
-            # InputError
-            return "bad request", 400
+# class ApiVersion(Resource):
+#     def get(self):
+#         if re.match(r'[\d.?]+', api_version):  # TODO: Make regexp better to determine version syntax
+#             if valid_version(api_version) and not legacy_version(api_version):
+#                 #  Latest version
+#                 return redirect(url_for('optimade'))
+#             elif valid_version(api_version):
+#                 # Valid legacy version
+#                 return 'You are looking at valid legacy OPTiMaDe version: ' + api_version
+#             else:
+#                 # Invalid version
+#                 return 'You are looking at an INVALID OPTiMaDe version: ' + api_version + ' - last option', 400
+#         else:
+#             # InputError
+#             return "bad request", 400
 
 
 class Info(Resource):
-    def get(self):
+    def __init__(self, **kwargs):
+        self.prefix = kwargs["PREFIX"]
+        # self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        # self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
+    def get(self, endpoint='info'):
         # Decode url-path
         path = request.path
-        endpoint = path.split('/')[3]
-
-        # base_api_url = config.PREFIX.split('/')[1]
-
-        # endpoint = request.path.split('/')
-        # endpoint = endpoint[1:-1]
-
-        # if endpoint[0] != base_api_url:
-        #     # error
-        #     return '/'.join(endpoint) + "/info" + nl + "Error 400: Bad request, no optimade", 400
+        # endpoint = path.split('/')[2]  # Get 'endpoint' from: /optimade/<endpoint>
+        base_url = request.url_root + self.prefix[1:]
+        full_path = request.full_path.split('/')
+        full_path = '/'.join([''] + full_path[2:])
 
         if endpoint == 'info':
-            # /info
-            response = common_response("/info", config.BASE_URL)
+            # /info or /
+            response = common_response(full_path, base_url)
             response = baseurl_info(response)
             return jsonify(response)
 
         elif endpoint == 'all':
             # /all/info
-            response = common_response("/all/info", config.BASE_URL)
+            response = common_response(full_path, base_url)
             response = all_info(response)
             return jsonify(response)
 
         elif endpoint in config.ENTRY_LISTINGS:
             # /<entry_listing>/info
-            response = common_response("/" + endpoint + "/info", config.BASE_URL)
+            response = common_response(full_path, base_url)
             response = entry_listing_infos[endpoint](response)
             return jsonify(response)
 
         else:
             # Not valid path
-            msg="Bad request. Endpoint '{}' not recognized.".format(endpoint)
+            msg = "Bad request. Endpoint '{}' not recognized.".format(endpoint)
             response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=path)])
             return response, response["errors"][0]["status"]
 
 
 class All(Resource):
-    def get(self):
+    def __init__(self, **kwargs):
+        self.prefix = kwargs["PREFIX"]
+        self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        self.db_max_limit = kwargs["DB_MAX_LIMIT"]
+
+    def get(self, page=None):
         # Get possible queries
-        queries = request.args
-        base_url = request.url_root + config.PREFIX[1:]
+        # queries = request.args
+        base_url = request.url_root + self.prefix[1:]
+        path_elems = request.path.split('/')
+        full_path = request.full_path.split('/')
+        full_path = '/'.join([''] + full_path[2:])
+
+        if 'info' in path_elems[-2:]:
+            return Info(PREFIX=self.prefix).get(endpoint='all')
 
         # BASE response
-        response = common_response(request.full_path, base_url)
+        response = common_response(full_path, base_url)
 
         return jsonify(response)
 
 
 class Structure(Resource):
-    def get(self):
+    def __init__(self, **kwargs):
+        self.prefix = kwargs["PREFIX"]
+        self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        self.db_max_limit = kwargs["DB_MAX_LIMIT"]
+
+    def get(self, page=None):
         # Get possible queries
         queries = request.args
-        base_url = request.url_root + config.PREFIX[1:]
+        base_url = request.url_root + self.prefix[1:]
+        # api_version = request.base_url.split('/')[-2]
+        path_elems = request.path.split('/')
+        full_path = request.full_path.split('/')
+        full_path = '/'.join([''] + full_path[2:])
+
+        # Info-endpoint
+        if 'info' in path_elems[2:]:
+            return Info(PREFIX=self.prefix).get(endpoint='structures')
+
+        # """ Check if special api_version is chosen / is present in url """
+        # if api_version != self.prefix[1:] and re.match(r'v[\d.?]+', api_version):
+        #     if valid_version(api_version):
+        #         base_url += '/' + api_version
+        #     else:
+        #         # Error: Requested version is not a valid current or legacy version
+        #         msg = "Bad request. Version '{}' is not a valid current or legacy version.".format(api_version)
+        #         response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=request.path)])
+        #         return response, response["errors"][0]["status"]
+        # elif api_version != self.prefix[1:]:
+        #     # Error: Requested version is not of a valid format
+        #     msg = "Bad request. Version should be of the format 'v0.9.5' or left out."
+        #     response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=request.path)])
+        #     return response, response["errors"][0]["status"]
 
         # BASE response
-        response = common_response(request.full_path, base_url)
+        response = common_response(full_path, base_url)
 
         for query in queries:
             # Get value of query
             query_value = queries[query]
 
-            # Add query-value-pair to "representation"-url meta-key
-            if response["meta"]["query"]["representation"][-1] == "?":
-                representation = query + "=" + query_value
-            else:
-                representation = "&" + query + "=" + query_value
-            response["meta"]["query"]["representation"] += representation
+            # # Add query-value-pair to "representation"-url meta-key
+            # if response["meta"]["query"]["representation"][-1] == "?":
+            #     representation = query + "=" + query_value
+            # else:
+            #     representation = "&" + query + "=" + query_value
+            # response["meta"]["query"]["representation"] += representation
 
             if query in query_parameters:
                 # Valid query key
 
-                if query != "filter": # Filter query is treated separately
-                    eval = query_parameters[query](query_value)
+                if query != "filter":  # Filter query is treated separately below
+                    status = query_parameters[query](query_value)
 
                     # Error
-                    if isinstance(eval, dict) and eval["status"]:
-                        eval["source"]["pointer"] = "/structures"
+                    if isinstance(status, dict) and status["status"]:
+                        status["source"]["pointer"] = "/structures/"
                         if "errors" in response:
-                            response["errors"].append(eval)
+                            response["errors"].append(status)
                         else:
-                            response["errors"] = [eval]
+                            response["errors"] = [status]
                     # Success
-                    elif isinstance(eval, str) and eval == "200":
+                    elif isinstance(status, str) and status == "200":
+                        # Do the thing
+
+
                         pass
                 # ?filter=
                 elif query == "filter":
@@ -174,7 +212,7 @@ class Structure(Resource):
                 else:
                     msg = "Unknown error during query evaluation. Query: " + \
                           query + "=" + query_value
-                    error = json_error(status=404, detail=msg, pointer="/structures", parameter=query)
+                    error = json_error(status=404, detail=msg, pointer="/structures/", parameter=query)
                     if "errors" in response:
                         response["errors"].append(error)
                     else:
@@ -183,10 +221,10 @@ class Structure(Resource):
                 continue
 
             else:
-                msg = "Invalid query parameter: '" + query + "' Legal query parameters: "
+                msg = "Invalid query parameter: '" + query + "'. Legal query parameters: "
                 for param in query_parameters: msg += "'" + param + "',"
                 msg = msg[:-1]
-                error = json_error(status=418, detail=msg, pointer="/structures", parameter=query)
+                error = json_error(status=418, detail=msg, pointer="/structures/", parameter=query)
                 if "errors" in response:
                     response["errors"].append(error)
                 else:
@@ -196,8 +234,14 @@ class Structure(Resource):
             if len(response["errors"]) > 1:
                 # Returning most generally applicable HTTP error according to JSON
                 # API Error Objects description. Here: 4xx errors
-                return jsonify(response), 400
+                response = jsonify(response)
+                response.status_code = 400
             else:
-                return jsonify(response), int(response["errors"]["status"])
+                status = int(response["errors"][0]["status"])
+                response = jsonify(response)
+                response.status_code = status
         else:
-            return jsonify(response)
+            response = jsonify(response)
+            response.status_code = 200
+
+        return response

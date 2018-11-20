@@ -4,10 +4,10 @@
 # API_VERSIONS = ["v0.9.5", "v1", "v0.8.5", "v0.9.4", "v1.1"]
 API_VERSIONS = ["v0.9.5"]
 API_VERSION_LATEST = sorted(API_VERSIONS)[-1]
-PREFIX = "/optimade/" + API_VERSION_LATEST
+PREFIX = "/optimade"
 BASE_URL = "http://127.0.0.1:5000" + PREFIX
 
-RESPONSE_LIMIT_DEFAULT = 100
+RESPONSE_LIMIT_DEFAULT = 10
 RESPONSE_FORMAT_DEFAULT = 'json'
 RESPONSE_FIELDS_DEFAULT = ['type', 'id', 'attributes', 'links', 'meta', 'relationships']
 

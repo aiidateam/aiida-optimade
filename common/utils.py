@@ -50,8 +50,6 @@ def json_error(status=400, title="ValueError", detail=None, pointer="/", paramet
     """
     JSON API Error Object
     https://jsonapi.org/format/#error-objects
-
-
     """
 
     error = {
@@ -80,22 +78,22 @@ def common_response(endpoint, base_url):
     else:
         api_version = config.API_VERSION_LATEST
 
-    response = {
-        "links": {
-            "next": None,
-            "base_url": base_url  # config.BASE_URL + api_version + "/"
-        },
-        "meta": {
-            "query": {
-                "representation": endpoint
-            },
-            "api_version": config.API_VERSION_LATEST,
-            "time_stamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "data_returned": 1,            # General case
-            "more_data_available": False,  # General case
-        },
-        "data": []
-    }
+    response = dict(
+        links=dict(
+            next=None,
+            base_url=base_url  # config.BASE_URL + api_version + "/"
+        ),
+        meta=dict(
+            query=dict(
+                representation=endpoint
+            ),
+            api_version=config.API_VERSION_LATEST,
+            time_stamp=datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            data_returned=1,            # General case
+            more_data_available=False,  # General case
+        ),
+        data=[]
+    )
 
     return response
 
@@ -111,11 +109,13 @@ def baseurl_info(response):
 
     # TODO:
     # Extra info concerning either:
-    #     o Type-specific entry listing   "/structures" , "/calculations" , ...
-    #     o General entry listing         "/all"
+    #     o Type-specific entry listing   "/structures", "/calculations" , ...
+    #     o General entry listing         "/all/", "/info"
     """
 
     tuple_versions = sorted(api_versions_as_tuples(config.API_VERSIONS), reverse=True)
+
+    base_url_no_ver = config.BASE_URL + '/'
 
     # Create "available_api_versions"-dict with latest version
     last_ver = tuple_versions[0]
@@ -123,7 +123,7 @@ def baseurl_info(response):
         version_url = '.'.join(last_ver[:2])
     else:
         version_url = last_ver[0]
-    available_api_versions = {'.'.join(last_ver): config.BASE_URL + "v" + version_url + "/"}
+    available_api_versions = {'.'.join(last_ver): base_url_no_ver + "v" + version_url + "/"}
 
     # Add legacy versions to "available_api_versions"
     for cur_ver in tuple_versions[1:]:
@@ -140,24 +140,24 @@ def baseurl_info(response):
             version_url = cur_ver[0]
 
         # Add current legacy version to "available_api_versions"
-        available_api_versions['.'.join(cur_ver)] = config.BASE_URL + "v" + version_url + "/"
+        available_api_versions['.'.join(cur_ver)] = base_url_no_ver + "v" + version_url + "/"
 
         # Update previously added version
         last_ver = cur_ver
 
     # Base URL "/info"-response
-    data = {
-        "type": "info",
-        "id": "/",
-        "attributes": {
-            "api_version": config.API_VERSION_LATEST,
-            "available_api_versions": available_api_versions,
-            "formats": config.FORMATS,
-            "entry_types_by_format": {
-                "json": ['structure']
-            }
-        }
-    }
+    data = dict(
+        type="info",
+        id="/",
+        attributes=dict(
+            api_version=config.API_VERSION_LATEST,
+            available_api_versions=available_api_versions,
+            formats=config.FORMATS,
+            entry_types_by_format=dict(
+                json=['structure']
+            )
+        )
+    )
 
     response["data"].append(data)
 
@@ -172,30 +172,30 @@ def all_info(response):
     """
 
     # "/all/info"-response
-    data = {
-        "type": "info",
-        "id": "/all/",
-        "description": "general entry listing endpoint",
-        "properties": {
-            "filter": {
-                "description": "Filter all entries by separate entry-listing properties"
-            },
-            "response_fields": {
-                "description": "Comma-delimited set of fields to be provided in the output"
-            },
-            "response_format": {
-                "description": "Requested output format. Standard: 'jsonapi'"
-            },
-            "response_limit": {
-                "description": "Numerical limit on the number of entries returned"
-            },
-            "email_address": {
-                "description": "E-mail address of user making the request"
-            }
-        },
-        "formats": ['json'],
-        "output_fields_by_format": dict()
-    }
+    data = dict(
+        type="info",
+        id="/all/",
+        description="general entry listing endpoint",
+        properties=dict(
+            filter=dict(
+                description="Filter all entries by separate entry-listing properties"
+            ),
+            response_fields=dict(
+                description="Comma-delimited set of fields to be provided in the output"
+            ),
+            response_format=dict(
+                description="Requested output format. Standard: 'jsonapi'"
+            ),
+            response_limit=dict(
+                description="Numerical limit on the number of entries returned"
+            ),
+            email_address=dict(
+                description="E-mail address of user making the request"
+            )
+        ),
+        formats=["json"],
+        output_fields_by_format=dict()
+    )
 
     data["output_fields_by_format"] = dict(json=[key for key in data["properties"]])
 
@@ -211,23 +211,23 @@ def structure_info(response):
     """
 
     # "/structures/info"-response
-    data = {
-        "type": "info",
-        "id": "/structures/",
-        "description": "a structure",
-        "properties": {
-            "nelements": {
-                "description": "number of elements",
-                "unit": None
-            },
-            "elements": {
-                "description": "list of elements",
-                "unit": None
-            }
-        },
-        "formats": ['json'],
-        "output_fields_by_format": dict()
-    }
+    data = dict(
+        type="info",
+        id="/structures/",
+        description="a structure",
+        properties=dict(
+            nelements=dict(
+                description="number of elements",
+                unit=None
+            ),
+            elements=dict(
+                description="list of elements",
+                unit=None
+            )
+        ),
+        formats=["json"],
+        output_fields_by_format=dict()
+    )
 
     data["output_fields_by_format"] = dict(json=[key for key in data["properties"]])
 
@@ -242,21 +242,21 @@ def calculation_info(response):
     """
 
     # "/calculation/info"-response
-    data = {
-        "type": "info",
-        "id": "/calculations",
-        "description": "a calculation",
-        "properties": {
-            "code": {
-                "description": "code used for calculation",
-                "unit": None
-            }
-        },
-        "formats": ['json'],
-        "output_fields_by_format": {
-            "json": ["code"]
-        }
-    }
+    data = dict(
+        type="info",
+        id="/calculations",
+        description="a calculation",
+        properties=dict(
+            code=dict(
+                description="code used for calculation",
+                unit=None
+            )
+        ),
+        formats=["json"],
+        output_fields_by_format=dict(
+            json=["code"]
+        )
+    )
 
     response["data"].append(data)
 
@@ -265,10 +265,13 @@ def calculation_info(response):
 
 def valid_version(api_version):
     """
-    :param api_version: string of single api_version, ex.: "0.9.5" or "1.1" or "2"
+    :param api_version: string of single api_version, ex.: "v0.9.5" or "1.1" or "v2" or "0.9.5"
 
     :return: boolean
     """
+
+    if re.match(r'v[\d.?]+', api_version):
+        api_version = api_version[1:]
 
     chk_version = baseurl_info({"data": []})
     chk_version = chk_version["data"][0]["attributes"]["available_api_versions"]
