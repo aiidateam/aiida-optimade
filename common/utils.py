@@ -71,7 +71,7 @@ def common_response(endpoint, base_url):
     """
 
     endpoint_list = endpoint.split('/')
-    if re.match(r'v[\d.?]+', endpoint_list[1]):
+    if re.match(r'v(\d.){0,2}\d[a]?', endpoint_list[1]):
         api_version = endpoint_list[1]
         endpoint_list.remove(api_version)
         endpoint = '/'.join(endpoint_list)
@@ -216,13 +216,53 @@ def structure_info(response):
         id="/structures/",
         description="a structure",
         properties=dict(
-            nelements=dict(
-                description="number of elements",
-                unit=None
+            id=dict(
+                description="A structure entry's ID"
+            ),
+            modification_date=dict(
+                description="A date representing when the structure entry was last modified"
             ),
             elements=dict(
-                description="list of elements",
-                unit=None
+                description="Names of elements found in a structure"
+            ),
+            nelements=dict(
+                description="Number of elements found in a structure"
+            ),
+            chemical_formula=dict(
+                description="The chemical formula for a structure"
+            ),
+            formula_prototype=dict(
+                description="The formula prototype obtained by sorting elements by the occurrence number in the "
+                            "reduced chemical formular and replace them with subsequent alphabet letters A, B, "
+                            "C and so on"
+            ),
+            dimension_types=dict(
+                description="A list of three integers. For each of the three directions indicated by the three "
+                            "lattice vectors this list indicates if that direction is periodic (value 1) or "
+                            "non-periodic (value 0)"
+            ),
+            lattice_vectors=dict(
+                description="The three lattice vectors in Cartesian coordinates",
+                unit="Angstrom"
+            ),
+            cartesian_site_positions=dict(
+                description="Cartesian positions of each site. A site is an atom, a site potentially occupied by an "
+                            "atom, or a placeholder for a virtual mixture of atoms (e.g. in a virtual crystal "
+                            "approximation"
+            ),
+            species_at_sites=dict(
+                description="Name of the species at each site (where values for sites are specified with the same "
+                            "order of the cartesian_site_positions properly)"
+            ),
+            species=dict(
+                description="A dictionary describing the species of the sites of this structure. Species can be pure "
+                            "chemical elements or virtual-crystal atoms representing a statistical occupation of a "
+                            "given site by multiple chemical elements. Keys: 'chemical_symbols', 'concentration', "
+                            "'mass', 'original_name'"
+            ),
+            assemblies=dict(
+                description="A description of groups of sites that are statistically correlated. A list of "
+                            "dictionaries with keys: 'sites_in_group', 'group_probabilities'"
             )
         ),
         formats=["json"],
@@ -247,16 +287,21 @@ def calculation_info(response):
         id="/calculations",
         description="a calculation",
         properties=dict(
-            code=dict(
-                description="code used for calculation",
-                unit=None
+            id=dict(
+                description="An calculation entry's ID"
+            ),
+            modification_date=dict(
+                description="A date representing when the calculation entry was last modified"
+            ),
+            _aiida_code=dict(
+                description="The code used by the calculation"
             )
         ),
         formats=["json"],
-        output_fields_by_format=dict(
-            json=["code"]
-        )
+        output_fields_by_format=dict()
     )
+
+    data['output_fields_by_format'] = dict(json=[p for p in data['properties']])
 
     response["data"].append(data)
 
@@ -270,7 +315,7 @@ def valid_version(api_version):
     :return: boolean
     """
 
-    if re.match(r'v[\d.?]+', api_version):
+    if re.match(r'v(\d.){0,2}\d[a]?', api_version):  # Does not check if MINOR ver is present when MAJOR ver = 0
         api_version = api_version[1:]
 
     chk_version = baseurl_info({"data": []})
@@ -352,21 +397,21 @@ def query_response_format(fmt):
              if format=default, response_format will be reset to default
     """
 
-    global response_format
-
-    if fmt in [ "default", "jsonapi", "json" ]:
+    if fmt in ["default", "jsonapi", "json"]:
         response_format = config.RESPONSE_FORMAT_DEFAULT
+        config.RESPONSE_FORMAT = response_format
         return "200"
     elif fmt in config.FORMATS:
         response_format = fmt
+        config.RESPONSE_FORMAT = response_format
         return "200"
     else:
         # Not (yet) allowed format
-        msg = "Requested format '" + fmt + \
-              "' not allowed or not yet implemented. Implemented formats: "
-        for fmt in config.FORMATS: msg += "'" + fmt + "',"
+        msg = "Requested format '" + fmt + "' not allowed or not yet implemented. Implemented formats: "
+        for fmt in config.FORMATS:
+            msg += "'" + fmt + "',"
         msg = msg[:-1]
-        error = json_error(status=418, detail=msg, parameter=response_format)
+        error = json_error(status=418, detail=msg, parameter="response_format")
         return error
 
 
@@ -408,6 +453,17 @@ def query_response_fields(fields):
 
     response_fields = fields
     return "200"
+
+
+def check_version_request():
+    """
+    Before request is resolved, check the requested version
+    :return: error if version does not exist or not supported, else None
+    """
+
+    path = request.path
+
+    return None
 
 
 # Function mapping for queries

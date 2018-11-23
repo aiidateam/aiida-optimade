@@ -5,12 +5,23 @@ from flask_restful import Api
 from resources import *
 import common.config as config
 
-"""
-Flask app - OPTiMaDe
-"""
+from aiida.backends.utils import load_dbenv, is_dbenv_loaded
+
+
+# class OptimadeApp(Flask):
+#     """
+#     Flask app - OPTiMaDe
+#     """
+#
+#     def __init__(self, *args, **kwargs):
+#
+#         super(OptimadeApp, self).__init__(*args, **kwargs)
 
 
 class OptimadeApi(Api):
+    """
+    Flask-RESTful API - OPTiMaDe
+    """
 
     def __init__(self, app=None, **kwargs):
 
@@ -27,7 +38,6 @@ class OptimadeApi(Api):
 
         self.add_resource(
             Info,
-            '/',
             '/info/',
             endpoint='info',
             strict_slashes=False,           # Does not force the last '/' on URLs
@@ -57,6 +67,17 @@ class OptimadeApi(Api):
             resource_class_kwargs=kwargs
         )
 
+        self.add_resource(
+            Calculation,
+            '/calculations/',
+            '/calculations/info/',
+            '/calculations/page/',
+            '/calculations/page/<int:page>/',
+            endpoint='calculations',
+            strict_slashes=False,
+            resource_class_kwargs=kwargs
+        )
+
     # def handle_error(self, e):
     #     """
     #     this method handles the 404 "URL not found" exception and return custom message
@@ -80,11 +101,37 @@ class OptimadeApi(Api):
     #     raise e
 
 
+# def create_api(config_fn):
+#     opt_app = Flask(__name__)
+#     opt_app.config.from_pyfile(config_fn)
+#
+#     return app
+
+
 if __name__ == '__main__':
-    app = Flask(__name__)
+
+    # TODO: Implement way of handling versioning.
+
+    # for version in config.API_VERSIONS:
+    #     if version == config.API_VERSION_LATEST:
+    #         app = create_api(config)
+
+    opt_app = Flask(__name__)
 
     api_kwargs = dict(PREFIX=config.PREFIX, RESPONSE_LIMIT_DEFAULT=config.RESPONSE_LIMIT_DEFAULT,
                       DB_MAX_LIMIT=config.DB_MAX_LIMIT)
 
-    api = OptimadeApi(app, **api_kwargs)
+    api = OptimadeApi(opt_app, **api_kwargs)
+
+    # Add redirect rules for base_url to /optimade/info/
+    api.app.add_url_rule('/', endpoint='optimade', redirect_to='/optimade/')
+    api.app.add_url_rule('/optimade/', endpoint='optimade', redirect_to='/optimade/info/')
+
+    # Add rule for latest version to be used as default
+    api.app.add_url_rule('/optimade/' + config.API_VERSION_LATEST + '/', endpoint='optimade', redirect_to='/optimade/')
+
+    """ AiiDA """
+    if not is_dbenv_loaded():
+        load_dbenv()
+
     api.app.run(debug=True)
