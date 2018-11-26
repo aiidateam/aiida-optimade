@@ -3,7 +3,8 @@
 # from optimade.filter import Parser
 # from transformers import TreeToPy
 import common.config as config
-from common.utils import common_response, baseurl_info, entry_listing_infos, all_info, query_parameters, json_error
+from common.utils import common_response, baseurl_info, entry_listing_infos, all_info, query_parameters, json_error,\
+    get_structure_properties
 from flask import request, jsonify
 from flask_restful import Resource
 
@@ -152,14 +153,19 @@ class Structure(Resource):
         self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
-        # basic query_help object
+        self._label = "structures"
+        self._type = "structure"
+
+        # basic query_help object (from aiida-restapi)
         self._query_help = {
             "path": [{
                 "type": "data.structure.StructureData.",
-                "label": "structures"
+                "label": self._label
             }],
             "filters": {},
-            "project": {},
+            "project": {"structures": [  # ['**']},
+                "id", "label", "ctime", "mtime", "uuid", "user_id", "user_email", "attributes"
+            ]},
             "order_by": {}
         }
 
@@ -176,7 +182,7 @@ class Structure(Resource):
 
         # Info-endpoint
         if 'info' in path_elems[2:]:
-            return Info(PREFIX=self.prefix).get(endpoint='structures')
+            return Info(PREFIX=self.prefix).get(endpoint=self._label)
 
         # """ Check if special api_version is chosen / is present in url """
         # if api_version != self.prefix[1:] and re.match(r'v(\d.){0,2}\d[a]?', api_version):
@@ -201,13 +207,6 @@ class Structure(Resource):
             # Get value of query
             query_value = queries[query]
 
-            # # Add query-value-pair to "representation"-url meta-key
-            # if response["meta"]["query"]["representation"][-1] == "?":
-            #     representation = query + "=" + query_value
-            # else:
-            #     representation = "&" + query + "=" + query_value
-            # response["meta"]["query"]["representation"] += representation
-
             if query in query_parameters:
                 # Valid query key
 
@@ -216,7 +215,7 @@ class Structure(Resource):
 
                     # Error
                     if isinstance(status, dict) and status["status"]:
-                        status["source"]["pointer"] = "/structures/"
+                        status["source"]["pointer"] = "/{}/".format(self._label)
                         if "errors" in response:
                             response["errors"].append(status)
                         else:
@@ -227,10 +226,15 @@ class Structure(Resource):
                 # ?filter=
                 elif query == "filter":
                     pass
+                    # TODO: Finish writing filter. Should contain filters for:
+                    #       Date-time queries.
+                    #       elements
+                    #       nelements
+
                 else:
                     msg = "Unknown error during query evaluation. Query: " + \
                           query + "=" + query_value
-                    error = json_error(status=404, detail=msg, pointer="/structures/", parameter=query)
+                    error = json_error(status=404, detail=msg, pointer="/{}/".format(self._label), parameter=query)
                     if "errors" in response:
                         response["errors"].append(error)
                     else:
@@ -242,27 +246,69 @@ class Structure(Resource):
                 msg = "Invalid query parameter: '" + query + "'. Legal query parameters: "
                 for param in query_parameters: msg += "'" + param + "',"
                 msg = msg[:-1]
-                error = json_error(status=418, detail=msg, pointer="/structures/", parameter=query)
+                error = json_error(status=418, detail=msg, pointer="/{}/".format(self._label), parameter=query)
                 if "errors" in response:
                     response["errors"].append(error)
                 else:
                     response["errors"] = [error]
 
-        # TODO: Put here: Get structures (using possible queries)
+        # TODO: Use queries
         """ Retrieve and return structures """
         # Initialize QueryBuilder-object
         self.qbobj.__init__(**self._query_help)
 
-        default_projections = [
-            "id", "label", "type", "ctime", "mtime", "uuid", "user_id", "user_email", "attributes", "extras"
-        ]
+        # Count results and retrieve them
+        total_count = self.qbobj.count()
+        results = [res[self._label] for res in self.qbobj.dict()]
 
-        results = [res["structures"] for res in self.qbobj.dict()]
-        print(results)
+        # Update meta in response
+        if total_count is not None and total_count != 0:
+            response["meta"]["data_returned"] = total_count
+        else:
+            response["meta"]["data_returned"] = 0
 
-        data = dict(structures=results)
-        response["data"] = data
+        for entry in results:
+            # Update type and id for entry
+            entry["type"] = self._type
+            entry["id"] = str(entry["id"])
 
+            # Add base property attributes
+            add_attr = dict(
+                local_id=entry["id"],
+                last_modified=entry.pop("mtime"),  # TODO: Change to correct datetime-format
+                immutable_id=entry["uuid"],
+            )
+
+            # Add entry-specific property attributes
+            attr = entry["attributes"]
+
+            structure_attr = dict(
+                dimension_types=[int(attr.pop("pbc" + str(i+1))) for i in range(3)],
+                lattice_vectors=attr.pop("cell"),
+            )
+
+            # Update attributes
+            attr.update(add_attr)
+            attr.update(structure_attr)
+            attr.update(get_structure_properties(attr.pop("sites"), attr.pop("kinds")))
+
+            # Add entry-specific meta-info
+            entry_meta = dict()
+
+            entry_keys = [k for k in entry]
+            for key in entry_keys:
+                if key in ["attributes", "id", "type"]:
+                    continue
+                else:
+                    db_prefix = "_aiida_"
+                    entry_meta[db_prefix + key] = entry.pop(key)
+
+            entry["meta"] = entry_meta
+
+        # Update data in response
+        response["data"] = results
+
+        """ Check for errors in response """
         if "errors" in response:
             if len(response["errors"]) > 1:
                 # Returning most generally applicable HTTP error according to JSON
@@ -277,6 +323,7 @@ class Structure(Resource):
             response = jsonify(response)
             response.status_code = 200
 
+        """ Return final response """
         return response
 
 

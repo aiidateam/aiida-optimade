@@ -59,6 +59,7 @@ class OptimadeApi(Api):
         self.add_resource(
             Structure,
             '/structures/',
+            '/structures/<int:id>/',
             '/structures/info/',
             '/structures/page/',
             '/structures/page/<int:page>/',
@@ -70,6 +71,7 @@ class OptimadeApi(Api):
         self.add_resource(
             Calculation,
             '/calculations/',
+            '/calculations/<int:id>/',
             '/calculations/info/',
             '/calculations/page/',
             '/calculations/page/<int:page>/',

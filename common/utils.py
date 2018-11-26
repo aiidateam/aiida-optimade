@@ -461,9 +461,111 @@ def check_version_request():
     :return: error if version does not exist or not supported, else None
     """
 
-    path = request.path
+    # path = request.path
 
     return None
+
+
+def get_structure_properties(attr_sites, attr_kinds):
+    """
+    Translate AiiDA query results to OPTiMaDe JSON Object entries
+
+    :param attr_sites: list of sites from query of StructureData in AiiDA DB under "attributes"
+    :param attr_kinds: list of element kinds from query of StructureData in AiiDA DB under "attributes"
+    :return: dict that will be updated in attributes-dict
+    """
+
+    # Type check(s)
+    if not isinstance(attr_sites, list):
+        raise TypeError
+    if not isinstance(attr_kinds, list):
+        raise TypeError
+
+    # Initiate
+    sites = dict()
+    site_positions = list()
+    site_species = list()
+    chemical_content = dict()
+    elements = list()
+    chemical_formula = ""
+    species = dict()
+
+    # Retrieve sites
+    for site in attr_sites:
+        kind_name = site["kind_name"]
+        position = site["position"]
+
+        # Count number of sites for 'kind'
+        if kind_name in sites:
+            sites[kind_name] += 1
+        else:
+            sites[kind_name] = 1
+
+        site_positions.append(position)
+        site_species.append(kind_name)
+
+    # Retrieve 'kinds'
+    for kind in attr_kinds:
+        kind_name = kind["name"]
+        kind_sites = sites[kind_name]
+        kind_weight_sum = 0
+
+        # Retrieve elements in 'kind'
+        for i in range(len(kind["symbols"])):
+            element = kind["symbols"][i]
+            weight = kind["weights"][i]
+
+            # Accumulating sum of weights
+            kind_weight_sum += weight
+
+            # Calculate content of element
+            if element in chemical_content:
+                chemical_content[element] += weight * kind_sites
+            else:
+                chemical_content[element] = weight * kind_sites
+
+            # Determine unique elements
+            if element not in elements:
+                elements.append(element)
+
+        # Create 'species' entry
+        species[kind_name] = dict(
+            chemical_symbols=kind["symbols"],
+            concentration=kind["weights"],
+            mass=kind["mass"],
+            original_name=kind_name
+        )
+
+        if re.match(r'[\w]*X[\d]*', kind_name):
+            # Species includes vacancy
+            species[kind_name]["chemical_symbols"].append("vacancy")
+
+            # Calculate vacancy concentration
+            if 0. < kind_weight_sum < 1.:
+                species[kind_name]["concentration"].append(1.-kind_weight_sum)
+            else:
+                raise ValueError
+
+    # Parse chem_form dict to a string with format example "Si24Al2O72Cu1.03"
+    # TODO: Calculate the REDUCED chemical formula to return
+    for element, nelement in chemical_content.items():
+        # nelement = int(nelement * 10) / 10
+        if nelement == 1.:
+            chemical_formula += "{}".format(element)
+        else:
+            chemical_formula += "{}{:n}".format(element, nelement)
+
+    # Collect data in dict-to-be-returned
+    data = dict(
+        elements=','.join([element for element in chemical_content]),
+        nelements=len(chemical_content),
+        chemical_formula=chemical_formula,
+        cartesian_site_positions=site_positions,
+        species_at_sites=site_species,
+        species=species
+    )
+
+    return data
 
 
 # Function mapping for queries
