@@ -70,13 +70,13 @@ def common_response(endpoint, base_url):
     :endpoint: String with part of URL following the base URL
     """
 
-    endpoint_list = endpoint.split('/')
-    if re.match(r'v(\d.){0,2}\d[a]?', endpoint_list[1]):
-        api_version = endpoint_list[1]
-        endpoint_list.remove(api_version)
-        endpoint = '/'.join(endpoint_list)
-    else:
-        api_version = config.API_VERSION_LATEST
+    # endpoint_list = endpoint.split('/')
+    # if re.match(r'v(\d.){0,2}\d[a]?', endpoint_list[1]):
+    #     api_version = endpoint_list[1]
+    #     endpoint_list.remove(api_version)
+    #     endpoint = '/'.join(endpoint_list)
+    # else:
+    #     api_version = config.API_VERSION_LATEST
 
     response = dict(
         links=dict(
@@ -566,6 +566,30 @@ def get_structure_properties(attr_sites, attr_kinds):
     )
 
     return data
+
+
+def get_dt_format(dt):
+    """
+    Reformat AiiDA query datetime object to OPTiMaDe datetime format standard
+
+    Since AiiDA datetime objects are produced using psycopg2, they should all include a tzinfo object as well,
+    and thus be 'aware' datetime objects.
+    So dt.utcoffset() should never be None for a true AiiDA query datetime object.
+
+    :param dt: AiiDA query datetime as datetime.datetime
+    :return: Reformatted OPTiMaDe datetime as datetime.datetime
+    """
+
+    # Type check
+    if not isinstance(dt, datetime):
+        raise TypeError
+
+    if dt.utcoffset() is None:
+        raise TypeError
+    else:
+        dt = dt - dt.utcoffset()
+
+    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 # Function mapping for queries

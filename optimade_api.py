@@ -47,6 +47,7 @@ class OptimadeApi(Api):
         self.add_resource(
             All,
             '/all/',
+            '/all/<int:id>/',
             '/all/info/',
             '/all/page/',
             '/all/page/<int:page>/',
@@ -121,7 +122,7 @@ if __name__ == '__main__':
     opt_app = Flask(__name__)
 
     api_kwargs = dict(PREFIX=config.PREFIX, RESPONSE_LIMIT_DEFAULT=config.RESPONSE_LIMIT_DEFAULT,
-                      DB_MAX_LIMIT=config.DB_MAX_LIMIT)
+                      DB_MAX_LIMIT=config.DB_MAX_LIMIT, DB_PREFIX=config.DB_PREFIX)
 
     api = OptimadeApi(opt_app, **api_kwargs)
 

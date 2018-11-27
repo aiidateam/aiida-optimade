@@ -4,7 +4,7 @@
 # from transformers import TreeToPy
 import common.config as config
 from common.utils import common_response, baseurl_info, entry_listing_infos, all_info, query_parameters, json_error,\
-    get_structure_properties
+    get_structure_properties, get_dt_format
 from flask import request, jsonify
 from flask_restful import Resource
 
@@ -130,7 +130,7 @@ class All(Resource):
         self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
-    def get(self, page=None):
+    def get(self, id=None, page=None):
         # Get possible queries
         # queries = request.args
         base_url = request.url_root + self.prefix[1:]
@@ -152,6 +152,7 @@ class Structure(Resource):
         self.prefix = kwargs["PREFIX"]
         self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
+        self.db_prefix = kwargs["DB_PREFIX"]
 
         self._label = "structures"
         self._type = "structure"
@@ -163,15 +164,15 @@ class Structure(Resource):
                 "label": self._label
             }],
             "filters": {},
-            "project": {"structures": [  # ['**']},
-                "id", "label", "ctime", "mtime", "uuid", "user_id", "user_email", "attributes"
+            "project": {self._label: [  # ['**']},
+                "id", "label", "ctime", "mtime", "uuid", "user_id", "user_email", "attributes", "extras"
             ]},
             "order_by": {}
         }
 
         self.qbobj = QueryBuilder()
 
-    def get(self, page=None):
+    def get(self, id=None, page=None):
         # Get possible queries
         queries = request.args  # Immutabable dict of (k,v) queries
         base_url = request.url_root + self.prefix[1:]
@@ -255,11 +256,29 @@ class Structure(Resource):
         # TODO: Use queries
         """ Retrieve and return structures """
         # Initialize QueryBuilder-object
+        if id is not None:
+            # Single-entry from id
+            id_filter = {self._label: {'id': {'==': id}}}
+            self._query_help["filters"].update(id_filter)
+
         self.qbobj.__init__(**self._query_help)
 
         # Count results and retrieve them
         total_count = self.qbobj.count()
         results = [res[self._label] for res in self.qbobj.dict()]
+
+        # Check if any results are found
+        if total_count == 0:
+            pointer = '/' + '/'.join(path_elems[2:])
+            if id is not None:
+                msg = "Id: '{}' could not be found in the database".format(id)
+            else:
+                msg = "No {} were found in the database".format(self._label)
+            error = json_error(status=404, title="ValueError", detail=msg, pointer=pointer)
+            if "errors" in response:
+                response["errors"].append(error)
+            else:
+                response["errors"] = [error]
 
         # Update meta in response
         if total_count is not None and total_count != 0:
@@ -275,7 +294,7 @@ class Structure(Resource):
             # Add base property attributes
             add_attr = dict(
                 local_id=entry["id"],
-                last_modified=entry.pop("mtime"),  # TODO: Change to correct datetime-format
+                last_modified=get_dt_format(entry.pop("mtime")),
                 immutable_id=entry["uuid"],
             )
 
@@ -297,11 +316,36 @@ class Structure(Resource):
 
             entry_keys = [k for k in entry]
             for key in entry_keys:
+                # Skip valid OPTiMaDe JSON values/dict keys
                 if key in ["attributes", "id", "type"]:
                     continue
+
+                # Extract nested JSON Objects/Python dicts from AiiDA query out into meta
+                elif key in ["extras"]:
+                    extra_prefix = "{}_".format(key)  # Additional prefix after db_prefix
+
+                    entry_extra_keys = [k for k in entry[key]]
+                    for extra_key in entry_extra_keys:
+                        if extra_key.startswith(self.db_prefix):
+                            new_key = extra_key[len(self.db_prefix):]
+                            new_key = ''.join([self.db_prefix, extra_prefix, new_key])
+                            entry_meta[new_key] = entry[key].pop(extra_key)
+                        else:
+                            new_key = ''.join([self.db_prefix, extra_prefix, extra_key])
+                            entry_meta[new_key] = entry[key].pop(extra_key)
+
+                    # Remove nested JSON Object/Python dict
+                    if not entry[key]:
+                        entry.pop(key)
+                    else:
+                        raise KeyError
+
+                # Append database prefix to JSON values/dict keys
                 else:
-                    db_prefix = "_aiida_"
-                    entry_meta[db_prefix + key] = entry.pop(key)
+                    if key.startswith(self.db_prefix):
+                        entry_meta[key] = entry.pop(key)
+                    else:
+                        entry_meta[self.db_prefix + key] = entry.pop(key)
 
             entry["meta"] = entry_meta
 
@@ -328,12 +372,18 @@ class Structure(Resource):
 
 
 class Calculation(Resource):
+    """
+    NB!
+
+    For now this resource ONLY serves as a snapshot of how the Structure resource used to be!
+
+    """
     def __init__(self, **kwargs):
         self.prefix = kwargs["PREFIX"]
         self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
-    def get(self, page=None):
+    def get(self, id=None, page=None):
         # Get possible queries
         queries = request.args
         base_url = request.url_root + self.prefix[1:]

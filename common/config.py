@@ -13,6 +13,7 @@ RESPONSE_FIELDS_DEFAULT = ['type', 'id', 'attributes', 'links', 'meta', 'relatio
 
 RESPONSE_LIMIT = RESPONSE_LIMIT_DEFAULT
 DB_MAX_LIMIT = 1000
+DB_PREFIX = "_aiida_"
 
 # FORMATS = ['json', 'xml']
 FORMATS = ['json']
