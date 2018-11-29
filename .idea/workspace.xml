@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4a3aa4e1-c00a-4958-95e3-3fb2b01875b1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/common/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/optimade_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/optimade_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources.py" beforeDir="false" afterPath="$PROJECT_DIR$/resources.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,17 +15,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/optimade_api.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="960">
-              <caret line="73" column="26" selection-start-line="73" selection-start-column="26" selection-end-line="73" selection-end-column="26" />
+            <state relative-caret-position="465">
+              <caret line="46" column="26" selection-start-line="46" selection-start-column="26" selection-end-line="46" selection-end-column="26" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/resources.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="647">
-              <caret line="304" lean-forward="true" selection-start-line="304" selection-end-line="304" />
+            <state relative-caret-position="150">
+              <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
             </state>
           </provider>
         </entry>
@@ -42,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="562">
-              <caret line="553" column="52" lean-forward="true" selection-start-line="553" selection-start-column="52" selection-end-line="553" selection-end-column="52" />
+            <state relative-caret-position="518">
+              <caret line="615" column="33" selection-start-line="615" selection-start-column="33" selection-end-line="615" selection-end-column="33" />
             </state>
           </provider>
         </entry>
@@ -54,8 +51,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="18" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+            <state relative-caret-position="150">
+              <caret line="10" column="32" selection-start-line="10" selection-start-column="32" selection-end-line="10" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -92,11 +89,11 @@
         <option value="$PROJECT_DIR$/utils.py" />
         <option value="$PROJECT_DIR$/common/__init__.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
-        <option value="$PROJECT_DIR$/common/config.py" />
         <option value="$PROJECT_DIR$/common/flask_configs/v0.9.7a.py" />
+        <option value="$PROJECT_DIR$/common/config.py" />
+        <option value="$PROJECT_DIR$/common/utils.py" />
         <option value="$PROJECT_DIR$/optimade_api.py" />
         <option value="$PROJECT_DIR$/resources.py" />
-        <option value="$PROJECT_DIR$/common/utils.py" />
       </list>
     </option>
   </component>
@@ -224,7 +221,21 @@
       <option name="project" value="LOCAL" />
       <updated>1542989762160</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Updated /structure/ endpoint, now parsing correctly&#10;&#10;Updated the Structure resource and added the function get_structure_properties to utils. It &quot;translates&quot; the AiiDA query for StructureData into OPTiMaDe schema and properties for the JSON output. Yet, no pageing and other TODOs.">
+      <created>1543259877889</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1543259877889</updated>
+    </task>
+    <task id="LOCAL-00006" summary="/structures/ endpoint working as intended - except pageing&#10;&#10;Implemented /structures/&lt;int:id&gt;/ endpoint to request a single entry.&#10;id reflects pkid in AiiDA DB.&#10;ONLY /structures/ and /info/ endpoints are &quot;truly&quot; implemented.">
+      <created>1543328779464</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1543328779464</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TodoView">
@@ -265,7 +276,9 @@
     <MESSAGE value="Made into application&#10;&#10;Moved config.py and utils.py into common folder." />
     <MESSAGE value="Made OptimadeApi(flask_restful.Api) class&#10;&#10;Iterated over how config.PREFIX and others should be defined.&#10;Thinking about version-control. Will try to instantiate a class instance of OptimadeApi() depending on requested version, and will otherwise go to latest version." />
     <MESSAGE value="Further consideration how to do versioning&#10;&#10;Versioning should probably be done by multiple app instances.&#10;First QueryBuilder test. So far, cannot be JSON serialized,&#10;but we're getting somewhere." />
-    <option name="LAST_COMMIT_MESSAGE" value="Further consideration how to do versioning&#10;&#10;Versioning should probably be done by multiple app instances.&#10;First QueryBuilder test. So far, cannot be JSON serialized,&#10;but we're getting somewhere." />
+    <MESSAGE value="Updated /structure/ endpoint, now parsing correctly&#10;&#10;Updated the Structure resource and added the function get_structure_properties to utils. It &quot;translates&quot; the AiiDA query for StructureData into OPTiMaDe schema and properties for the JSON output. Yet, no pageing and other TODOs." />
+    <MESSAGE value="/structures/ endpoint working as intended - except pageing&#10;&#10;Implemented /structures/&lt;int:id&gt;/ endpoint to request a single entry.&#10;id reflects pkid in AiiDA DB.&#10;ONLY /structures/ and /info/ endpoints are &quot;truly&quot; implemented." />
+    <option name="LAST_COMMIT_MESSAGE" value="/structures/ endpoint working as intended - except pageing&#10;&#10;Implemented /structures/&lt;int:id&gt;/ endpoint to request a single entry.&#10;id reflects pkid in AiiDA DB.&#10;ONLY /structures/ and /info/ endpoints are &quot;truly&quot; implemented." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/config.py" />
@@ -286,17 +299,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/config.py">
+    <entry file="file://$PROJECT_DIR$/common/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="18" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+        <state relative-caret-position="518">
+          <caret line="615" column="33" selection-start-line="615" selection-start-column="33" selection-end-line="615" selection-end-column="33" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/optimade_api.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="960">
-          <caret line="73" column="26" selection-start-line="73" selection-start-column="26" selection-end-line="73" selection-end-column="26" />
+        <state relative-caret-position="465">
+          <caret line="46" column="26" selection-start-line="46" selection-start-column="26" selection-end-line="46" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="32" selection-start-line="10" selection-start-column="32" selection-end-line="10" selection-end-column="32" />
         </state>
       </provider>
     </entry>
@@ -309,15 +329,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/resources.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="647">
-          <caret line="304" lean-forward="true" selection-start-line="304" selection-end-line="304" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="562">
-          <caret line="553" column="52" lean-forward="true" selection-start-line="553" selection-start-column="52" selection-end-line="553" selection-end-column="52" />
+        <state relative-caret-position="150">
+          <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
         </state>
       </provider>
     </entry>

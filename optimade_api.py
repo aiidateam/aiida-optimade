@@ -2,7 +2,7 @@
 
 from flask import Flask
 from flask_restful import Api
-from resources import *
+from resources import Info, All, Structure, Calculation
 import common.config as config
 
 from aiida.backends.utils import load_dbenv, is_dbenv_loaded
