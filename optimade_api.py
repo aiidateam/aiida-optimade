@@ -5,18 +5,6 @@ from flask_restful import Api
 from resources import Info, All, Structure, Calculation
 import common.config as config
 
-from aiida.backends.utils import load_dbenv, is_dbenv_loaded
-
-
-# class OptimadeApp(Flask):
-#     """
-#     Flask app - OPTiMaDe
-#     """
-#
-#     def __init__(self, *args, **kwargs):
-#
-#         super(OptimadeApp, self).__init__(*args, **kwargs)
-
 
 class OptimadeApi(Api):
     """
@@ -28,13 +16,6 @@ class OptimadeApi(Api):
         self.app = app
 
         super(OptimadeApi, self).__init__(app=app, prefix=kwargs['PREFIX'], catch_all_404s=False)
-
-        # self.add_resource(
-        #     ApiVersion,
-        #     '/v<string:api_version>/',
-        #     strict_slashes=False,
-        #     endpoint='api_version'
-        # )
 
         self.add_resource(
             Info,
@@ -81,6 +62,7 @@ class OptimadeApi(Api):
             resource_class_kwargs=kwargs
         )
 
+    """ From AiiDA REST-API """
     # def handle_error(self, e):
     #     """
     #     this method handles the 404 "URL not found" exception and return custom message
@@ -104,20 +86,9 @@ class OptimadeApi(Api):
     #     raise e
 
 
-# def create_api(config_fn):
-#     opt_app = Flask(__name__)
-#     opt_app.config.from_pyfile(config_fn)
-#
-#     return app
-
-
 if __name__ == '__main__':
 
     # TODO: Implement way of handling versioning.
-
-    # for version in config.API_VERSIONS:
-    #     if version == config.API_VERSION_LATEST:
-    #         app = create_api(config)
 
     opt_app = Flask(__name__)
 
@@ -131,10 +102,7 @@ if __name__ == '__main__':
     api.app.add_url_rule('/optimade/', endpoint='optimade', redirect_to='/optimade/info/')
 
     # Add rule for latest version to be used as default
-    api.app.add_url_rule('/optimade/' + config.API_VERSION_LATEST + '/', endpoint='optimade', redirect_to='/optimade/')
-
-    """ AiiDA """
-    if not is_dbenv_loaded():
-        load_dbenv()
+    api.app.add_url_rule('/optimade/' + config.API_VERSION_LATEST + '/', endpoint='optimade', \
+        redirect_to='/optimade/')
 
     api.app.run(debug=True)

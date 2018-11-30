@@ -4,13 +4,12 @@ import re
 import common.config as config
 from datetime import datetime
 
-
 """ 
 Utils
 
 Utility functions
 
-TODO: Should be updated so that it ONLY contains utility functions
+TODO: Should be updated so that it only contains utility functions
 """
 
 

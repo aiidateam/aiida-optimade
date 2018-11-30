@@ -9,80 +9,10 @@ from flask import request, jsonify
 from flask_restful import Resource
 
 from aiida.backends.utils import is_dbenv_loaded, load_dbenv
-""" AiiDA """
 if not is_dbenv_loaded():
     load_dbenv()
 
 from aiida.orm.querybuilder import QueryBuilder
-
-nl = '<br/>'
-
-
-# class Optimade(Resource):
-#     def get(self):
-#         # Default base_url
-#
-#         ##### TESTING ######
-#
-#         p = Parser()
-#         version = 'v' + '.'.join(str(v) for v in p.version)
-#         out = 'OPTiMaDe - version: ' + version + 3*nl
-#
-#         tree = p.parse("filter=a<3 AND (b=true OR c=true)")
-#         t = TreeToPy()
-#         out += str(t.transform(tree)) + 2*nl
-#
-#         filt = t.transform(tree)
-#         filt = {filt[0]: filt[1]}
-#
-#         out += str(filt) + 2*nl
-#
-#         for k in filt:
-#             out += k + 2*nl
-#
-#         def get_condition(condition):
-#             if isinstance(condition, tuple) and len(condition) == 3:
-#                 return ''.join(condition)
-#             else:
-#                 return condition
-#
-#         for v in filt['filter=']:
-#             v = get_condition(v)
-#             out += str(v) + " - " + "first" + 2*nl
-#             if isinstance(v, list):
-#                 for i in v:
-#                     i = get_condition(i)
-#                     out += str(i) + " - " + "second" + 2*nl
-#                     if isinstance(i, list):
-#                         for j in i:
-#                             j = get_condition(j)
-#                             out += str(j) + " - " + "third" + 2*nl
-#                             if isinstance(j, list):
-#                                 for k in j:
-#                                     k = get_condition(k)
-#                                     out += str(k) + " - " + "fourth" + 2*nl
-#                                     if isinstance(k, list):
-#                                         for lm in k:
-#                                             lm = get_condition(lm)
-#                                             out += str(lm) + " - " + "fifth" + 2*nl
-#         return out
-
-
-# class ApiVersion(Resource):
-#     def get(self):
-#         if re.match(r'(\d.){0,2}\d[a]?', api_version):
-#             if valid_version(api_version) and not legacy_version(api_version):
-#                 #  Latest version
-#                 return redirect(url_for('optimade'))
-#             elif valid_version(api_version):
-#                 # Valid legacy version
-#                 return 'You are looking at valid legacy OPTiMaDe version: ' + api_version
-#             else:
-#                 # Invalid version
-#                 return 'You are looking at an INVALID OPTiMaDe version: ' + api_version + ' - last option', 400
-#         else:
-#             # InputError
-#             return "bad request", 400
 
 
 class Info(Resource):
@@ -184,21 +114,6 @@ class Structure(Resource):
         # Info-endpoint
         if 'info' in path_elems[2:]:
             return Info(PREFIX=self.prefix).get(endpoint=self._label)
-
-        # """ Check if special api_version is chosen / is present in url """
-        # if api_version != self.prefix[1:] and re.match(r'v(\d.){0,2}\d[a]?', api_version):
-        #     if valid_version(api_version):
-        #         base_url += '/' + api_version
-        #     else:
-        #         # Error: Requested version is not a valid current or legacy version
-        #         msg = "Bad request. Version '{}' is not a valid current or legacy version.".format(api_version)
-        #         response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=request.path)])
-        #         return response, response["errors"][0]["status"]
-        # elif api_version != self.prefix[1:]:
-        #     # Error: Requested version is not of a valid format
-        #     msg = "Bad request. Version should be of the format 'v0.9.5' or left out."
-        #     response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=request.path)])
-        #     return response, response["errors"][0]["status"]
 
         # Common response
         response = common_response(full_path, base_url)

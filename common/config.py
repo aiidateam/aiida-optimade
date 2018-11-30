@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # Default / config
-# API_VERSIONS = ["v0.9.5", "v1", "v0.9.6a", "v0.9.6", "v0.9.7a", "v0.9.7"]
 API_VERSIONS = ["v0.9.5", "v0.9.7a"]  # alpha-versions are equivalent to the develop branch on GitHub
 API_VERSION_LATEST = sorted(API_VERSIONS)[-1]
 PREFIX = "/optimade"
@@ -24,6 +23,4 @@ USER_EMAIL_ADDRESS = 'anonymous@optimade.com'
 RESPONSE_FIELDS = RESPONSE_FIELDS_DEFAULT
 
 # Endpoints
-ENTRY_LISTINGS = ['computers', 'nodes', 'calculations', 'data', 'codes',
-                  'structures', 'kpoints', 'bands', 'upfs', 'cifs', 'users', 'groups']
-# ENTRY_LISTINGS = [ 'structures' ]
+ENTRY_LISTINGS = ['structures', 'calculations']
