@@ -363,52 +363,46 @@ def legacy_version(api_version):
 def query_response_limit(limit):
     """
     :param limit: integer as string, new queried response_limit
-                  if limit=default, response_limit will be reset to default
+    :return: integer: response limit of data to be returned
+        or   dict: JSON Error Object
     """
-
-    global response_limit
-
-    if limit == "default":
-        response_limit = config.RESPONSE_LIMIT_DEFAULT
-        return "200"
 
     try:
         limit = int(limit)
     except ValueError:
-        msg = "response_limit must be 'default' or an integer"
+        msg = "response_limit must be an integer"
         error = json_error(detail=msg, parameter="response_limit")
         return error
 
+    # Check that limit is not larger than allowed by DB
     if limit <= config.DB_MAX_LIMIT:
-        response_limit = limit
-        return "200"
+        return limit
     else:
-        msg = "Request not allowed by database. Max response_limit = " + str(config.DB_MAX_LIMIT)
+        msg = "Request not allowed by database. Max response_limit = {}".format(config.DB_MAX_LIMIT)
         error = json_error(status=403, detail=msg, parameter="response_limit")
         return error
 
 
-def query_response_format(fmt):
+def query_response_format(format_):
     """
-    Only allowed formats: jsonapi / json
+    Default response format: JSON (see config for actual default)
 
-    :format: string, new queried response_format
+    :param format_: string, new queried response_format
              if format=default, response_format will be reset to default
+    :return: string: response format to be returned
+        or   dict: JSON Error Object
     """
 
-    if fmt in ["default", "jsonapi", "json"]:
-        response_format = config.RESPONSE_FORMAT_DEFAULT
-        config.RESPONSE_FORMAT = response_format
-        return "200"
-    elif fmt in config.FORMATS:
-        response_format = fmt
-        config.RESPONSE_FORMAT = response_format
-        return "200"
+    if format_ == "default":
+        return config.RESPONSE_FORMAT
+    elif format_ in config.RESPONSE_FORMATS:
+        return format_
     else:
         # Not (yet) allowed format
-        msg = "Requested format '" + fmt + "' not allowed or not yet implemented. Implemented formats: "
-        for fmt in config.FORMATS:
-            msg += "'" + fmt + "',"
+        msg = "Requested format '{}' is not allowed or not yet implemented." \
+              "Implemented formats: ".format(format_)
+        for f in config.RESPONSE_FORMATS:
+            msg += "'{}',".format(f)
         msg = msg[:-1]
         error = json_error(status=418, detail=msg, parameter="response_format")
         return error
@@ -416,7 +410,9 @@ def query_response_format(fmt):
 
 def query_email_address(email):
     """
-    :email: string, new specified user e-mail-address
+    :param email: string, new specified user e-mail-address
+    :return: string: e-mail-address for user querying DB
+        or   dict: JSON Error Object
     """
 
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -425,44 +421,37 @@ def query_email_address(email):
         error = json_error(status=400, detail=msg, parameter="email_address")
         return error
     else:
-        global user_email_address
-        user_email_address = email
-        return "200"
+        return email
 
 
 def query_response_fields(fields):
     """
-    :fields: comma-separated string, queried response_fields
+    :param fields: comma-separated string, queried response_fields
              if fields=default, response_fields will be reset to default
+    :return: list of strings: requested response fields to be returned in data
+        or   dict: JSON Error Object
     """
 
-    global response_fields
+    valid_response_fields = ['type', 'id', 'attributes', 'local_id', 'last_modified',
+                             'immutable_id', 'links', 'meta', 'relationships']
 
     fields = fields.split(',')
+
+    false_fields = list()
+    true_fields = list()
+
     for field in fields:
-        if field == "default":
-            # Reset response_fields to default
-            response_fields = config.RESPONSE_FIELDS_DEFAULT
-            return "200"
-        elif field not in config.RESPONSE_FIELDS_DEFAULT:
-            # Not valid field
-            msg = "Requested field '" + field + "' is not valid"
-            error = json_error(status=418, detail=msg, parameter="response_fields")
-            return error
+        if field not in valid_response_fields:
+            false_fields.append(field)
+        else:
+            true_fields.append(field)
 
-    response_fields = fields
-    return "200"
+    if false_fields is not []:
+        msg = "Requested field '{}' is not valid".format(field)
+        error = json_error(status=418, detail=msg, parameter="response_fields")
+        return error
 
-
-def check_version_request():
-    """
-    Before request is resolved, check the requested version
-    :return: error if version does not exist or not supported, else None
-    """
-
-    # path = request.path
-
-    return None
+    return fields
 
 
 def get_structure_properties(attr_sites, attr_kinds):
@@ -591,8 +580,35 @@ def get_dt_format(dt):
     return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+def handle_queries(queries):
+    """
+    :param queries: dict: Query keyword and values
+    :return: Valid query values
+    """
+
+    # Initialize
+    filter_ = queries['filter'] if 'filter' in queries else None
+    format_ = queries['response_format'] if 'response_format' in queries else None
+    email   = queries['email_address'] if 'email_address' in queries else None
+    limit   = queries['response_limit'] if 'response_limit' in queries else None
+    fields  = queries['response_fields'] if 'response_fields' in queries else None
+
+    # Get query values
+    # TODO: Add 'filter'
+    if format_:
+        format_ = QUERY_PARAMETERS['response_format'](format_)
+    if email:
+        email = QUERY_PARAMETERS['email_address'](email)
+    if limit:
+        limit = QUERY_PARAMETERS['response_limit'](limit)
+    if fields:
+        fields = QUERY_PARAMETERS['response_fields'](fields)
+
+    return (filter_, format_, email, limit, fields)
+
+
 # Function mapping for queries
-query_parameters = {
+QUERY_PARAMETERS = {
     'filter': None,
     'response_format': query_response_format,
     'email_address': query_email_address,
@@ -601,7 +617,7 @@ query_parameters = {
 }
 
 # Function mapping for <entry_listing>/info/
-entry_listing_infos = {
+ENTRY_LISTING_INFOS = {
     'structures': structure_info,
     'calculations': calculation_info
 }
@@ -624,3 +640,65 @@ def list_routes():
         output.append(line)
 
     return sorted(set(output))
+
+
+def paginate(self, page, perpage, total_count):
+        """
+        Calculates limit and offset for the reults of a query,
+        given the page and the number of restuls per page.
+        Moreover, calculates the last available page and raises an exception
+        if the required page exceeds that limit.
+        If number of rows==0, only page 1 exists
+        :param page: integer number of the page that has to be viewed
+        :param perpage: integer defining how many results a page contains
+        :param total_count: the total number of rows retrieved by the query
+        :return: integers: limit, offset, rel_pages
+        """
+        from math import ceil
+
+        """ Type checks """
+        # Mandatory params
+        try:
+            page = int(page)
+        except ValueError:
+            raise ValueError("page number must be an integer")
+        try:
+            total_count = int(total_count)
+        except ValueError:
+            raise ValueError("total_count must be an integer")
+        # Non-mandatory params
+        if perpage is not None:
+            try:
+                perpage = int(perpage)
+            except ValueError:
+                raise ValueError("perpage must be an integer")
+        else:
+            perpage = self.perpage_default
+
+        # First_page is anyway 1
+        first_page = 1
+
+        # Calculate last page
+        if total_count == 0:
+            last_page = 1
+        else:
+            last_page = int(ceil(total_count / perpage))
+
+        # Check validity of required page and calculate limit, offset, previous, and next page
+        if page > last_page or page < 1:
+            raise ValueError("Non existent page requested."
+                             "The page range is [{} : {}]".format(first_page, last_page))
+
+        limit = perpage
+        offset = (page - 1) * perpage
+        prev_page = None
+        if page > 1:
+            prev_page = page - 1
+
+        next_page = None
+        if page < last_page:
+            next_page = page + 1
+
+        rel_pages = dict(prev=prev_page, next=next_page, first=first_page, last=last_page)
+
+        return (limit, offset, rel_pages)
