@@ -4,7 +4,7 @@
 # from transformers import TreeToPy
 import common.config as config
 from common.utils import common_response, baseurl_info, ENTRY_LISTING_INFOS, all_info, \
-    QUERY_PARAMETERS, json_error, get_structure_properties, get_dt_format
+    QUERY_PARAMETERS, json_error, get_structure_properties, get_dt_format, handle_queries
 from flask import request, jsonify
 from flask_restful import Resource
 
@@ -57,7 +57,7 @@ class Info(Resource):
 class All(Resource):
     def __init__(self, **kwargs):
         self.prefix = kwargs["PREFIX"]
-        self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        self.response_limit = kwargs["RESPONSE_LIMIT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
     def get(self, id=None, page=None):
@@ -80,7 +80,7 @@ class All(Resource):
 class Structure(Resource):
     def __init__(self, **kwargs):
         self.prefix = kwargs["PREFIX"]
-        self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        self.response_limit = kwargs["RESPONSE_LIMIT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
         self.db_prefix = kwargs["DB_PREFIX"]
 
@@ -135,52 +135,35 @@ class Structure(Resource):
 
         # Check if any results are found
         if total_count == 0:
-            pointer = '/' + '/'.join(path_elems[2:])
             if id is not None:
                 msg = "Id: '{}' could not be found in the database".format(id)
             else:
                 msg = "No {} were found in the database".format(self._label)
-            error = json_error(status=404, title="ValueError", detail=msg, pointer=pointer)
-            if "errors" in self.response:
-                self.response["errors"].append(error)
-            else:
-                self.response["errors"] = [error]
+            self._add_error(json_error(status=404, detail=msg))
 
         # Check validity of queries and prune to include ONLY valid queries
-        queries = _check_queries(queries)
+        queries = self._check_queries(queries)
         
         # Handle possible present queries
         (filter_, format_, email, limit, fields) = handle_queries(queries)
 
-        if query != "filter":  # Filter query is treated separately below
-            status = QUERY_PARAMETERS[query](query_value)
+        # Check for errors
+        # TODO: Add 'filter'
+        if isinstance(format_, dict):
+            self._add_error(format_)
+        if isinstance(email, dict):
+            self._add_error(email)
+        if isinstance(limit, dict):
+            self._add_error(limit)
+        for field in fields:
+            if isinstance(field, dict):
+                self._add_error(fields.pop())
+                break
 
-            # Error
-            if isinstance(status, dict) and status["status"]:
-                status["source"]["pointer"] = "/{}/".format(self._label)
-                if "errors" in self.response:
-                    self.response["errors"].append(status)
-                else:
-                    self.response["errors"] = [status]
-            # Success
-            elif isinstance(status, str) and status == "200":
-                pass
-        # ?filter=
-        elif query == "filter":
-            pass
-            # TODO: Finish writing filter. Should contain filters for:
-            #       Date-time queries.
-            #       elements
-            #       nelements
-
-        else:
-            msg = "Unknown error during query evaluation. Query: " + \
-                    query + "=" + query_value
-            error = json_error(status=404, detail=msg, pointer="/{}/".format(self._label), parameter=query)
-            if "errors" in self.response:
-                self.response["errors"].append(error)
-            else:
-                self.response["errors"] = [error]
+        # TODO: Finish writing filter. Should contain filters for:
+        #       Date-time queries.
+        #       elements
+        #       nelements
 
         # Update meta in response
         if total_count is not None and total_count != 0:
@@ -188,6 +171,8 @@ class Structure(Resource):
         else:
             self.response["meta"]["data_returned"] = 0
 
+        """ Go through retrieved results and add to response """
+        # TODO: Apply queries
         for entry in results:
             # Update type and id for entry
             entry["type"] = self._type
@@ -273,35 +258,53 @@ class Structure(Resource):
         return self.response
 
     def _check_queries(self, queries_inp):
-    """
-    Check validity of queries (keywords following '?' in URL)
-    Allowed query keywords: ['filter', 'response_format', 'response_limit', 'response_fields',
-                             'email_address']
+        """
+        Check validity of queries (keywords following '?' in URL)
+        Allowed query keywords: ['filter', 'response_format', 'response_limit', 'response_fields',
+                                'email_address']
 
-    :param queries_inp: ImmutableDict: query keyword and value
-    :return: dict: valid queries similar to 'queries'
-    """
+        :param queries_inp: ImmutableDict: query keyword and value
+        :return: dict: valid queries similar to 'queries'
+        """
 
-    # Initialize
-    queries = dict()
+        # Initialize
+        queries = dict()
 
-    # Check queries
-    for query, value in queries_inp.items():
-        if query not in QUERY_PARAMETERS:
-            msg = "Invalid query parameter: '{}'. Legal query parameters: ".format(query)
-            for param in QUERY_PARAMETERS: msg += "'{}',".format(param)
-            msg = msg[:-1]
-            error = json_error(status=418, detail=msg, pointer="/{}/".format(self._label), \
-                parameter=query)
-            if "errors" in self.response:
-                self.response["errors"].append(error)
+        # Check queries
+        for query, value in queries_inp.items():
+            if query not in QUERY_PARAMETERS:
+                msg = "Invalid query parameter: '{}'. Legal query parameters: ".format(query)
+                for param in QUERY_PARAMETERS: msg += "'{}',".format(param)
+                msg = msg[:-1]
+                error = json_error(status=418, detail=msg, pointer="/{}/".format(self._label), \
+                    parameter=query)
+                if "errors" in self.response:
+                    self.response["errors"].append(error)
+                else:
+                    self.response["errors"] = [error]
             else:
-                self.response["errors"] = [error]
-        else:
-            queries[query] = value
-    
-    return queries
+                queries[query] = value
+        
+        return queries
 
+    def _add_error(self, error):
+        """
+        Add JSON Error object to response
+
+        :param error: dict: JSON Error object
+        """
+
+        # Set 'pointer' in 'source' if not set already
+        if "pointer" not in error["source"]:
+            pointer = request.path.split('/')
+            pointer = '/'.join(pointer[2:])
+            error["source"]["pointer"] = "/{}".format(pointer)
+
+        # Add error to response
+        if "errors" in self.response:
+            self.response["errors"].append(error)
+        else:
+            self.response["errors"] = [error]
 
 class Calculation(Resource):
     """
@@ -312,7 +315,7 @@ class Calculation(Resource):
     """
     def __init__(self, **kwargs):
         self.prefix = kwargs["PREFIX"]
-        self.response_limit_default = kwargs["RESPONSE_LIMIT_DEFAULT"]
+        self.response_limit = kwargs["RESPONSE_LIMIT"]
         self.db_max_limit = kwargs["DB_MAX_LIMIT"]
 
     def get(self, id=None, page=None):

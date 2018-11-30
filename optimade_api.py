@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     opt_app = Flask(__name__)
 
-    api_kwargs = dict(PREFIX=config.PREFIX, RESPONSE_LIMIT_DEFAULT=config.RESPONSE_LIMIT_DEFAULT,
+    api_kwargs = dict(PREFIX=config.PREFIX, RESPONSE_LIMIT=config.RESPONSE_LIMIT,
                       DB_MAX_LIMIT=config.DB_MAX_LIMIT, DB_PREFIX=config.DB_PREFIX)
 
     api = OptimadeApi(opt_app, **api_kwargs)

@@ -151,7 +151,7 @@ def baseurl_info(response):
         attributes=dict(
             api_version=config.API_VERSION_LATEST,
             available_api_versions=available_api_versions,
-            formats=config.FORMATS,
+            formats=config.RESPONSE_FORMATS,
             entry_types_by_format=dict(
                 json=['structure']
             )
@@ -371,16 +371,14 @@ def query_response_limit(limit):
         limit = int(limit)
     except ValueError:
         msg = "response_limit must be an integer"
-        error = json_error(detail=msg, parameter="response_limit")
-        return error
+        return json_error(detail=msg, parameter="response_limit")
 
     # Check that limit is not larger than allowed by DB
     if limit <= config.DB_MAX_LIMIT:
         return limit
     else:
         msg = "Request not allowed by database. Max response_limit = {}".format(config.DB_MAX_LIMIT)
-        error = json_error(status=403, detail=msg, parameter="response_limit")
-        return error
+        return json_error(status=403, detail=msg, parameter="response_limit")
 
 
 def query_response_format(format_):
@@ -404,8 +402,8 @@ def query_response_format(format_):
         for f in config.RESPONSE_FORMATS:
             msg += "'{}',".format(f)
         msg = msg[:-1]
-        error = json_error(status=418, detail=msg, parameter="response_format")
-        return error
+
+        return json_error(status=418, detail=msg, parameter="response_format")
 
 
 def query_email_address(email):
@@ -418,8 +416,7 @@ def query_email_address(email):
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         # Not proper e-mail-format
         msg = "E-mail-address format not correct. Example: user@example.com"
-        error = json_error(status=400, detail=msg, parameter="email_address")
-        return error
+        return json_error(status=400, detail=msg, parameter="email_address")
     else:
         return email
 
@@ -442,16 +439,25 @@ def query_response_fields(fields):
 
     for field in fields:
         if field not in valid_response_fields:
+            # Requested field not part of valid fields
             false_fields.append(field)
         else:
+            # Requested field is OK
             true_fields.append(field)
 
-    if false_fields is not []:
+    if len(false_fields) > 1:
+        msg = "Requested fields are not valid: "
+        for field in false_fields:
+            msg += "'{}',".format(field)
+            msg = msg[:-1]
+        error = json_error(status=418, detail=msg, parameter="response_fields")
+        true_fields.append(error)
+    elif len(false_fields) == 1:
         msg = "Requested field '{}' is not valid".format(field)
         error = json_error(status=418, detail=msg, parameter="response_fields")
-        return error
+        true_fields.append(error)
 
-    return fields
+    return true_fields
 
 
 def get_structure_properties(attr_sites, attr_kinds):

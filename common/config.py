@@ -9,12 +9,11 @@ BASE_URL = "http://127.0.0.1:5000" + PREFIX
 RESPONSE_LIMIT = 10
 RESPONSE_FORMAT = 'json'
 
-RESPONSE_LIMIT = RESPONSE_LIMIT_DEFAULT
 DB_MAX_LIMIT = 1000
 DB_PREFIX = "_aiida_"
 
 # FORMATS = ['json', 'xml']
-RESPONSE_FORMATS = ['json', 'jsonapi']
+RESPONSE_FORMATS = ['json']
 
 USER_EMAIL_ADDRESS = 'anonymous@optimade.com'
 
