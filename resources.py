@@ -12,7 +12,7 @@ from aiida.backends.utils import is_dbenv_loaded, load_dbenv
 if not is_dbenv_loaded():
     load_dbenv()
 
-from aiida.orm.querybuilder import QueryBuilder
+from aiida.orm.querybuilder import QueryBuilder  # pylint: disable=wrong-import-position
 
 
 class Info(Resource):
@@ -35,23 +35,22 @@ class Info(Resource):
             response = baseurl_info(response)
             return jsonify(response)
 
-        elif endpoint == 'all':
+        if endpoint == 'all':
             # /all/info
             response = common_response(full_path, base_url)
             response = all_info(response)
             return jsonify(response)
 
-        elif endpoint in config.ENTRY_LISTINGS:
+        if endpoint in config.ENTRY_LISTINGS:
             # /<entry_listing>/info
             response = common_response(full_path, base_url)
             response = ENTRY_LISTING_INFOS[endpoint](response)
             return jsonify(response)
 
-        else:
-            # Not valid path
-            msg = "Bad request. Endpoint '{}' not recognized.".format(endpoint)
-            response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=path)])
-            return response, response["errors"][0]["status"]
+        # Not valid path
+        msg = "Bad request. Endpoint '{}' not recognized.".format(endpoint)
+        response = dict(errors=[json_error(status=400, title="InputError", detail=msg, pointer=path)])
+        return response, response["errors"][0]["status"]
 
 
 class All(Resource):

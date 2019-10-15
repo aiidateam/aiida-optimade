@@ -37,7 +37,7 @@ class OptimadeApi(Api):
             resource_class_kwargs=kwargs
         )
 
-        """ Resources and endpoints specific to AiiDA """
+        # """ Resources and endpoints specific to AiiDA """
         self.add_resource(
             Structure,
             '/structures/',
@@ -62,7 +62,7 @@ class OptimadeApi(Api):
             resource_class_kwargs=kwargs
         )
 
-    """ From AiiDA REST-API """
+    # """ From AiiDA REST-API """
     # def handle_error(self, e):
     #     """
     #     this method handles the 404 "URL not found" exception and return custom message

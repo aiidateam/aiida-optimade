@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-
-import re
-import common.config as config
-from datetime import datetime
-
 """ 
 Utils
 
@@ -11,6 +6,9 @@ Utility functions
 
 TODO: Should be updated so that it only contains utility functions
 """
+import re
+import common.config as config
+from datetime import datetime
 
 
 def api_versions_as_tuples(api_versions, cut="PATCH"):
@@ -348,16 +346,15 @@ def legacy_version(api_version):
         return False
 
     # Latest MAJOR.MINOR version chosen
-    elif len(api_version_list) == 2 and api_version_list == api_version_latest_list[:2]:
+    if len(api_version_list) == 2 and api_version_list == api_version_latest_list[:2]:
         return False
 
     # Latest MAJOR version that is NOT "0"
-    elif len(api_version_list) == 1 and api_version_list[0] != "0" \
+    if len(api_version_list) == 1 and api_version_list[0] != "0" \
             and api_version_list[0] == api_version_latest_list[0]:
         return False
 
-    else:
-        return True
+    return True
 
 
 def query_response_limit(limit):
@@ -376,9 +373,8 @@ def query_response_limit(limit):
     # Check that limit is not larger than allowed by DB
     if limit <= config.DB_MAX_LIMIT:
         return limit
-    else:
-        msg = "Request not allowed by database. Max response_limit = {}".format(config.DB_MAX_LIMIT)
-        return json_error(status=403, detail=msg, parameter="response_limit")
+    msg = "Request not allowed by database. Max response_limit = {}".format(config.DB_MAX_LIMIT)
+    return json_error(status=403, detail=msg, parameter="response_limit")
 
 
 def query_response_format(format_):
@@ -393,17 +389,17 @@ def query_response_format(format_):
 
     if format_ == "default":
         return config.RESPONSE_FORMAT
-    elif format_ in config.RESPONSE_FORMATS:
+    if format_ in config.RESPONSE_FORMATS:
         return format_
-    else:
-        # Not (yet) allowed format
-        msg = "Requested format '{}' is not allowed or not yet implemented." \
-              "Implemented formats: ".format(format_)
-        for f in config.RESPONSE_FORMATS:
-            msg += "'{}',".format(f)
-        msg = msg[:-1]
 
-        return json_error(status=418, detail=msg, parameter="response_format")
+    # Not (yet) allowed format
+    msg = "Requested format '{}' is not allowed or not yet implemented." \
+            "Implemented formats: ".format(format_)
+    for f in config.RESPONSE_FORMATS:
+        msg += "'{}',".format(f)
+    msg = msg[:-1]
+
+    return json_error(status=418, detail=msg, parameter="response_format")
 
 
 def query_email_address(email):
@@ -417,8 +413,8 @@ def query_email_address(email):
         # Not proper e-mail-format
         msg = "E-mail-address format not correct. Example: user@example.com"
         return json_error(status=400, detail=msg, parameter="email_address")
-    else:
-        return email
+
+    return email
 
 
 def query_response_fields(fields):
@@ -453,14 +449,14 @@ def query_response_fields(fields):
         error = json_error(status=418, detail=msg, parameter="response_fields")
         true_fields.append(error)
     elif len(false_fields) == 1:
-        msg = "Requested field '{}' is not valid".format(field)
+        msg = "Requested field '{}' is not valid".format(false_fields)
         error = json_error(status=418, detail=msg, parameter="response_fields")
         true_fields.append(error)
 
     return true_fields
 
 
-def get_structure_properties(attr_sites, attr_kinds):
+def get_structure_properties(attr_sites, attr_kinds):  # pylint: disable=too-many-locals,too-many-branches
     """
     Translate AiiDA query results to OPTiMaDe JSON Object entries
 
@@ -580,8 +576,8 @@ def get_dt_format(dt):
 
     if dt.utcoffset() is None:
         raise TypeError
-    else:
-        dt = dt - dt.utcoffset()
+
+    dt = dt - dt.utcoffset()
 
     return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -649,62 +645,62 @@ def list_routes():
 
 
 def paginate(self, page, perpage, total_count):
-        """
-        Calculates limit and offset for the reults of a query,
-        given the page and the number of restuls per page.
-        Moreover, calculates the last available page and raises an exception
-        if the required page exceeds that limit.
-        If number of rows==0, only page 1 exists
-        :param page: integer number of the page that has to be viewed
-        :param perpage: integer defining how many results a page contains
-        :param total_count: the total number of rows retrieved by the query
-        :return: integers: limit, offset, rel_pages
-        """
-        from math import ceil
+    """
+    Calculates limit and offset for the reults of a query,
+    given the page and the number of restuls per page.
+    Moreover, calculates the last available page and raises an exception
+    if the required page exceeds that limit.
+    If number of rows==0, only page 1 exists
+    :param page: integer number of the page that has to be viewed
+    :param perpage: integer defining how many results a page contains
+    :param total_count: the total number of rows retrieved by the query
+    :return: integers: limit, offset, rel_pages
+    """
+    from math import ceil
 
-        """ Type checks """
-        # Mandatory params
+    # """ Type checks """
+    # Mandatory params
+    try:
+        page = int(page)
+    except ValueError:
+        raise ValueError("page number must be an integer")
+    try:
+        total_count = int(total_count)
+    except ValueError:
+        raise ValueError("total_count must be an integer")
+    # Non-mandatory params
+    if perpage is not None:
         try:
-            page = int(page)
+            perpage = int(perpage)
         except ValueError:
-            raise ValueError("page number must be an integer")
-        try:
-            total_count = int(total_count)
-        except ValueError:
-            raise ValueError("total_count must be an integer")
-        # Non-mandatory params
-        if perpage is not None:
-            try:
-                perpage = int(perpage)
-            except ValueError:
-                raise ValueError("perpage must be an integer")
-        else:
-            perpage = self.perpage_default
+            raise ValueError("perpage must be an integer")
+    else:
+        perpage = self.perpage_default
 
-        # First_page is anyway 1
-        first_page = 1
+    # First_page is anyway 1
+    first_page = 1
 
-        # Calculate last page
-        if total_count == 0:
-            last_page = 1
-        else:
-            last_page = int(ceil(total_count / perpage))
+    # Calculate last page
+    if total_count == 0:
+        last_page = 1
+    else:
+        last_page = int(ceil(total_count / perpage))
 
-        # Check validity of required page and calculate limit, offset, previous, and next page
-        if page > last_page or page < 1:
-            raise ValueError("Non existent page requested."
-                             "The page range is [{} : {}]".format(first_page, last_page))
+    # Check validity of required page and calculate limit, offset, previous, and next page
+    if page > last_page or page < 1:
+        raise ValueError("Non existent page requested."
+                            "The page range is [{} : {}]".format(first_page, last_page))
 
-        limit = perpage
-        offset = (page - 1) * perpage
-        prev_page = None
-        if page > 1:
-            prev_page = page - 1
+    limit = perpage
+    offset = (page - 1) * perpage
+    prev_page = None
+    if page > 1:
+        prev_page = page - 1
 
-        next_page = None
-        if page < last_page:
-            next_page = page + 1
+    next_page = None
+    if page < last_page:
+        next_page = page + 1
 
-        rel_pages = dict(prev=prev_page, next=next_page, first=first_page, last=last_page)
+    rel_pages = dict(prev=prev_page, next=next_page, first=first_page, last=last_page)
 
-        return (limit, offset, rel_pages)
+    return (limit, offset, rel_pages)
