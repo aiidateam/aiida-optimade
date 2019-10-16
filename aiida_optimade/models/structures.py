@@ -115,72 +115,72 @@ the values not to sum to one are the same as those specified for the
 
 class StructureResourceAttributes(EntryResourceAttributes):
 
-#     elements: str = Schema(
-#         ...,
-#         description="""Names of elements found in the structure as a list of strings,
-# in alphabetical order."""
-#     )
+    elements: str = Schema(
+        ...,
+        description="""Names of elements found in the structure as a list of strings,
+in alphabetical order.""",
+    )
 
-#     nelements: int = Schema(..., description="Number of elements found in a structure.")
+    nelements: int = Schema(..., description="Number of elements found in a structure.")
 
-#     elements_ratios: List[float] = Schema(
-#         ...,
-#         description="""Relative proportions of different elements in the structure.
-# This must sum to 1.0 (within floating point accuracy)."""
-#     )
+    elements_ratios: List[float] = Schema(
+        ...,
+        description="""Relative proportions of different elements in the structure.
+This must sum to 1.0 (within floating point accuracy).""",
+    )
 
-#     chemical_formula_descriptive: str = Schema(
-#         ...,
-#         description="""The chemical formula for a structure as a string in a form
-# chosen by the API implementation.
+    chemical_formula_descriptive: str = Schema(
+        ...,
+        description="""The chemical formula for a structure as a string in a form
+chosen by the API implementation.
 
-# * **Requirements/Conventions**:
-#   * The chemical formula is given as a string consisting of properly capitalized
-#     element symbols followed by integers or decimal numbers, balanced parentheses,
-#     square, and curly brackets `(`, `)`, `[`, `]`, `{`, `}`, commas, the `+`, `-`,
-#     `:` and `=` symbols. The parentheses are allowed to be followed by a number.
-#     Spaces are allowed anywhere except within chemical symbols. The order of elements
-#     and any groupings indicated by parentheses or brackets are chosen freely by the
-#     API implementation.
-#   * The string SHOULD be arithmetically consistent with the element ratios in the
-#     `chemical_formula_reduced` property.
-#   * It is RECOMMENDED, but not mandatory, that symbols, parentheses and brackets, if
-#     used, are used with the meanings prescribed by IUPAC's Nomenclature of Organic
-#     Chemistry.
+* **Requirements/Conventions**:
+  * The chemical formula is given as a string consisting of properly capitalized
+    element symbols followed by integers or decimal numbers, balanced parentheses,
+    square, and curly brackets `(`, `)`, `[`, `]`, `{`, `}`, commas, the `+`, `-`,
+    `:` and `=` symbols. The parentheses are allowed to be followed by a number.
+    Spaces are allowed anywhere except within chemical symbols. The order of elements
+    and any groupings indicated by parentheses or brackets are chosen freely by the
+    API implementation.
+  * The string SHOULD be arithmetically consistent with the element ratios in the
+    `chemical_formula_reduced` property.
+  * It is RECOMMENDED, but not mandatory, that symbols, parentheses and brackets, if
+    used, are used with the meanings prescribed by IUPAC's Nomenclature of Organic
+    Chemistry.
 
-# * **Examples**:
-#   * `"(H2O)2 Na"`
-#   * `"NaCl"`
-#   * `"CaCO3"`
-#   * `"CCaO3"`
-#   * `"(CH3)3N+ - [CH2]2-OH = Me3N+ - CH2 - CH2OH"`"""
-#     )
+* **Examples**:
+  * `"(H2O)2 Na"`
+  * `"NaCl"`
+  * `"CaCO3"`
+  * `"CCaO3"`
+  * `"(CH3)3N+ - [CH2]2-OH = Me3N+ - CH2 - CH2OH"`""",
+    )
 
-#     chemical_formula_reduced: str = Schema(
-#         ...,
-#         description="""The reduced chemical formula for a structure as a string with
-# element symbols and integer chemical proportion numbers.
+    chemical_formula_reduced: str = Schema(
+        ...,
+        description="""The reduced chemical formula for a structure as a string with
+element symbols and integer chemical proportion numbers.
 
-# * **Requirements/Conventions**:
-#   * Element names MUST have proper capitalization (e.g. "Si", not "SI" for "silicon").
-#   * Elements MUST be placed in alphabetical order, followed by their integer chemical
-#     proportion number.
-#   * For structures with no partial occupation, the chemical proportion numbers are the
-#     smallest integers for which the chemical proportion is exactly correct.
-#   * For structures with partial occupation, the chemical proportion numbers are integers
-#     that within reasonable approximation indicate the correct chemical proportions. The
-#     precise details of how to perform the rounding is chosen by the API implementation.
-#   * No spaces or separators are allowed.
-#   * Support for filters using partial string matching with this property is OPTIONAL
-#     (i.e., BEGINS WITH, ENDS WITH, and CONTAINS). Intricate querying on formula
-#     components are instead recommended to be formulated using set-type filter operators
-#     on the multi valued `elements` and `elements_proportions` properties.
+* **Requirements/Conventions**:
+  * Element names MUST have proper capitalization (e.g. "Si", not "SI" for "silicon").
+  * Elements MUST be placed in alphabetical order, followed by their integer chemical
+    proportion number.
+  * For structures with no partial occupation, the chemical proportion numbers are the
+    smallest integers for which the chemical proportion is exactly correct.
+  * For structures with partial occupation, the chemical proportion numbers are integers
+    that within reasonable approximation indicate the correct chemical proportions. The
+    precise details of how to perform the rounding is chosen by the API implementation.
+  * No spaces or separators are allowed.
+  * Support for filters using partial string matching with this property is OPTIONAL
+    (i.e., BEGINS WITH, ENDS WITH, and CONTAINS). Intricate querying on formula
+    components are instead recommended to be formulated using set-type filter operators
+    on the multi valued `elements` and `elements_proportions` properties.
 
-# * **Examples**:
-#   * `"H2NaO"`
-#   * `"ClNa"`
-#   * `"CCaO3"`"""
-#     )
+* **Examples**:
+  * `"H2NaO"`
+  * `"ClNa"`
+  * `"CCaO3"`""",
+    )
 
     chemical_formula_hill: Optional[str] = Schema(
         ...,
@@ -213,44 +213,44 @@ integer chemical proportion numbers. The proportion number MUST be omitted if it
 """,
     )
 
-#     chemical_formula_anonymous: str = Schema(
-#         ...,
-#         description="""The anonymous formula is the `chemical_formula_reduced`, but
-# where the elements are instead first ordered by their chemical proportion number, and
-# then, in order left to right, replaced by anonymous symbols
-# `A, B, C, ..., Z, Aa, Ba, ..., Za, Ab, Bb, ...` and so on.
+    chemical_formula_anonymous: str = Schema(
+        ...,
+        description="""The anonymous formula is the `chemical_formula_reduced`, but
+where the elements are instead first ordered by their chemical proportion number, and
+then, in order left to right, replaced by anonymous symbols
+`A, B, C, ..., Z, Aa, Ba, ..., Za, Ab, Bb, ...` and so on.
 
-# * **Requirements/Conventions**:
-#   * Support for filters using partial string matching with this property is OPTIONAL
-#     (i.e. BEGINS WITH, ENDS WITH and CONTAINS).
+* **Requirements/Conventions**:
+  * Support for filters using partial string matching with this property is OPTIONAL
+    (i.e. BEGINS WITH, ENDS WITH and CONTAINS).
 
-# * **Examples**:
-#   * `"A2B"`
-#   * `"A42B42C16D12E10F9G5"`
+* **Examples**:
+  * `"A2B"`
+  * `"A42B42C16D12E10F9G5"`
 
-# """,
-#     )
+""",
+    )
 
-#     dimension_types: conlist(len_eq=3) = Schema(
-#         ...,
-#         description="""List of three integers. For each of the three directions
-# indicated by the three lattice vectors (see property `lattice_vectors`). This list
-# indicates if the direction is periodic (value `1`) or non-periodic (value `0`). Note:
-# the elements in this list each refer to the direction of the corresponding entry in
-# `lattice_vectors`.
+    dimension_types: conlist(len_eq=3) = Schema(
+        ...,
+        description="""List of three integers. For each of the three directions
+indicated by the three lattice vectors (see property `lattice_vectors`). This list
+indicates if the direction is periodic (value `1`) or non-periodic (value `0`). Note:
+the elements in this list each refer to the direction of the corresponding entry in
+`lattice_vectors`.
 
-# * **Requirements/Conventions**:
-#   * Each element MUST be an integer and MUST assume only the value of `0` or `1`.
+* **Requirements/Conventions**:
+  * Each element MUST be an integer and MUST assume only the value of `0` or `1`.
 
-# * **Examples**:
-#   * For a molecule: `[0, 0, 0]`
-#   * For a wire along the direction specified by the third lattice vector: `[0, 0, 1]`.
-#   * For a 2D surface/slab, periodic on the plane defined by the first and third lattice
-#     vectors: `[1, 0, 1]`.
-#   * For a bulk 3D system: `[1, 1, 1]`.
+* **Examples**:
+  * For a molecule: `[0, 0, 0]`
+  * For a wire along the direction specified by the third lattice vector: `[0, 0, 1]`.
+  * For a 2D surface/slab, periodic on the plane defined by the first and third lattice
+    vectors: `[1, 0, 1]`.
+  * For a bulk 3D system: `[1, 1, 1]`.
 
-# """,
-#     )
+""",
+    )
 
     lattice_vectors: Optional[List[conlist(len_eq=3)]] = Schema(
         ...,
@@ -283,105 +283,105 @@ in ångströms (Å).
 """,
     )
 
-#     cartesian_site_positions: List[conlist(len_eq=3)] = Schema(
-#         ...,
-#         description="""The Cartesian positions of each site. A site is an atom,
-# a site potentially occupied by an atom, or a placeholder for a virtual mixture of
-# atoms (e.g., in a virtual crystal approximation).
+    cartesian_site_positions: List[conlist(len_eq=3)] = Schema(
+        ...,
+        description="""The Cartesian positions of each site. A site is an atom,
+a site potentially occupied by an atom, or a placeholder for a virtual mixture of
+atoms (e.g., in a virtual crystal approximation).
 
-# * **Requirements/Conventions**:
-#   * It MUST be a list of length N times 3, where N is the number of sites in the
-#     structure.
-#   * An entry MAY have multiple sites at the same Cartesian position (for a
-#     relevant use of this, see e.g., the `assemblies` property.
+* **Requirements/Conventions**:
+  * It MUST be a list of length N times 3, where N is the number of sites in the
+    structure.
+  * An entry MAY have multiple sites at the same Cartesian position (for a
+    relevant use of this, see e.g., the `assemblies` property.
 
-# * **Examples**:
-#   * `[[0, 0, 0], [0, 0, 2]]` indicates a structure with two sites, one sitting
-#     at the origin and one along the (positive) z axis, 2 Å away from the origin.
+* **Examples**:
+  * `[[0, 0, 0], [0, 0, 2]]` indicates a structure with two sites, one sitting
+    at the origin and one along the (positive) z axis, 2 Å away from the origin.
 
-# """,
-#     )
+""",
+    )
 
-#     nsites: int = Schema(
-#         ...,
-#         description="""An integer specifying the length of the
-# `cartesian_site_positions` property.
+    nsites: int = Schema(
+        ...,
+        description="""An integer specifying the length of the
+`cartesian_site_positions` property.
 
-# * **Requirements/Conventions**:
-#   * Queries on this property can be equivalently formulated using
-# `LENGTH cartesian_site_positions`.
+* **Requirements/Conventions**:
+  * Queries on this property can be equivalently formulated using
+`LENGTH cartesian_site_positions`.
 
-# """,
-#     )
+""",
+    )
 
-#     species_at_sites: List[str] = Schema(
-#         ...,
-#         description="""Name of the species at each site (where values for sites
-# are specified with the same order of the `cartesian_site_positions` property).
-# The properties of the species are found in the `species` property.
+    species_at_sites: List[str] = Schema(
+        ...,
+        description="""Name of the species at each site (where values for sites
+are specified with the same order of the `cartesian_site_positions` property).
+The properties of the species are found in the `species` property.
 
-# * **Requirements/Conventions**:
-#   * It MUST be a list of strings, which MUST have length equal to the number of
-#     sites in the structure (the first dimension of the
-#     `cartesian_site_positions` list.
-#   * Each species MUST have a unique name.
-#   * Each species name mentioned in the `species_at_sites` list MUST be described
-#     in the `species` list (i.e. for each value in the `species_at_sites` list
-#     there MUST exist exactly one dictionary in the `species` list with the
-#     `name` attribute equal to the corresponding `species_at_sites` value).
-#   * Each site MUST be associated only to a single species. However, species can
-#     represent mixtures of atoms, and multiple species MAY be defined for the
-#     same chemical element. This latter case is useful when different atoms of
-#     the same type need to be grouped or distinguished, for instance in
-#     simulation codes to assign different initial spin states.
+* **Requirements/Conventions**:
+  * It MUST be a list of strings, which MUST have length equal to the number of
+    sites in the structure (the first dimension of the
+    `cartesian_site_positions` list.
+  * Each species MUST have a unique name.
+  * Each species name mentioned in the `species_at_sites` list MUST be described
+    in the `species` list (i.e. for each value in the `species_at_sites` list
+    there MUST exist exactly one dictionary in the `species` list with the
+    `name` attribute equal to the corresponding `species_at_sites` value).
+  * Each site MUST be associated only to a single species. However, species can
+    represent mixtures of atoms, and multiple species MAY be defined for the
+    same chemical element. This latter case is useful when different atoms of
+    the same type need to be grouped or distinguished, for instance in
+    simulation codes to assign different initial spin states.
 
-# * **Examples**:
-#   * `["Ti", "O2"]` indicates that the first site is hosting a species labelled
-#   `"Ti"` and the second a species labelled `"O2"`.
+* **Examples**:
+  * `["Ti", "O2"]` indicates that the first site is hosting a species labelled
+  `"Ti"` and the second a species labelled `"O2"`.
 
-#   """,
-#     )
+  """,
+    )
 
-#     species: List[Species] = Schema(
-#         ...,
-#         description="""A list describing the species of the sites of this
-# structure. Species scan be pure chemical elements, or virtual-crystal atoms
-# representing a statistical occupation of a given site by multiple chemical
-# elements.
+    species: List[Species] = Schema(
+        ...,
+        description="""A list describing the species of the sites of this
+structure. Species scan be pure chemical elements, or virtual-crystal atoms
+representing a statistical occupation of a given site by multiple chemical
+elements.
 
-# * **Requirements/Conventions**:
-#   * Systems that have only species formed by a single chemical symbol, and
-#     that have at most one species per chemical symbol, SHOULD use the chemical
-#     symbol as species name (e.g., "Ti" for titanium, "O" for oxygen, etc.)
-#     However, note that this is OPTIONAL, and client implementations MUST NOT
-#     assume that the key corresponds to a chemical symbol, nor assume that if the
-#     species name is a valid chemical symbol, that it represents a species with
-#     that chemical symbol. This means that a species
-#     `{"name": "C", "chemical_symbols": ["Ti"], "concentration": [0.0]}` is valid
-#     and represents a titanium species (and *not* a carbon species).
-#   * It is NOT RECOMMENDED that a structure includes species that do not have at
-#     least one corresponding site.
+* **Requirements/Conventions**:
+  * Systems that have only species formed by a single chemical symbol, and
+    that have at most one species per chemical symbol, SHOULD use the chemical
+    symbol as species name (e.g., "Ti" for titanium, "O" for oxygen, etc.)
+    However, note that this is OPTIONAL, and client implementations MUST NOT
+    assume that the key corresponds to a chemical symbol, nor assume that if the
+    species name is a valid chemical symbol, that it represents a species with
+    that chemical symbol. This means that a species
+    `{"name": "C", "chemical_symbols": ["Ti"], "concentration": [0.0]}` is valid
+    and represents a titanium species (and *not* a carbon species).
+  * It is NOT RECOMMENDED that a structure includes species that do not have at
+    least one corresponding site.
 
-# * **Examples**:
-#   * `"species": [ {"name": "Ti", "chemical_symbols": ["Ti"], "concentration":
-#     [1.0]}, ]`: any site with this species is occupied by a Ti atom.
-#   * `"species": [ {"name": "Ti", "chemical_symbols": ["Ti", "vacancy"],
-#     "concentration": [0.9, 0.1]}, ]`: any site with this species is occupied by
-#     a Ti atom with 90 % probability, and has a vacancy with 10 % probability.
-#   * `"species": [ {"name": "BaCa", "chemical_symbols": ["vacancy", "Ba", "Ca"],
-#     "concentration": [0.05, 0.45, 0.5], "mass": 88.5}, ]`: any site with this
-#     species is occupied by a Ba atom with 45 % probability, a Ca atom with 50 %
-#     probability, and by a vacancy with 5 % probability. The mass of this site is
-#     (on average) 88.5 a.m.u.
-#   * `"species": [ {"name": "C12", "chemical_symbols": ["C"], "concentration":
-#     [1.0], "mass": 12.0}, ]`: any site with this species is occupied by a carbon
-#     isotope with mass 12.
-#   * `"species": [ {"name": "C13", "chemical_symbols": ["C"], "concentration":
-#     [1.0], "mass": 13.0}, ]`: any site with this species is occupied by a carbon
-#     isotope with mass 13.
+* **Examples**:
+  * `"species": [ {"name": "Ti", "chemical_symbols": ["Ti"], "concentration":
+    [1.0]}, ]`: any site with this species is occupied by a Ti atom.
+  * `"species": [ {"name": "Ti", "chemical_symbols": ["Ti", "vacancy"],
+    "concentration": [0.9, 0.1]}, ]`: any site with this species is occupied by
+    a Ti atom with 90 % probability, and has a vacancy with 10 % probability.
+  * `"species": [ {"name": "BaCa", "chemical_symbols": ["vacancy", "Ba", "Ca"],
+    "concentration": [0.05, 0.45, 0.5], "mass": 88.5}, ]`: any site with this
+    species is occupied by a Ba atom with 45 % probability, a Ca atom with 50 %
+    probability, and by a vacancy with 5 % probability. The mass of this site is
+    (on average) 88.5 a.m.u.
+  * `"species": [ {"name": "C12", "chemical_symbols": ["C"], "concentration":
+    [1.0], "mass": 12.0}, ]`: any site with this species is occupied by a carbon
+    isotope with mass 12.
+  * `"species": [ {"name": "C13", "chemical_symbols": ["C"], "concentration":
+    [1.0], "mass": 13.0}, ]`: any site with this species is occupied by a carbon
+    isotope with mass 13.
 
-# """,
-#     )
+""",
+    )
 
     assemblies: Optional[List[Assembly]] = Schema(
         ...,
@@ -477,32 +477,32 @@ correlated.
 """,
     )
 
-#     structure_features: List[str] = Schema(
-#         ...,
-#         description="""A list of strings, flagging which special features are
-#         used by the structure.
+    structure_features: List[str] = Schema(
+        ...,
+        description="""A list of strings, flagging which special features are
+        used by the structure.
 
-# * **Requirements/Conventions**:
-#   * This property MUST be returned as an empty list if no special features are
-#     used.
-#   * This list MUST be sorted alphabetically.
-#   * If a special feature listed below is used, the corresponding string MUST be
-#     set.
-#   * If a special feature listed below is not used, the corresponding string MUST
-#   NOT be set.
+* **Requirements/Conventions**:
+  * This property MUST be returned as an empty list if no special features are
+    used.
+  * This list MUST be sorted alphabetically.
+  * If a special feature listed below is used, the corresponding string MUST be
+    set.
+  * If a special feature listed below is not used, the corresponding string MUST
+  NOT be set.
 
-# * **List of special structure features**:
-#   * `disorder`: this flag MUST be present if any one entry in the `species` list
-#   has a `chemical_symbols` list longer than 1 element.
-#   * `unknown_positions`: this flag MUST be present if at least one component of
-#   the `cartesian_site_positions` list of lists has value `null`.
-#   * `assemblies`: this flag MUST be present if the `assemblies` list is present.
+* **List of special structure features**:
+  * `disorder`: this flag MUST be present if any one entry in the `species` list
+  has a `chemical_symbols` list longer than 1 element.
+  * `unknown_positions`: this flag MUST be present if at least one component of
+  the `cartesian_site_positions` list of lists has value `null`.
+  * `assemblies`: this flag MUST be present if the `assemblies` list is present.
 
-# * **Querying**:
-#   * This property MUST be queryable.
+* **Querying**:
+  * This property MUST be queryable.
 
-# """,
-#    )
+""",
+    )
 
 
 class StructureResource(EntryResource):

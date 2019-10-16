@@ -23,10 +23,13 @@ DB_PAGE_LIMIT = config["DB_SPECIFIC"].getint("PAGE_LIMIT")
 
 
 class EntryCollection(Collection):  # pylint: disable=inherit-non-class
-    def __init__(self, collection, resource_cls: Resource):
+    def __init__(
+        self, collection, resource_cls: Resource, resource_mapper: ResourceMapper
+    ):
         self.collection = collection
         self.parser = LarkParser()
         self.resource_cls = resource_cls
+        self.resource_mapper = resource_mapper
 
     def __len__(self):
         return self.collection.count()
@@ -67,15 +70,15 @@ class AiidaCollection(EntryCollection):
         super().__init__(collection, resource_cls)
         self.transformer = AiidaTransformer()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.collection.query().count()
 
-    def __contains__(self, entry):
+    def __contains__(self, entry) -> bool:
         return self.collection.count(filters={"uuid": entry.uuid}, limit=1) > 0
 
-    def count(self, **kwargs):
+    def count(self, **kwargs) -> int:
         for key in list(kwargs.keys()):
-            if key not in ("filter", "order_by", "limit"):
+            if key not in ("filter", "order_by", "limit", "offset"):
                 del kwargs[key]
         return self.collection.count(**kwargs)
 
@@ -94,25 +97,28 @@ class AiidaCollection(EntryCollection):
         data_available = nresults_total
         results = []
 
-        for doc in self.collection.find(**criteria):
-            results.append(self.resource_cls(**StructureMapper.map_back(doc)))
+        for entity in self.collection.find(**criteria):
+            results.append(self.resource_cls(**self.resource_mapper.map_back(entity)))
 
         return results, more_data_available, data_available
 
     def _parse_params(self, params: EntryListingQueryParams) -> dict:
         cursor_kwargs = {}
 
+        # filter
         if params.filter:
             tree = self.parser.parse(params.filter)
             cursor_kwargs["filter"] = self.transformer.transform(tree)
         else:
             cursor_kwargs["filter"] = {}
 
+        # response_format
         if params.response_format and params.response_format != "json":
             raise HTTPException(
-                status_code=400, detail='Only "json" response_format supported'
+                status_code=400, detail="Only 'json' response_format supported"
             )
 
+        # page_limit
         limit = PAGE_LIMIT
         if params.page_limit and params.page_limit != PAGE_LIMIT:
             limit = params.page_limit
@@ -125,24 +131,30 @@ class AiidaCollection(EntryCollection):
             limit = PAGE_LIMIT
         cursor_kwargs["limit"] = limit
 
-        fields = {"id", "local_id", "last_modified"}
+        # response_fields
         if params.response_fields:
-            fields |= set(params.response_fields.split(","))
-        cursor_kwargs["projection"] = [StructureMapper.alias_for(f) for f in fields]
+            fields = set(params.response_fields.split(","))
+        else:
+            fields = {"id", "type", "attributes"}
+        cursor_kwargs["projection"] = [
+            self.resource_mapper.alias_for(f) for f in fields
+        ]
 
+        # sort
         if params.sort:
             sort_spec = []
-            for elt in params.sort.split(","):
-                field = elt
-                sort_dir = 1
-                if elt.startswith("-"):
+            for entity_property in params.sort.split(","):
+                field = entity_property
+                sort_direction = "asc"
+                if entity_property.startswith("-"):
                     field = field[1:]
-                    sort_dir = -1
-                sort_spec.append((field, sort_dir))
-            cursor_kwargs["sort"] = sort_spec
+                    sort_direction = "desc"
+                sort_spec.append({field: sort_direction})
+            cursor_kwargs["order_by"] = sort_spec
 
+        # page_offset
         if params.page_offset:
-            cursor_kwargs["skip"] = params.page_offset
+            cursor_kwargs["offset"] = params.page_offset
 
         return cursor_kwargs
 
