@@ -16,7 +16,8 @@ class IndexInfoAttributes(BaseInfoAttributes):
 class RelatedChildResource(ChildResource):
     """Keep only type and id of a ChildResource"""
 
-    del attributes
+    if attributes:
+        del attributes
 
 
 class IndexRelationship(BaseModel):

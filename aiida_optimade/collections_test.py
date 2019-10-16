@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from optimade.filterparser import LarkParser
 from optimade.filtertransformers.mongo import MongoTransformer
 
+from transformers import AiidaTransformer
 from models import NonnegativeInt
 from models import Resource
 from models import StructureMapper
