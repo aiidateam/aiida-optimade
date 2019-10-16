@@ -3,24 +3,12 @@ from typing import Optional, Dict, List
 
 from pydantic import BaseModel, Schema
 
-from .modified_jsonapi import Resource
-from .jsonapi import Links, Relationships, Meta
+from .optimade_json import Resource
+from .jsonapi import Relationships, Attributes
 
 
-class EntryResourceAttributes(BaseModel):
-    """ Contains key-value pairs representing the entry's properties. """
-
-    local_id: str = Schema(
-        ...,
-        description="the entry's local database ID (having no OPTiMaDe "
-        "requirements/conventions)",
-    )
-
-    last_modified: datetime = Schema(
-        ...,
-        description="an [ISO 8601](https://www.iso.org/standard/40874.html) "
-        "representing the entry's last modification time.",
-    )
+class EntryResourceAttributes(Attributes):
+    """Contains key-value pairs representing the entry's properties"""
 
     immutable_id: Optional[str] = Schema(
         ...,
@@ -32,30 +20,27 @@ class EntryResourceAttributes(BaseModel):
         "in the future.",
     )
 
+    last_modified: datetime = Schema(
+        ...,
+        description="an [ISO 8601](https://www.iso.org/standard/40874.html) "
+        "representing the entry's last modification time.",
+    )
+
 
 class EntryResource(Resource):
 
-    type: str = Schema(..., description="field containing the type of the entry")
-
-    id: str = Schema(
-        ...,
-        description="a string which together with the type uniquely identifies "
+    id.description = (
+        "a string which together with the type uniquely identifies "
         "the object and strictly follows the requirements as "
-        "specified by `id`. This can be the local database ID.",
+        "specified by `id`. This can be the local database ID."
     )
+
+    type.description = "field containing the type of the entry"
 
     attributes: EntryResourceAttributes = Schema(
         ...,
         description="a dictionary containing key-value pairs representing the "
         "entry's properties.",
-    )
-
-    links: Optional[Links] = Schema(..., description="a JSON API links object")
-
-    meta: Optional[Meta] = Schema(
-        ...,
-        description="a JSON API meta object that contains non-standard "
-        "information about the object.",
     )
 
     relationships: Optional[Relationships] = Schema(
