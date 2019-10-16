@@ -47,7 +47,9 @@ else:
 client = MongoClient()
 structures = MongoCollection(client.optimade.structures, StructureResource)
 
-test_structures_path = Path(__file__).resolve().parent.joinpath("tests/test_structures.json")
+test_structures_path = (
+    Path(__file__).resolve().parent.joinpath("tests/test_structures.json")
+)
 
 if not USE_REAL_MONGO and test_structures_path.exists():
     import json
@@ -81,7 +83,7 @@ def meta_values(url, data_returned, data_available, more_data_available=False):
             homepage=None,
             index_base_url=None,
         ),
-        data_available=data_available
+        data_available=data_available,
     )
 
 
@@ -104,7 +106,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
         query = urllib.parse.parse_qs(parse_result.query)
         print(parse_result.query)
         print(query)
-        query["page[offset]"] = int(query.get("page[offset]", ['0'])[0]) + len(results)
+        query["page[offset]"] = int(query.get("page[offset]", ["0"])[0]) + len(results)
         urlencoded = urllib.parse.urlencode(query, doseq=True)
         links = Links(
             next=Link(
@@ -116,7 +118,9 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     return StructureResponseMany(
         links=links,
         data=results,
-        meta=meta_values(str(request.url), len(results), data_available, more_data_available)
+        meta=meta_values(
+            str(request.url), len(results), data_available, more_data_available
+        ),
     )
 
 
@@ -129,7 +133,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
 def get_info(request: Request):
     print(request.url)
     return InfoResponse(
-        meta=meta_values(str(request.url), 1, more_data_available=False),
+        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
                 api_version="v0.9",
@@ -148,7 +152,7 @@ def get_info(request: Request):
 )
 def get_structures_info(request: Request):
     return EntryInfoResponse(
-        meta=meta_values(str(request.url), 1, more_data_available=False),
+        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=EntryInfoResource(
             id="",
             type="structures/info",
