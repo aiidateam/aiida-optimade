@@ -106,7 +106,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
         query = urllib.parse.parse_qs(parse_result.query)
         print(parse_result.query)
         print(query)
-        query["page[offset]"] = int(query.get("page[offset]", ["0"])[0]) + len(results)
+        query["page_offset"] = int(query.get("page_offset", ["0"])[0]) + len(results)
         urlencoded = urllib.parse.urlencode(query, doseq=True)
         links = Links(
             next=Link(

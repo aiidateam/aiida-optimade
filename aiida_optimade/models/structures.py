@@ -1,7 +1,8 @@
 from pydantic import Schema, BaseModel
 from typing import List, Optional
-from .entries import EntryResourceAttributes, EntryResource
+from entries import EntryResourceAttributes, EntryResource, ResourceMapper
 from .util import conlist
+from .parsers.structures import StructureDataParser
 
 
 class Species(BaseModel):
@@ -115,7 +116,7 @@ the values not to sum to one are the same as those specified for the
 
 class StructureResourceAttributes(EntryResourceAttributes):
 
-    elements: str = Schema(
+    elements: List[str] = Schema(
         ...,
         description="""Names of elements found in the structure as a list of strings,
 in alphabetical order.""",
@@ -512,45 +513,88 @@ class StructureResource(EntryResource):
     attributes: StructureResourceAttributes
 
 
-class StructureMapper:
-    aliases = (
-        ("id", "task_id"),
-        ("local_id", "task_id"),
-        ("last_modified", "last_updated"),
-        ("formula_prototype", "formula_anonymous"),
-        ("chemical_formula", "pretty_formula"),
+class StructureMapper(ResourceMapper):
+    """Map 'structure' resources from OPTiMaDe to AiiDA"""
+
+    ALIASES = (
+        ("immutable_id", "uuid"),
+        ("last_modified", "mtime"),
+        ("type", "attributes.optimade_type"),
+        ("all", "extras.optimade"),
     )
-
-    list_fields = ("elements",)
-
-    @classmethod
-    def alias_for(cls, field):
-        return dict(cls.aliases).get(field, field)
+    PARSER = StructureDataParser()
+    ALL_ATTRIBUTES = StructureResourceAttributes().fields
 
     @classmethod
-    def map_back(cls, doc):
-        if "_id" in doc:
-            del doc["_id"]
-        # print(doc)
-        mapping = ((real, alias) for alias, real in cls.aliases)
-        newdoc = {}
-        reals = {real for alias, real in cls.aliases}
-        for k in doc:
-            if k not in reals:
-                newdoc[k] = doc[k]
+    def map_back(cls, entity_properties: dict):
+        """Map properties from AiiDA to OPTiMaDe
+
+        :return: A resource object in OPTiMaDe format
+        :rtype: dict
+        """
+
+        mapping = ((real, alias) for alias, real in cls.ALIASES)
+        new_object_attributes = {}
+        new_object = {}
+
         for real, alias in mapping:
-            if real in doc:
-                newdoc[alias] = doc[real]
-        for k in newdoc:
-            if k in cls.list_fields:
-                newdoc[k] = ",".join(sorted(newdoc[k]))
+            if real in entity_properties:
+                new_object_attributes[alias] = entity_properties[real]
 
-        # print(newdoc)
-        if "attributes" in newdoc:
-            raise Exception("Will overwrite doc field!")
-        newdoc["attributes"] = newdoc.copy()
-        newdoc["attributes"].pop("id", None)
-        for k in list(newdoc.keys()):
-            if k not in ("id", "attributes"):
-                del newdoc[k]
-        return newdoc
+        # Particular attributes
+        # Remove "extras.optimade." prefix from reals to create aliases
+        project_prefix = super().PROJECT_PREFIX
+        reals = [_ for _ in entity_properties if _.startswith(project_prefix)]
+        aliases = []
+        for real in reals:
+            alias = real[len(project_prefix) :]
+            aliases.append(alias)
+            new_object_attributes[alias] = entity_properties[real]
+
+        if "id" in entity_properties:
+            new_object["id"] = entity_properties["id"]
+        # if "attributes.optimade_type" in entity_properties:
+        #     new_object["type"] = "structure"
+
+        new_object["attributes"] = cls.build_attributes(new_object_attributes)
+
+        return new_object
+
+    @classmethod
+    def build_attributes(cls, retrieved_attributes: dict) -> dict:
+        """Build attributes dictionary for OPTiMaDe structure resource
+
+        :param retrieved_attributes: Dict of new attributes, will be updated accordingly
+        :type retrieved_attributes: dict
+        """
+
+        try:
+            entry_uuid = retrieved_attributes["immutable_id"]
+        except KeyError:
+            raise KeyError(
+                f'"immutable_id" should be present in retrieved_attributes: {retrieved_attributes}'
+            )
+
+        res = {}
+        extras = retrieved_attributes.pop("all", "particular")
+
+        if extras == "particular":
+            attributes = list(retrieved_attributes)
+        else:
+            # Gather all available information for entry.
+            attributes = cls.ALL_ATTRIBUTES
+
+        for attribute in attributes:
+            try:
+                check_or_create_attribute = getattr(cls.PARSER, attribute)
+            except AttributeError:
+                if isinstance(attributes, list) or attributes[attribute].required:
+                    raise NotImplementedError(
+                        f"Parsing required {attribute} from "
+                        f"{cls.PARSER} has not yet been implemented."
+                    )
+                # Print warning that parsing non-required attribute has not yet been implemented
+            else:
+                res[attribute] = check_or_create_attribute(entry_uuid)
+
+        return res

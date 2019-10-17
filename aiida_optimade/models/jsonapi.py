@@ -1,9 +1,9 @@
 """This module should reproduce https://jsonapi.org/schema"""
-from typing import Optional, Set, Union, Dict, Any
+from typing import Optional, Set, Union, Dict
 from pydantic import BaseModel, UrlStr, Schema, validator
 
 
-class Meta(Dict[str, Any]):
+class Meta(BaseModel):
     """Non-standard meta-information that can not be represented as an attribute or relationship."""
 
 
@@ -183,7 +183,7 @@ class ResourceLinks(BaseModel):
     )
 
 
-class Attributes(Dict[str, Any]):
+class Attributes(BaseModel):
     """
     Members of the attributes object ("attributes\") represent information about the resource object in which it's defined.
     The keys for Attributes must NOT be:
