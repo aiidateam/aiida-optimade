@@ -31,19 +31,19 @@ class EntryListingQueryParams:
     def __init__(
         self,
         *,
-        filter: str = Query(None, description=filter_description),  # pylint: disable=redefined-builtin
-        response_format: str = "jsonapi",
+        filter: str = Query(
+            None, description=filter_description
+        ),  # pylint: disable=redefined-builtin
+        response_format: str = "json",
         email_address: EmailStr = None,
-        response_limit: NonnegativeInt = RESPONSE_LIMIT,
         response_fields: str = None,
         sort: str = None,
-        page_offset: NonnegativeInt = Query(0, alias="page[offset]"),
-        page_limit: NonnegativeInt = Query(RESPONSE_LIMIT, alias="page[limit]"),
+        page_offset: NonnegativeInt = Query(0),
+        page_limit: NonnegativeInt = Query(RESPONSE_LIMIT),
     ):
         self.filter = filter
         self.response_format = response_format
         self.email_address = email_address
-        self.response_limit = response_limit
         self.response_fields = response_fields
         self.sort = sort
         self.page_offset = page_offset

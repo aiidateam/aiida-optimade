@@ -1,7 +1,11 @@
-from .jsonapi import Link
-from .modified_jsonapi import Links, Resource
+from .jsonapi import Link, Resource
 from .structures import StructureResource, StructureMapper
-from .entries import EntryInfoAttributes, EntryPropertyInfo, EntryInfoResource
+from .entries import (
+    EntryInfoAttributes,
+    EntryPropertyInfo,
+    EntryInfoResource,
+    ResourceMapper,
+)
 from .baseinfo import BaseInfoResource, BaseInfoAttributes
 from .toplevel import (
     ResponseMeta,
@@ -9,7 +13,6 @@ from .toplevel import (
     StructureResponseMany,
     InfoResponse,
     Provider,
-    ErrorResponse,
     EntryInfoResponse,
 )
 from .util import NonnegativeInt
