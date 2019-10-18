@@ -103,7 +103,7 @@ class AiidaCollection(EntryCollection):
         for key in list(kwargs.keys()):
             if key not in ("filters", "order_by", "limit", "offset"):
                 del kwargs[key]
-        return self.collection.count(**kwargs)
+        return self.collection.find().count(kwargs)
 
     def find(  # pylint: disable=too-many-locals
         self, params: EntryListingQueryParams
