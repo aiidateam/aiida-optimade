@@ -106,3 +106,6 @@ venv.bak/
 # editors
 .idea/
 .vscode/
+
+# local_openapi.json
+aiida_optimade/local_openapi.json

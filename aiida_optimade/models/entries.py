@@ -4,7 +4,7 @@ from typing import Optional, Dict, List
 
 from pydantic import BaseModel, Schema
 
-from jsonapi import Relationships, Attributes, Resource
+from .jsonapi import Relationships, Attributes, Resource
 
 
 class EntryResourceAttributes(Attributes):
@@ -29,13 +29,14 @@ class EntryResourceAttributes(Attributes):
 
 class EntryResource(Resource):
 
-    id.description = (
-        "a string which together with the type uniquely identifies "
+    id: str = Schema(
+        ...,
+        description="a string which together with the type uniquely identifies "
         "the object and strictly follows the requirements as "
-        "specified by `id`. This can be the local database ID."
+        "specified by `id`. This can be the local database ID.",
     )
 
-    type.description = "field containing the type of the entry"
+    type: str = Schema(..., description="field containing the type of the entry")
 
     attributes: EntryResourceAttributes = Schema(
         ...,
@@ -57,11 +58,7 @@ class EntryPropertyInfo(BaseModel):
     unit: Optional[str] = Schema(..., description="the physical unit of the entry")
 
 
-class EntryInfoAttributes(BaseModel):
-
-    formats: List[str] = Schema(
-        ["jsonapi"], description="list of available output formats."
-    )
+class EntryInfoResource(BaseModel):
 
     description: str = Schema(..., description="description of the entry")
 
@@ -69,6 +66,10 @@ class EntryInfoAttributes(BaseModel):
         ...,
         description="a dictionary describing queryable properties for this "
         "entry type, where each key is a property ID.",
+    )
+
+    formats: List[str] = Schema(
+        default=["json"], description="list of available output formats."
     )
 
     output_fields_by_format: Dict[str, List[str]] = Schema(
@@ -79,16 +80,7 @@ class EntryInfoAttributes(BaseModel):
     )
 
 
-class EntryInfoResource(BaseModel):
-    id: str = Schema(..., description="unique ID for this resource object")
-
-    type: str = Schema("info", description="type of this resource")
-
-    attributes: EntryInfoAttributes
-
-
-@abc.ABCMeta
-class ResourceMapper:
+class ResourceMapper(metaclass=abc.ABCMeta):
     """Generic Resource Mapper"""
 
     ALIASES = ()

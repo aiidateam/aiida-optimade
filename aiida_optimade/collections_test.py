@@ -1,20 +1,17 @@
 from abc import abstractmethod
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Collection, Tuple, List, Union, Generator
+from typing import Collection, Tuple, List
 
 from aiida import orm
-import mongomock
-import pymongo.collection
 from fastapi import HTTPException
 from optimade.filterparser import LarkParser
-from optimade.filtertransformers.mongo import MongoTransformer
 
-from transformers import AiidaTransformer
-from models import NonnegativeInt
-from models import Resource
-from models import ResourceMapper
-from deps import EntryListingQueryParams
+from aiida_optimade.transformers import AiidaTransformer
+from aiida_optimade.models import NonnegativeInt
+from aiida_optimade.models import Resource
+from aiida_optimade.models import ResourceMapper
+from aiida_optimade.deps import EntryListingQueryParams
 
 
 config = ConfigParser()
@@ -206,96 +203,5 @@ class AiidaCollection(EntryCollection):
         # page_offset
         if params.page_offset:
             cursor_kwargs["offset"] = params.page_offset
-
-        return cursor_kwargs
-
-
-class MongoCollection(EntryCollection):
-    def __init__(
-        self,
-        collection: Union[
-            pymongo.collection.Collection, mongomock.collection.Collection
-        ],
-        resource_cls: Resource,
-        resource_mapper: ResourceMapper,
-    ):
-        super().__init__(collection, resource_cls, resource_mapper)
-        self.transformer = MongoTransformer()
-
-    def __len__(self):
-        return self.collection.estimated_document_count()
-
-    def __contains__(self, entry):
-        return self.collection.count_documents(entry.dict()) > 0
-
-    def count(self, **kwargs):
-        for k in list(kwargs.keys()):
-            if k not in ("filter", "skip", "limit", "hint", "maxTimeMS"):
-                del kwargs[k]
-        return self.collection.count_documents(**kwargs)
-
-    def find(
-        self, params: EntryListingQueryParams
-    ) -> Tuple[List[Resource], bool, NonnegativeInt]:
-        criteria = self._parse_params(params)
-        criteria_nolimit = criteria.copy()
-        del criteria_nolimit["limit"]
-        nresults_now = self.count(**criteria)
-        nresults_total = self.count(**criteria_nolimit)
-        more_data_available = nresults_now < nresults_total
-        data_available = nresults_total
-        results = []
-        for doc in self.collection.find(**criteria):
-            results.append(self.resource_cls(**self.resource_mapper.map_back(doc)))
-        return results, more_data_available, data_available
-
-    def _parse_params(self, params: EntryListingQueryParams) -> dict:
-        cursor_kwargs = {}
-
-        if params.filter:
-            tree = self.parser.parse(params.filter)
-            cursor_kwargs["filter"] = self.transformer.transform(tree)
-        else:
-            cursor_kwargs["filter"] = {}
-
-        if params.response_format and params.response_format != "jsonapi":
-            raise HTTPException(
-                status_code=400, detail="Only 'jsonapi' response_format supported"
-            )
-
-        limit = PAGE_LIMIT
-        if params.response_limit != PAGE_LIMIT:
-            limit = params.response_limit
-        elif params.page_limit != PAGE_LIMIT:
-            limit = params.page_limit
-        if limit > PAGE_LIMIT:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Max response_limit/page[limit] is {PAGE_LIMIT}",
-            )
-        if limit == 0:
-            limit = PAGE_LIMIT
-        cursor_kwargs["limit"] = limit
-
-        fields = {"id", "local_id", "last_modified"}
-        if params.response_fields:
-            fields |= set(params.response_fields.split(","))
-        cursor_kwargs["projection"] = [
-            self.resource_mapper.alias_for(f) for f in fields
-        ]
-
-        if params.sort:
-            sort_spec = []
-            for elt in params.sort.split(","):
-                field = elt
-                sort_dir = 1
-                if elt.startswith("-"):
-                    field = field[1:]
-                    sort_dir = -1
-                sort_spec.append((field, sort_dir))
-            cursor_kwargs["sort"] = sort_spec
-
-        if params.page_offset:
-            cursor_kwargs["skip"] = params.page_offset
 
         return cursor_kwargs

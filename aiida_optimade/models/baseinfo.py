@@ -1,6 +1,6 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, UrlStr, Schema, Set, validator, Optional
+from pydantic import BaseModel, UrlStr, Schema, validator
 from .jsonapi import Resource
 
 
@@ -22,34 +22,34 @@ class BaseInfoAttributes(BaseModel):
     """Attributes for Base URL Info endpoint"""
 
     api_version: str = Schema(
-        "v0.10", description="Presently used version of the OPTiMaDe API"
+        default="v0.10", description="Presently used version of the OPTiMaDe API"
     )
-    available_api_versions: Set(AvailableApiVersion) = Schema(
+    available_api_versions: List[AvailableApiVersion] = Schema(
         ...,
         description="A list of dictionaries of available API versions at other base URLs",
     )
     formats: List[str] = Schema(
-        ["json"], const=True, description="List of available output formats."
+        default=["json"], const=True, description="List of available output formats."
     )
     available_endpoints: List[str] = Schema(
-        ["structure", "all", "info"],
+        default=["structure", "all", "info"],
         const=True,
         description="List of available endpoints (i.e., the string to be appended to the base URL).",
     )
     entry_types_by_format: Dict[str, List[str]] = Schema(
-        {"json": ["structure", "all", "info"]},
+        default={"json": ["structure", "all", "info"]},
         description="Available entry endpoints as a function of output formats.",
     )
     is_index: Optional[bool] = Schema(
-        False,
+        default=False,
         description="If true, this is an index meta-database base URL (see section Index Meta-Database). "
         "If this member is not provided, the client MUST assume this is not an index meta-database base URL "
         "(i.e., the default is for is_index to be false).",
     )
 
     @validator("entry_types_by_format")
-    def formats_and_endpoints_must_be_valid(cls, value, values):
-        for format_, endpoints in value.items():
+    def formats_and_endpoints_must_be_valid(cls, v, values):
+        for format_, endpoints in v.items():
             if format_ not in values["formats"]:
                 raise ValueError(f"'{format_}' must be listed in formats to be valid")
             for endpoint in endpoints:
@@ -60,10 +60,6 @@ class BaseInfoAttributes(BaseModel):
 
 
 class BaseInfoResource(Resource):
-    id.default = "/"
-    id.const = True
-
-    type.default = "info"
-    type.const = True
-
+    id = Schema("/", const=True)
+    type = Schema("info", const=True)
     attributes: BaseInfoAttributes

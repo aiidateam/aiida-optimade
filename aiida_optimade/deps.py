@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Query
 from pydantic import EmailStr
 
-from models import NonnegativeInt
+from aiida_optimade.models import NonnegativeInt
 
 config = ConfigParser()
 config.read(Path(__file__).resolve().parent.joinpath("config.ini"))
@@ -31,9 +31,9 @@ class EntryListingQueryParams:
     def __init__(
         self,
         *,
-        filter: str = Query(
+        filter: str = Query(  # pylint: disable=redefined-builtin
             None, description=filter_description
-        ),  # pylint: disable=redefined-builtin
+        ),
         response_format: str = "json",
         email_address: EmailStr = None,
         response_fields: str = None,

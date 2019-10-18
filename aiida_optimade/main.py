@@ -1,4 +1,5 @@
 import urllib
+import json
 from configparser import ConfigParser
 from datetime import datetime
 from pathlib import Path
@@ -6,27 +7,31 @@ from typing import Union
 
 from fastapi import FastAPI, Depends
 from starlette.requests import Request
+from aiida import orm, load_profile
 
-from deps import EntryListingQueryParams
-from collections_test import MongoCollection
-from models import Link
-from models import Links
-from models import StructureResource
-from models import EntryInfoAttributes, EntryPropertyInfo, EntryInfoResource
-from models import BaseInfoResource, BaseInfoAttributes
-from models import (
+from aiida_optimade.deps import EntryListingQueryParams
+from aiida_optimade.collections_test import AiidaCollection
+from aiida_optimade.models import Link
+from aiida_optimade.models import ToplevelLinks
+from aiida_optimade.models import (
+    StructureResource,
+    StructureMapper,
+    StructureResourceAttributes,
+)
+from aiida_optimade.models import EntryInfoResource
+from aiida_optimade.models import BaseInfoResource, BaseInfoAttributes
+from aiida_optimade.models import (
     ResponseMeta,
     ResponseMetaQuery,
     StructureResponseMany,
     InfoResponse,
     Provider,
-    ErrorResponse,
+    Failure,
     EntryInfoResponse,
 )
 
 config = ConfigParser()
 config.read(Path(__file__).resolve().parent.joinpath("config.ini"))
-USE_REAL_MONGO = config["DEFAULT"].getboolean("USE_REAL_MONGO")
 
 app = FastAPI(
     title="OPTiMaDe API",
@@ -38,31 +43,14 @@ app = FastAPI(
     version="0.9",
 )
 
-
-if USE_REAL_MONGO:
-    from pymongo import MongoClient
-else:
-    from mongomock import MongoClient
-
-client = MongoClient()
-structures = MongoCollection(client.optimade.structures, StructureResource)
+load_profile()
+structures = AiidaCollection(
+    orm.StructureData.objects, StructureResource, StructureMapper
+)
 
 test_structures_path = (
     Path(__file__).resolve().parent.joinpath("tests/test_structures.json")
 )
-
-if not USE_REAL_MONGO and test_structures_path.exists():
-    import json
-    import bson.json_util
-
-    print("loading test structures...")
-    with open(test_structures_path) as f:
-        data = json.load(f)
-        print("inserting test structures into collection...")
-        structures.collection.insert_many(
-            bson.json_util.loads(bson.json_util.dumps(data))
-        )
-    print("done inserting test structures...")
 
 
 def meta_values(url, data_returned, data_available, more_data_available=False):
@@ -72,15 +60,15 @@ def meta_values(url, data_returned, data_available, more_data_available=False):
         query=ResponseMetaQuery(
             representation=f"{parse_result.path}?{parse_result.query}"
         ),
-        api_version="v0.9",
+        api_version="v0.10",
         time_stamp=datetime.utcnow(),
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(
-            name="test",
-            description="A test database provider",
-            prefix="exmpl",
-            homepage=None,
+            name="AiiDA",
+            description="AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+            prefix="aiida",
+            homepage="http://www.aiida.net",
             index_base_url=None,
         ),
         data_available=data_available,
@@ -95,7 +83,7 @@ def update_schema(app):
 
 @app.get(
     "/structures",
-    response_model=Union[StructureResponseMany, ErrorResponse],
+    response_model=Union[StructureResponseMany, Failure],
     response_model_skip_defaults=True,
     tags=["Structure"],
 )
@@ -104,17 +92,15 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     parse_result = urllib.parse.urlparse(str(request.url))
     if more_data_available:
         query = urllib.parse.parse_qs(parse_result.query)
-        print(parse_result.query)
-        print(query)
         query["page_offset"] = int(query.get("page_offset", ["0"])[0]) + len(results)
         urlencoded = urllib.parse.urlencode(query, doseq=True)
-        links = Links(
+        links = ToplevelLinks(
             next=Link(
                 href=f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded}"
             )
         )
     else:
-        links = Links(next=None)
+        links = ToplevelLinks(next=None)
     return StructureResponseMany(
         links=links,
         data=results,
@@ -126,7 +112,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
 
 @app.get(
     "/info",
-    response_model=Union[InfoResponse, ErrorResponse],
+    response_model=Union[InfoResponse, Failure],
     response_model_skip_defaults=True,
     tags=["Info"],
 )
@@ -136,43 +122,41 @@ def get_info(request: Request):
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
-                api_version="v0.9",
-                available_api_versions={"v0.9": "http://localhost:5000/"},
-                entry_types_by_format={"jsonapi": ["structures"]},
+                api_version="v0.10",
+                available_api_versions=[
+                    {"url": "http://localhost:5000/", "version": "0.10.0"}
+                ],
             )
         ),
     )
 
 
 @app.get(
-    "/structures/info",
-    response_model=Union[EntryInfoResponse, ErrorResponse],
+    "/info/structures",
+    response_model=Union[EntryInfoResponse, Failure],
     response_model_skip_defaults=True,
     tags=["Structure", "Info"],
 )
 def get_structures_info(request: Request):
+    fields = StructureResource.schema()["properties"]
+    properties = {
+        field: {"description": value.get("description", "")}
+        for field, value in fields.items()
+    }
+
+    del properties["attributes"]
+    fields = StructureResourceAttributes.schema()["properties"]
+    properties = {
+        field: {"description": value.get("description", "")}
+        for field, value in fields.items()
+    }
+
     return EntryInfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=EntryInfoResource(
-            id="",
-            type="structures/info",
-            attributes=EntryInfoAttributes(
-                description="attributes that can be queried",
-                properties={
-                    "exmpl_p": EntryPropertyInfo(description="a sample custom property")
-                },
-                output_fields_by_format={
-                    "jsonapi": [
-                        "id",
-                        "type",
-                        "elements",
-                        "nelements",
-                        "chemical_formula",
-                        "formula_prototype",
-                        "exmpl_p",
-                    ]
-                },
-            ),
+            description="Endpoint to represent AiiDA StructureData Nodes in the OPTiMaDe format",
+            properties=properties,
+            output_fields_by_format={"json": list(fields.keys())},
         ),
     )
 

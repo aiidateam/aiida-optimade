@@ -1,8 +1,7 @@
 """Modified JSON API for OPTiMaDe API"""
-from pydantic import Schema, validator
+from pydantic import Schema, validator, BaseModel
 from typing import Optional, Set
 from . import jsonapi
-from .toplevel import ResponseLinks, ResponseMeta
 
 
 class Error(jsonapi.Error):
@@ -17,7 +16,7 @@ class Error(jsonapi.Error):
 class Failure(jsonapi.Response):
     """errors MUST be present and data MUST be skipped"""
 
-    meta: Optional[ResponseMeta] = Schema(
+    meta: Optional[jsonapi.Meta] = Schema(
         ...,
         description="A meta object containing non-standard information related to the Success",
     )
@@ -25,7 +24,7 @@ class Failure(jsonapi.Response):
         ...,
         description="A list of JSON API error objects, where the field detail MUST be present.",
     )
-    links: Optional[ResponseLinks] = Schema(
+    links: Optional[jsonapi.ToplevelLinks] = Schema(
         ..., description="Links associated with the primary data"
     )
 
@@ -37,11 +36,11 @@ class Failure(jsonapi.Response):
 class Success(jsonapi.Response):
     """errors are not allowed"""
 
-    meta: Optional[ResponseMeta] = Schema(
+    meta: Optional[jsonapi.Meta] = Schema(
         ...,
         description="A meta object containing non-standard information related to the Success",
     )
-    links: Optional[ResponseLinks] = Schema(
+    links: Optional[jsonapi.ToplevelLinks] = Schema(
         ..., description="Links associated with the primary data"
     )
 
