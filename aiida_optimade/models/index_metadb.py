@@ -1,4 +1,4 @@
-from pydantic import Schema, BaseModel
+from pydantic import Schema, BaseModel, validator
 from typing import Union, Dict
 
 from .links import ChildResource
@@ -8,16 +8,19 @@ from .baseinfo import BaseInfoAttributes, BaseInfoResource
 class IndexInfoAttributes(BaseInfoAttributes):
     """Attributes for Base URL Info endpoint for an Index Meta-Database"""
 
-    is_index: bool
-    is_index.default = True
-    is_index.const = True
+    is_index: bool = Schema(
+        True,
+        const=True,
+        description="If true, this is an index meta-database base URL (see section Index Meta-Database). "
+        "If this member is not provided, the client MUST assume this is not an index meta-database base URL "
+        "(i.e., the default is for is_index to be false).",
+    )
 
 
 class RelatedChildResource(ChildResource):
     """Keep only type and id of a ChildResource"""
 
-    if attributes:
-        del attributes
+    attributes: None
 
 
 class IndexRelationship(BaseModel):

@@ -1,6 +1,6 @@
 from pydantic import Schema, BaseModel
 from typing import List, Optional
-from entries import EntryResourceAttributes, EntryResource, ResourceMapper
+from .entries import EntryResourceAttributes, EntryResource, ResourceMapper
 from .util import conlist
 from .parsers.structures import StructureDataParser
 
@@ -509,7 +509,7 @@ correlated.
 class StructureResource(EntryResource):
     """Representing a structure."""
 
-    type = "structure"
+    type: str = Schema("structure", const=True)
     attributes: StructureResourceAttributes
 
 
@@ -523,7 +523,7 @@ class StructureMapper(ResourceMapper):
         ("all", "extras.optimade"),
     )
     PARSER = StructureDataParser()
-    ALL_ATTRIBUTES = StructureResourceAttributes().fields
+    ALL_ATTRIBUTES = StructureResourceAttributes.__fields__
 
     @classmethod
     def map_back(cls, entity_properties: dict):
@@ -553,8 +553,8 @@ class StructureMapper(ResourceMapper):
 
         if "id" in entity_properties:
             new_object["id"] = entity_properties["id"]
-        # if "attributes.optimade_type" in entity_properties:
-        #     new_object["type"] = "structure"
+        if "attributes.optimade_type" in entity_properties:
+            new_object["type"] = "structure"
 
         new_object["attributes"] = cls.build_attributes(new_object_attributes)
 
@@ -583,6 +583,9 @@ class StructureMapper(ResourceMapper):
         else:
             # Gather all available information for entry.
             attributes = cls.ALL_ATTRIBUTES
+            for existing_attribute in retrieved_attributes:
+                if existing_attribute in list(attributes.keys()):
+                    del attributes[existing_attribute]
 
         for attribute in attributes:
             try:

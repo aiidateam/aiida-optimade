@@ -7,7 +7,7 @@ from .structures import StructureResource
 from .baseinfo import BaseInfoResource
 from .util import NonnegativeInt
 from .optimade_json import Success, Warnings
-from .jsonapi import Link, ToplevelLinks
+from .jsonapi import Link, ToplevelLinks, Meta
 from .entries import EntryInfoResource
 
 
@@ -93,7 +93,7 @@ class Implementation(BaseModel):
     )
 
 
-class ResponseMeta(BaseModel):
+class ResponseMeta(Meta):
     """
     A [JSON API meta member](https://jsonapi.org/format/1.0#document-meta)
     that contains JSON API meta objects of non-standard

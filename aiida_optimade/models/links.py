@@ -27,10 +27,11 @@ class LinksResourceAttributes(EntryResourceAttributes):
 class LinksResource(EntryResource):
     """A Links endpoint resource object"""
 
-    type.description = (
-        'MUST be either "parent", "child", or "provider". '
+    type: str = Schema(
+        ...,
+        description='MUST be either "parent", "child", or "provider". '
         "These objects are described in detail in sections Parent and Child Objects "
-        "and Provider Objects."
+        "and Provider Objects.",
     )
 
     attributes: LinksResourceAttributes
@@ -47,19 +48,16 @@ class LinksResource(EntryResource):
 class ChildResource(LinksResource):
     """A child object representing a link to an implementation exactly one layer below the current implementation"""
 
-    type.default = "child"
-    type.const = True
+    type = Schema("child", const=True)
 
 
 class ParentResource(LinksResource):
     """A parent object representing a link to an implementation exactly one layer above the current implementation"""
 
-    type.default = "parent"
-    type.const = True
+    type = Schema("parent", const=True)
 
 
 class ProviderResource(LinksResource):
     """A provider object representing a link to another index meta-database by another database provider"""
 
-    type.default = "provider"
-    type.const = True
+    type = Schema("provider", const=True)

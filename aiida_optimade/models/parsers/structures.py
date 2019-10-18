@@ -14,6 +14,13 @@ class DeductionError(Exception):
     """Cannot deduce the value of an attribute."""
 
 
+class OptimadeIntegrityError(Exception):
+    """A required OPTiMaDe attribute or sub-attribute may be missing.
+    Or it may be that the internal data integrity is violated,
+    i.e., number of "species_at_sites" does not equal "nsites"
+    """
+
+
 class StructureDataParser:
     """Create OPTiMaDe attributes from AiiDA StructureData Node
 
@@ -64,12 +71,12 @@ class StructureDataParser:
     ):
         structure = self._get_entity(uuid)
         structure.set_extra(self.EXTRAS_KEY, optimade_attributes)
-        if not self._optimade_attribute_exists(uuid, attribute):
-            raise OptimadeAttributeNotFoundInExtras(
-                f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
-                f"the OPTiMaDe attribute {attribute} with the (new) value {value} "
-                f"could not be found to exists. StructureData: {structure}"
-            )
+        # if not self._optimade_attribute_exists(uuid, attribute):
+        #     raise OptimadeAttributeNotFoundInExtras(
+        #         f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
+        #         f"the OPTiMaDe attribute \"{attribute}\" with the (new) value \"{value}\" "
+        #         f"could not be found to exists. StructureData: {structure}"
+        #     )
 
     def _save_extra(self, uuid: str, attribute: str, value: Any):
         extras = self._get_extras(uuid)
@@ -121,6 +128,49 @@ class StructureDataParser:
         #     optimade[attribute] = value
         #     self._update_extras(uuid, optimade, attribute, value)
 
+    def get_symbol_weights(self, node: StructureData) -> dict:
+        elements = self.elements(node.uuid)
+        occupation = {}.fromkeys(elements, 0.0)
+        for kind in node.kinds:
+            for i in range(len(kind.symbols)):
+                occupation[kind.symbols[i]] += kind.weights[i]
+        return occupation
+
+    def has_partial_occupancy(self, node: StructureData) -> bool:
+        """Check for partial occupancies (first vacancies, next through element ratios)"""
+        if node.has_vacancies:
+            return True
+
+        occupation = self.get_symbol_weights(node)
+        for occ in occupation.values():
+            if not occ.is_integer():
+                return True
+
+        return False
+
+    def check_floating_round_errors(self, some_list: List[Union[List, float]]) -> list:
+        """Check whether there are some float rounding errors (check only for close to zero numbers)
+
+        :param some_list: Must be a list of either lists or float values
+        :type some_list: list
+        """
+        might_as_well_be_zero = (
+            1e-8
+        )  # This is for Å, so 1e-8 Å can by all means be considered 0 Å
+        res = []
+
+        for item in some_list:
+            vector = []
+            for scalar in item:
+                if isinstance(scalar, list):
+                    res.append(self.check_floating_round_errors(item))
+                else:
+                    if scalar < might_as_well_be_zero:
+                        scalar = 0
+                    vector.append(scalar)
+            res.append(vector)
+        return res
+
     def elements(self, uuid: str) -> List[str]:
         """Names of elements found in the structure as a list of strings, in alphabetical order."""
 
@@ -170,20 +220,14 @@ class StructureDataParser:
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
 
-        elements = self.elements(uuid)
-        ratios = {}.fromkeys(elements, 0.0)
-        for kind in node.kinds:
-            if len(kind.weights) > 1:
-                raise DeductionError(
-                    f"Cannot deal with multiple weights for a kind: {kind}. UUID: {uuid}"
-                )
-            ratios[kind.symbol] += kind.weights[0]
+        ratios = self.get_symbol_weights(node)
 
         total_weight = sum(ratios.values())
-        res = [ratios[symbol] / total_weight for symbol in elements]
+        res = [ratios[symbol] / total_weight for symbol in self.elements(uuid)]
 
         # Make sure it sums to one
-        if sum(res) != 1.0:
+        should_be_zero = 1.0 - sum(res)
+        if self.check_floating_round_errors([[should_be_zero]]) != [[0]]:
             raise DeductionError(
                 f"Calculated {attribute} does not sum to float(1): {sum(res)}"
             )
@@ -229,21 +273,16 @@ class StructureDataParser:
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
 
-        elements = self.elements(uuid)
-        occupation = {}.fromkeys(elements, 0.0)
-        for kind in node.kinds:
-            if len(kind.weights) > 1:
-                raise DeductionError(
-                    f"Cannot deal with multiple weights for a kind: {kind}. UUID: {uuid}"
-                )
-            occupation[kind.symbol] += kind.weights[0]
+        occupation = self.get_symbol_weights(node)
         for symbol, weight in occupation.items():
             rounded_weight = round(weight)
             if rounded_weight == 1:
                 occupation[symbol] = ""
             else:
                 occupation[symbol] = rounded_weight
-        res = "".join([f"{symbol}{occupation[symbol]}" for symbol in elements])
+        res = "".join(
+            [f"{symbol}{occupation[symbol]}" for symbol in self.elements(uuid)]
+        )
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
@@ -271,30 +310,16 @@ class StructureDataParser:
         node = self._get_entity(uuid)
         res = node.get_formula(mode="hill")
 
-        # Check for partial occupancies (first vacancies, next through element ratios)
-        if node.has_vacancies:
+        if self.has_partial_occupancy(node):
             res = None
-
-        elements = self.elements(uuid)
-        occupation = {}.fromkeys(elements, 0.0)
-        for kind in node.kinds:
-            if len(kind.weights) > 1:
-                raise DeductionError(
-                    f"Cannot deal with multiple weights for a kind: {kind}. UUID: {uuid}"
-                )
-            occupation[kind.symbol] += kind.weights[0]
-        for occ in occupation.values():
-            if not occ.is_integer():
-                res = None
-                break
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
         return res
 
-    def chemical_formula_anonymous(
+    def chemical_formula_anonymous(  # pylint: disable=too-many-locals
         self, uuid: str
-    ) -> str:  # pylint: disable=too-many-locals
+    ) -> str:
         """The anonymous formula is the chemical_formula_reduced
 
         But where the elements are instead first ordered by their chemical proportion number,
@@ -330,13 +355,7 @@ class StructureDataParser:
             for symbol, new_symbol in zip(elements, anonymous_elements)
         }
 
-        occupation = {}.fromkeys(elements, 0.0)
-        for kind in node.kinds:
-            if len(kind.weights) > 1:
-                raise DeductionError(
-                    f"Cannot deal with multiple weights for a kind: {kind}. UUID: {uuid}"
-                )
-            occupation[kind.symbol] += kind.weights[0]
+        occupation = self.get_symbol_weights(node)
         for symbol, weight in occupation.items():
             rounded_weight = round(weight)
             if rounded_weight == 1:
@@ -385,46 +404,33 @@ class StructureDataParser:
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
-        cell = node.cell
-
-        # Check whether there are some float rounding "errors"
-        might_as_well_be_zero = (
-            1e-8
-        )  # This is for Å, so 1e-8 Å can by all means be considered 0 Å
-        res = []
-        for vector in cell:
-            res_vector = []
-            for scalar in vector:
-                if scalar < might_as_well_be_zero:
-                    scalar = 0
-                res_vector.append(scalar)
-            res.append(res_vector)
+        res = self.check_floating_round_errors(node.cell)
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
         return res
 
-    def cartesian_site_coordinates(self, uuid: str) -> List[List[Union[float, None]]]:
+    def cartesian_site_positions(self, uuid: str) -> List[List[Union[float, None]]]:
         """Cartesian positions of each site.
 
         A site is an atom, a site potentially occupied by an atom,
         or a placeholder for a virtual mixture of atoms (e.g., in a virtual crystal approximation).
         """
 
-        attribute = "cartesian_site_coordinates"
+        attribute = "cartesian_site_positions"
 
         # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
         if self._optimade_attribute_exists(uuid, attribute):
             return self._get_optimade_attribute(uuid, attribute)
 
-        raise NotImplementedError(f"{attribute} not yet implemented")
+        # Create value from AiiDA Node
+        node = self._get_entity(uuid)
+        sites = [list(site.position) for site in node.sites]
+        res = self.check_floating_round_errors(sites)
 
-        # # Create value from AiiDA Node
-        # node = self._get_entity(uuid)
-
-        # # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
-        # self._save_extra(uuid, attribute, res)
-        # return res
+        # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
+        self._save_extra(uuid, attribute, res)
+        return res
 
     def nsites(self, uuid: str) -> int:
         """An integer specifying the length of the cartesian_site_positions property."""
@@ -436,7 +442,7 @@ class StructureDataParser:
             return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
-        res = len(self.cartesian_site_coordinates(uuid))
+        res = len(self.cartesian_site_positions(uuid))
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
@@ -455,16 +461,35 @@ class StructureDataParser:
         if self._optimade_attribute_exists(uuid, attribute):
             return self._get_optimade_attribute(uuid, attribute)
 
-        raise NotImplementedError(f"{attribute} not yet implemented")
+        # Create value from AiiDA Node
+        node = self._get_entity(uuid)
+        res = []
+        kind_at_sites = [site.kind_name for site in node.sites]
 
-        # # Create value from AiiDA Node
-        # node = self._get_entity(uuid)
+        # Since sites do not have unique names, these must be created from the unique kind_names
+        kind_names = set(kind_at_sites)
+        number_of_kinds = {}.fromkeys(kind_names, 0)
+        for site in kind_at_sites:
+            number_of_kinds[site] += 1
 
-        # # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
-        # self._save_extra(uuid, attribute, res)
-        # return res
+        for site_name in kind_at_sites:
+            for kind, number_of_kind in number_of_kinds.items():
+                for i in range(number_of_kind):
+                    if site_name == kind:
+                        res.append(f"{site_name}_{i}")
 
-    def species(self, uuid: str) -> List[dict]:
+        if len(set(res)) != self.nsites(uuid):
+            raise OptimadeIntegrityError(
+                f"A name in {attribute} is not unique. "
+                f"Only {len(set(res))} unique site names were found, "
+                f"but there are {self.nsites(uuid)} sites recorded. UUID: {uuid}"
+            )
+
+        # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
+        self._save_extra(uuid, attribute, res)
+        return res
+
+    def species(self, uuid: str) -> List[dict]:  # pylint: disable=too-many-locals
         """A list describing the species of the sites of this structure.
 
         Species can be pure chemical elements, or virtual-crystal atoms
@@ -477,35 +502,77 @@ class StructureDataParser:
         if self._optimade_attribute_exists(uuid, attribute):
             return self._get_optimade_attribute(uuid, attribute)
 
-        raise NotImplementedError(f"{attribute} not yet implemented")
+        # Create value from AiiDA Node
+        node = self._get_entity(uuid)
 
-        # # Create value from AiiDA Node
-        # node = self._get_entity(uuid)
+        ### FROM OLDER aiida-optimade
+        import re
 
-        # # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
-        # self._save_extra(uuid, attribute, res)
-        # return res
+        species = {}
+        for kind in node.kinds:
+            name = kind.name
+            kind_weight_sum = 0
 
-    def assemblies(self, uuid: str) -> List[dict]:
-        """A description of groups of sites that are statistically correlated."""
+            # Retrieve elements in 'kind'
+            for i in range(len(kind.symbols)):
+                weight = kind.weights[i]
 
-        attribute = "assemblies"
+                # Accumulating sum of weights
+                kind_weight_sum += weight
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
+            # Create pre v0.10 'species' entry
+            species[name] = dict(
+                chemical_symbols=list(kind.symbols),
+                concentration=list(kind.weights),
+                mass=kind.mass,
+                original_name=name,
+            )
 
-        raise NotImplementedError(f"{attribute} not yet implemented")
+            if re.match(r"[\w]*X[\d]*", name):
+                # Species includes/is a vacancy
+                species[name]["chemical_symbols"].append("vacancy")
 
-        # # Create value from AiiDA Node
-        # node = self._get_entity(uuid)
+                # Calculate vacancy concentration
+                if 0.0 <= kind_weight_sum <= 1.0:
+                    species[name]["concentration"].append(1.0 - kind_weight_sum)
+                else:
+                    raise ValueError("kind_weight_sum must be in the interval [0;1]")
+        ### END
 
-        # # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
-        # self._save_extra(uuid, attribute, res)
-        # return res
+        site_names = self.species_at_sites(uuid)
+        res = []
+        for i in range(self.nsites(uuid)):
+            new_species = {}
+            species_name = site_names[i].split("_")[0]
+            new_species["name"] = site_names[i]
+            new_species.update(species[species_name])
+            res.append(new_species)
+
+        # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
+        self._save_extra(uuid, attribute, res)
+        return res
+
+    # def assemblies(self, uuid: str) -> List[dict]:
+    #     """A description of groups of sites that are statistically correlated."""
+
+    #     attribute = "assemblies"
+
+    #     # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
+    #     if self._optimade_attribute_exists(uuid, attribute):
+    #         return self._get_optimade_attribute(uuid, attribute)
+
+    #     # Create value from AiiDA Node
+    #     node = self._get_entity(uuid)
+
+    #     # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
+    #     self._save_extra(uuid, attribute, res)
+    #     return res
 
     def structure_features(self, uuid: str) -> List[str]:
-        """A list of strings that flag which special features are used by the structure."""
+        """A list of strings that flag which special features are used by the structure.
+
+        SHOULD be absent if there are no partial occupancies
+        """
 
         attribute = "structure_features"
 
@@ -513,11 +580,43 @@ class StructureDataParser:
         if self._optimade_attribute_exists(uuid, attribute):
             return self._get_optimade_attribute(uuid, attribute)
 
-        raise NotImplementedError(f"{attribute} not yet implemented")
+        # Create value from AiiDA Node
+        node = self._get_entity(uuid)
+        res = []
 
-        # # Create value from AiiDA Node
-        # node = self._get_entity(uuid)
+        # Figure out if there are partial occupancies
+        if self.has_partial_occupancy(node):
+            self._save_extra(uuid, attribute, res)
+            return res
 
-        # # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
-        # self._save_extra(uuid, attribute, res)
-        # return res
+        # * Disorder *
+        # This flag MUST be present if any one entry in the species list
+        # has a chemical_symbols list that is longer than 1 element.
+        species = self.species(uuid)
+        key = "chemical_symbols"
+        for item in species:
+            if key not in item:
+                raise OptimadeIntegrityError(
+                    f'The required key {key} was not found for {item} in the "species" attribute'
+                )
+            if len(item[key]) > 1:
+                res.append("disorder")
+                break
+
+        # * Unknown positions *
+        # This flag MUST be present if at least one component of the cartesian_site_positions
+        # list of lists has value null.
+        cartesian_site_positions = self.cartesian_site_positions(uuid)
+        for site in cartesian_site_positions:
+            if float("NaN") in site:
+                res.append("unknown_positions")
+                break
+
+        # * Assemblies *
+        # This flag MUST be present if the property assemblies is present.
+        # if self.assemblies(uuid):
+        #     res.append("assemblies")
+
+        # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
+        self._save_extra(uuid, attribute, res)
+        return res

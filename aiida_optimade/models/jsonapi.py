@@ -27,24 +27,22 @@ class JsonAPI(BaseModel):
 class ToplevelLinks(BaseModel):
     """A set of Links objects, possibly including pagination"""
 
-    self: Optional[Union[None, UrlStr, Link]] = Schema(
-        ..., description="A link to itself"
-    )
-    related: Optional[Union[None, UrlStr, Link]] = Schema(
+    self: Optional[Union[UrlStr, Link]] = Schema(..., description="A link to itself")
+    related: Optional[Union[UrlStr, Link]] = Schema(
         ..., description="A related resource link"
     )
 
     # pagination
-    first: Optional[Union[None, UrlStr]] = Schema(
+    first: Optional[Union[Link, UrlStr]] = Schema(
         ..., description="The first page of data"
     )
-    last: Optional[Union[None, UrlStr]] = Schema(
+    last: Optional[Union[Link, UrlStr]] = Schema(
         ..., description="The last page of data"
     )
-    prev: Optional[Union[None, UrlStr]] = Schema(
+    prev: Optional[Union[Link, UrlStr]] = Schema(
         ..., description="The previous page of data"
     )
-    next: Optional[Union[None, UrlStr]] = Schema(
+    next: Optional[Union[Link, UrlStr]] = Schema(
         ..., description="The next page of data"
     )
 
@@ -165,7 +163,7 @@ class Relationship(BaseModel):
         return value
 
 
-class Relationships(Dict[str, Relationship]):
+class Relationships(BaseModel):
     """
     Members of the relationships object (\"relationships\") represent references from the resource object in which it's defined to other resource objects.
     Keys MUST NOT be:
