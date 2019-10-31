@@ -71,12 +71,12 @@ class StructureDataParser:
     ):
         structure = self._get_entity(uuid)
         structure.set_extra(self.EXTRAS_KEY, optimade_attributes)
-        # if not self._optimade_attribute_exists(uuid, attribute):
-        #     raise OptimadeAttributeNotFoundInExtras(
-        #         f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
-        #         f"the OPTiMaDe attribute \"{attribute}\" with the (new) value \"{value}\" "
-        #         f"could not be found to exists. StructureData: {structure}"
-        #     )
+        if not self._optimade_attribute_exists(uuid, attribute):
+            raise OptimadeAttributeNotFoundInExtras(
+                f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
+                f'the OPTiMaDe attribute "{attribute}" with the (new) value "{value}" '
+                f"could not be found to exists. StructureData: {structure}"
+            )
 
     def _save_extra(self, uuid: str, attribute: str, value: Any):
         extras = self._get_extras(uuid)

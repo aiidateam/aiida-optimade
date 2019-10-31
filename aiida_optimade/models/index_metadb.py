@@ -1,4 +1,4 @@
-from pydantic import Schema, BaseModel, validator
+from pydantic import Schema, BaseModel
 from typing import Union, Dict
 
 from .links import ChildResource

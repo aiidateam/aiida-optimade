@@ -1,5 +1,5 @@
 """Modified JSON API for OPTiMaDe API"""
-from pydantic import Schema, validator, BaseModel
+from pydantic import Schema, validator
 from typing import Optional, Set
 from . import jsonapi
 
