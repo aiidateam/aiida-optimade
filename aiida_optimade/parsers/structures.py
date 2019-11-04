@@ -67,16 +67,16 @@ class StructureDataParser:
         return query.first()[0]
 
     def _update_extras(
-        self, uuid: str, optimade_attributes: dict, attribute: str, value: Any
+        self, uuid: str, optimade_attributes: dict  # , attribute: str, value: Any
     ):
         structure = self._get_entity(uuid)
         structure.set_extra(self.EXTRAS_KEY, optimade_attributes)
-        if not self._optimade_attribute_exists(uuid, attribute):
-            raise OptimadeAttributeNotFoundInExtras(
-                f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
-                f'the OPTiMaDe attribute "{attribute}" with the (new) value "{value}" '
-                f"could not be found to exists. StructureData: {structure}"
-            )
+        # if not self._optimade_attribute_exists(uuid, attribute):
+        #     raise OptimadeAttributeNotFoundInExtras(
+        #         f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
+        #         f'the OPTiMaDe attribute "{attribute}" with the (new) value "{value}" '
+        #         f"could not be found to exists. StructureData: {structure}"
+        #     )
 
     def _save_extra(self, uuid: str, attribute: str, value: Any):
         extras = self._get_extras(uuid)
@@ -86,7 +86,7 @@ class StructureDataParser:
         except KeyError:
             # First time root extras key is created in extras
             optimade = {attribute: value}
-            self._update_extras(uuid, optimade, attribute, value)
+            self._update_extras(uuid, optimade)  # , attribute, value)
             return
 
         try:
@@ -94,7 +94,7 @@ class StructureDataParser:
         except KeyError:
             # First time attribute is created in extras
             optimade[attribute] = value
-            self._update_extras(uuid, optimade, attribute, value)
+            self._update_extras(uuid, optimade)  # , attribute, value)
             return
 
         raise Exception(
@@ -463,27 +463,7 @@ class StructureDataParser:
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
-        res = []
-        kind_at_sites = [site.kind_name for site in node.sites]
-
-        # Since sites do not have unique names, these must be created from the unique kind_names
-        kind_names = set(kind_at_sites)
-        number_of_kinds = {}.fromkeys(kind_names, 0)
-        for site in kind_at_sites:
-            number_of_kinds[site] += 1
-
-        for site_name in kind_at_sites:
-            for kind, number_of_kind in number_of_kinds.items():
-                for i in range(number_of_kind):
-                    if site_name == kind:
-                        res.append(f"{site_name}_{i}")
-
-        if len(set(res)) != self.nsites(uuid):
-            raise OptimadeIntegrityError(
-                f"A name in {attribute} is not unique. "
-                f"Only {len(set(res))} unique site names were found, "
-                f"but there are {self.nsites(uuid)} sites recorded. UUID: {uuid}"
-            )
+        res = [site.kind_name for site in node.sites]
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
@@ -585,7 +565,7 @@ class StructureDataParser:
         res = []
 
         # Figure out if there are partial occupancies
-        if self.has_partial_occupancy(node):
+        if not self.has_partial_occupancy(node):
             self._save_extra(uuid, attribute, res)
             return res
 

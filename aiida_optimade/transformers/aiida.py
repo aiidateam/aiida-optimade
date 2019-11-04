@@ -1,7 +1,5 @@
 from lark import Transformer
 
-op_expr = {"<": "$lt", "<=": "$lte", ">": "$gt", ">=": "$gte", "!=": "$ne", "=": "$eq"}
-
 # Conversion map from the OPTiMaDe operators to the QueryBuilder operators
 op_conv_map = {
     "=": "==",
@@ -85,6 +83,9 @@ class AiidaTransformer(Transformer):
             value = value_token.value
             if value.startswith('"') and value.endswith('"'):
                 value = value[1:-1]
+        else:
+            if value.is_integer():
+                value = int(value)
         return {field: {op: value}}
 
     def combined(self, args):
@@ -96,5 +97,8 @@ class AiidaTransformer(Transformer):
                 value = value_token.value
                 if value.startswith('"') and value.endswith('"'):
                     value = value[1:-1]
+            else:
+                if value.is_integer():
+                    value = int(value)
             elements.append(value)
         return elements
