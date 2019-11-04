@@ -1,26 +1,26 @@
 import urllib
 import json
-from configparser import ConfigParser
+import traceback
 from datetime import datetime
-from pathlib import Path
-from typing import Union
+from typing import Union, Dict, Any, List, Sequence
 
+from pydantic import ValidationError
 from fastapi import FastAPI, Depends
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
+from starlette.responses import JSONResponse
+
 from aiida import orm, load_profile
 
-from aiida_optimade.deps import EntryListingQueryParams
-from aiida_optimade.collections_test import AiidaCollection
-from aiida_optimade.models import Link
-from aiida_optimade.models import ToplevelLinks
-from aiida_optimade.models import (
+from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
+from optimade.models import (
+    ToplevelLinks,
     StructureResource,
-    StructureMapper,
-    StructureResourceAttributes,
-)
-from aiida_optimade.models import EntryInfoResource
-from aiida_optimade.models import BaseInfoResource, BaseInfoAttributes
-from aiida_optimade.models import (
+    EntryInfoResource,
+    BaseInfoResource,
+    BaseInfoAttributes,
     ResponseMeta,
     ResponseMetaQuery,
     StructureResponseMany,
@@ -28,19 +28,26 @@ from aiida_optimade.models import (
     Provider,
     Failure,
     EntryInfoResponse,
+    Error,
+    ErrorResponse,
+    ErrorSource,
+    EntryResource,
+    StructureResponseOne,
 )
 
-config = ConfigParser()
-config.read(Path(__file__).resolve().parent.joinpath("config.ini"))
+from aiida_optimade.collections import AiidaCollection
+from aiida_optimade.mappers.structures import StructureMapper
+from aiida_optimade.config import CONFIG
+
 
 app = FastAPI(
     title="OPTiMaDe API",
     description=(
         "The [Open Databases Integration for Materials Design (OPTiMaDe) consortium]"
-        "(http://http://www.optimade.org/) aims to make materials databases interoperational"
-        " by developing a common REST API."
+        "(http://http://www.optimade.org/) aims to make materials databases interoperational "
+        "by developing a common REST API."
     ),
-    version="0.9",
+    version="0.10.0",
 )
 
 load_profile()
@@ -48,12 +55,10 @@ structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper
 )
 
-test_structures_path = (
-    Path(__file__).resolve().parent.joinpath("tests/test_structures.json")
-)
 
-
-def meta_values(url, data_returned, data_available, more_data_available=False):
+def meta_values(
+    url, data_returned, data_available, more_data_available=False, **kwargs
+):
     """Helper to initialize the meta values"""
     parse_result = urllib.parse.urlparse(url)
     return ResponseMeta(
@@ -65,13 +70,14 @@ def meta_values(url, data_returned, data_available, more_data_available=False):
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(
-            name="AiiDA",
-            description="AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
-            prefix="aiida",
-            homepage="http://www.aiida.net",
+            name="test",
+            description="A test database provider",
+            prefix="exmpl",
+            homepage=None,
             index_base_url=None,
         ),
         data_available=data_available,
+        **kwargs,
     )
 
 
@@ -81,26 +87,116 @@ def update_schema(app):
         json.dump(app.openapi(), f, indent=2)
 
 
+def general_exception(
+    request: Request, exc: Exception, **kwargs: Dict[str, Any]
+) -> JSONResponse:
+    tb = "".join(
+        traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)
+    )
+    # print(tb)
+
+    try:
+        status_code = exc.status_code
+    except AttributeError:
+        status_code = kwargs.get("status_code", 500)
+
+    detail = getattr(exc, "detail", str(exc))
+
+    errors = kwargs.get("errors", None)
+    if not errors:
+        errors = [
+            Error(detail=detail, status=status_code, title=str(exc.__class__.__name__))
+        ]
+
+    return JSONResponse(
+        status_code=status_code,
+        content=jsonable_encoder(
+            ErrorResponse(
+                meta=meta_values(
+                    str(request.url), 0, 0, False, **{CONFIG.provider + "traceback": tb}
+                ),
+                errors=errors,
+            ),
+            skip_defaults=True,
+        ),
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return general_exception(request, exc)
+
+
+@app.exception_handler(RequestValidationError)
+def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+    return general_exception(request, exc)
+
+
+@app.exception_handler(ValidationError)
+def validation_exception_handler(request: Request, exc: ValidationError):
+    status = 500
+    title = "ValidationError"
+    errors = []
+    for error in exc.errors():
+        pointer = "/" + "/".join([str(_) for _ in error["loc"]])
+        source = ErrorSource(pointer=pointer)
+        code = error["type"]
+        detail = error["msg"]
+        errors.append(
+            Error(detail=detail, status=status, title=title, source=source, code=code)
+        )
+    return general_exception(request, exc, status_code=status, errors=errors)
+
+
+@app.exception_handler(Exception)
+def general_exception_handler(request: Request, exc: Exception):
+    return general_exception(request, exc)
+
+
+def handle_response_fields(
+    results: Union[List[EntryResource], EntryResource], fields: set
+) -> dict:
+    if not isinstance(results, list):
+        results = [results]
+    non_attribute_fields = {"id", "type"}
+    top_level = {_ for _ in non_attribute_fields if _ in fields}
+    attribute_level = fields - non_attribute_fields
+    new_results = []
+    while results:
+        entry = results.pop(0)
+        new_entry = entry.dict(exclude=top_level, skip_defaults=True)
+        for field in attribute_level:
+            if field in new_entry["attributes"]:
+                del new_entry["attributes"][field]
+        if not new_entry["attributes"]:
+            del new_entry["attributes"]
+        new_results.append(new_entry)
+    return new_results
+
+
 @app.get(
     "/structures",
-    response_model=Union[StructureResponseMany, Failure],
+    response_model=Union[StructureResponseMany, ErrorResponse],
     response_model_skip_defaults=True,
     tags=["Structure"],
 )
 def get_structures(request: Request, params: EntryListingQueryParams = Depends()):
-    results, more_data_available, data_available = structures.find(params)
+    results, more_data_available, data_available, fields = structures.find(params)
     parse_result = urllib.parse.urlparse(str(request.url))
+
     if more_data_available:
         query = urllib.parse.parse_qs(parse_result.query)
-        query["page_offset"] = int(query.get("page_offset", ["0"])[0]) + len(results)
+        query["page_offset"] = int(query.get("page_offset", [0])[0]) + len(results)
         urlencoded = urllib.parse.urlencode(query, doseq=True)
         links = ToplevelLinks(
-            next=Link(
-                href=f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded}"
-            )
+            next=f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded}"
         )
     else:
         links = ToplevelLinks(next=None)
+
+    if fields:
+        results = handle_response_fields(results, fields)
+
     return StructureResponseMany(
         links=links,
         data=results,
@@ -111,24 +207,81 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
 
 
 @app.get(
+    "/structures/{entry_id}",
+    response_model=Union[StructureResponseOne, ErrorResponse],
+    response_model_skip_defaults=True,
+    tags=["Structure"],
+)
+def get_single_structure(
+    request: Request, entry_id: int, params: SingleEntryQueryParams = Depends()
+):
+    params.filter = f"id={entry_id}"
+    results, more_data_available, data_available, fields = structures.find(params)
+
+    if more_data_available:
+        raise StarletteHTTPException(
+            status_code=500,
+            detail=f"more_data_available MUST be False for single entry response, however it is {more_data_available}",
+        )
+    links = ToplevelLinks(next=None)
+
+    if fields and results is not None:
+        results = handle_response_fields(results, fields)[0]
+
+    return StructureResponseOne(
+        links=links,
+        data=results,
+        meta=meta_values(
+            str(request.url), data_available, data_available, more_data_available
+        ),
+    )
+
+
+@app.get(
     "/info",
-    response_model=Union[InfoResponse, Failure],
+    response_model=Union[InfoResponse, ErrorResponse],
     response_model_skip_defaults=True,
     tags=["Info"],
 )
 def get_info(request: Request):
-    print(request.url)
+    parse_result = urllib.parse.urlparse(str(request.url))
     return InfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
                 api_version="v0.10",
                 available_api_versions=[
-                    {"url": "http://localhost:5000/", "version": "0.10.0"}
+                    {
+                        "url": f"{parse_result.scheme}://{parse_result.netloc}",
+                        "version": "0.10.0",
+                    }
                 ],
+                entry_types_by_format={"json": ["structures"]},
+                available_endpoints=["info", "structures"],
             )
         ),
     )
+
+
+def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
+    properties = {}
+    for name, value in schema["properties"].items():
+        if name in queryable_properties:
+            if "$ref" in value:
+                path = value["$ref"].split("/")[1:]
+                sub_schema = schema.copy()
+                while path:
+                    next_key = path.pop(0)
+                    sub_schema = sub_schema[next_key]
+                sub_queryable_properties = sub_schema["properties"].keys()
+                properties.update(
+                    retrieve_queryable_properties(sub_schema, sub_queryable_properties)
+                )
+            else:
+                properties[name] = {"description": value["description"]}
+                if "unit" in value:
+                    properties[name]["unit"] = value["unit"]
+    return properties
 
 
 @app.get(
@@ -138,25 +291,16 @@ def get_info(request: Request):
     tags=["Structure", "Info"],
 )
 def get_structures_info(request: Request):
-    fields = StructureResource.schema()["properties"]
-    properties = {
-        field: {"description": value.get("description", "")}
-        for field, value in fields.items()
-    }
-
-    del properties["attributes"]
-    fields = StructureResourceAttributes.schema()["properties"]
-    properties = {
-        field: {"description": value.get("description", "")}
-        for field, value in fields.items()
-    }
+    schema = StructureResource.schema()
+    queryable_properties = {"id", "type", "attributes"}
+    properties = retrieve_queryable_properties(schema, queryable_properties)
 
     return EntryInfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=EntryInfoResource(
             description="Endpoint to represent AiiDA StructureData Nodes in the OPTiMaDe format",
             properties=properties,
-            output_fields_by_format={"json": list(fields.keys())},
+            output_fields_by_format={"json": list(properties.keys())},
         ),
     )
 
