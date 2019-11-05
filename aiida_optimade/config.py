@@ -12,6 +12,7 @@ class ServerConfig(Config):
     FILENAME = "config"
 
     page_limit = 500
+    db_page_limit = 1000
     provider = "_aiida_"
     provider_fields = set()
 
@@ -28,6 +29,7 @@ class ServerConfig(Config):
             config = json.load(config_file)
 
         self.page_limit = int(config.get("page_limit", self.page_limit))
+        self.db_page_limit = int(config.get("db_page_limit", self.db_page_limit))
         self.provider = config.get("provider", self.provider)
         self.provider_fields = set(config.get("provider_fields", self.provider_fields))
 

@@ -62,6 +62,7 @@ class AiidaCollection(EntryCollection):
         self.provider = CONFIG.provider
         self.provider_fields = CONFIG.provider_fields
         self.page_limit = CONFIG.page_limit
+        self.db_page_limit = CONFIG.db_page_limit
         self.parser = LarkParser(version=(0, 9, 7))
 
         # "Cache"
@@ -153,10 +154,10 @@ class AiidaCollection(EntryCollection):
             limit = self.page_limit
             if params.page_limit != self.page_limit:
                 limit = params.page_limit
-            if limit > self.page_limit:
+            if limit > self.db_page_limit:
                 raise HTTPException(
                     status_code=403,
-                    detail=f"Max page_limit is {self.page_limit}, you requested {limit}",
+                    detail=f"Max allowed page_limit is {self.db_page_limit}, you requested {limit}",
                 )
             if limit == 0:
                 limit = self.page_limit
