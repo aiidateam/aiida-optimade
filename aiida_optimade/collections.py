@@ -33,7 +33,9 @@ class EntryCollection(OptimadeEntryCollection):
 
         filters = kwargs.get("filters", {})
         order_by = kwargs.get("order_by", None)
-        order_by = {entity_type: order_by} if order_by else {}
+        order_by = (
+            {entity_type: order_by} if order_by else {entity_type: {"uuid": "asc"}}
+        )
         limit = kwargs.get("limit", None)
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
@@ -62,38 +64,25 @@ class AiidaCollection(EntryCollection):
         self.page_limit = CONFIG.page_limit
         self.parser = LarkParser(version=(0, 9, 7))
 
+        # "Cache"
+        self._data_available = None
+
     def __len__(self) -> int:
-        return self.collection.query().count()
+        return self.collection.count()
 
     def __contains__(self, entry) -> bool:
         return self.collection.count(filters={"uuid": entry.uuid}, limit=1) > 0
 
-    def count(self, **kwargs) -> int:
-        offset = kwargs.get("offset", 0)
-        for key in list(kwargs.keys()):
-            if key not in ("filters", "order_by"):
-                del kwargs[key]
-        return self.collection.count(**kwargs) - offset
+    @property
+    def data_available(self) -> int:
+        if not self._data_available:
+            self._data_available = self.collection.count()
+        return self._data_available
 
     def find(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
     ) -> Tuple[List[EntryResource], bool, NonnegativeInt, set]:
         criteria = self._parse_params(params)
-
-        if isinstance(params, EntryListingQueryParams):
-            nresults_total = self.count(**criteria)
-            nresults_now = min(criteria["limit"], nresults_total)
-
-            more_data_available = nresults_now < nresults_total
-            data_available = nresults_total
-        else:
-            more_data_available = False
-            data_available = self.count(**criteria)
-            if data_available != 1:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Instead of a single entry, {data_available} entries were found",
-                )
 
         all_fields = criteria.pop("fields")
         if getattr(params, "response_fields", False):
@@ -102,7 +91,8 @@ class AiidaCollection(EntryCollection):
             fields = all_fields.copy()
 
         results = []
-        for entity in self._find(self.collection.entity_type, **criteria).all():
+        entities = self._find(self.collection.entity_type, **criteria).all()
+        for entity in entities:
             results.append(
                 self.resource_cls(
                     **self.resource_mapper.map_back(
@@ -111,10 +101,23 @@ class AiidaCollection(EntryCollection):
                 )
             )
 
+        if isinstance(params, EntryListingQueryParams):
+            nresults_now = len(results)
+            more_data_available = bool(
+                self.data_available - criteria.get("offset", 0) - nresults_now
+            )
+        else:
+            more_data_available = False
+            if len(results) != 1:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Instead of a single entry, {len(results)} entries were found",
+                )
+
         if isinstance(params, SingleEntryQueryParams):
             results = results[0]
 
-        return results, more_data_available, data_available, all_fields - fields
+        return results, more_data_available, self.data_available, all_fields - fields
 
     def _alias_filter(self, filter_: dict) -> dict:
         res = {}

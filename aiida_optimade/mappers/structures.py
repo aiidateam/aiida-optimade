@@ -13,10 +13,11 @@ class StructureMapper(ResourceMapper):
     ALIASES = (
         ("immutable_id", "uuid"),
         ("last_modified", "mtime"),
-        ("type", "extras.optimade_type"),  # Something non-existing
+        ("type", "extras.something.non.existing.type"),
     )
-    PARSER = StructureDataParser()
-    ALL_ATTRIBUTES = StructureResourceAttributes.__fields__
+    PARSER = StructureDataParser
+    ALL_ATTRIBUTES = list(StructureResourceAttributes.schema().get("properties").keys())
+    REQUIRED_ATTRIBUTES = StructureResourceAttributes.schema().get("required")
 
     @classmethod
     def map_back(cls, entity_properties: dict) -> dict:
@@ -30,7 +31,7 @@ class StructureMapper(ResourceMapper):
         new_object = {}
 
         for real, alias in mapping:
-            if real in entity_properties:
+            if real in entity_properties and alias != "type":
                 new_object_attributes[alias] = entity_properties[real]
 
         # Particular attributes
@@ -47,8 +48,6 @@ class StructureMapper(ResourceMapper):
 
         if "id" in entity_properties:
             new_object["id"] = entity_properties["id"]
-        if "extras.optimade_type" in entity_properties:
-            new_object["type"] = "structure"
 
         new_object["attributes"] = cls.build_attributes(new_object_attributes)
 
@@ -71,24 +70,26 @@ class StructureMapper(ResourceMapper):
             )
 
         res = {}
-
         # Gather all available information for entry.
-        attributes = cls.ALL_ATTRIBUTES
-        for existing_attribute in retrieved_attributes:
-            if existing_attribute in list(attributes.keys()):
-                del attributes[existing_attribute]
-
-        for attribute in attributes:
+        missing_attributes = cls.ALL_ATTRIBUTES.copy()
+        for existing_attribute, value in retrieved_attributes.items():
+            res[existing_attribute] = value
+            if existing_attribute in missing_attributes:
+                missing_attributes.remove(existing_attribute)
+        parser = cls.PARSER()
+        for attribute in missing_attributes:
             try:
-                check_or_create_attribute = getattr(cls.PARSER, attribute)
+                create_attribute = getattr(parser, attribute)
             except AttributeError:
-                if isinstance(attributes, list) or attributes[attribute].required:
+                if attribute in cls.REQUIRED_ATTRIBUTES:
+                    parser = None
                     raise NotImplementedError(
                         f"Parsing required {attribute} from "
                         f"{cls.PARSER} has not yet been implemented."
                     )
                 # Print warning that parsing non-required attribute has not yet been implemented
             else:
-                res[attribute] = check_or_create_attribute(entry_uuid)
+                res[attribute] = create_attribute(entry_uuid)
 
+        parser = None
         return res

@@ -50,7 +50,7 @@ app = FastAPI(
     version="0.10.0",
 )
 
-load_profile()
+load_profile("sohier_import")
 structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper
 )
@@ -70,10 +70,10 @@ def meta_values(
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(
-            name="test",
-            description="A test database provider",
-            prefix="exmpl",
-            homepage=None,
+            name="AiiDA",
+            description="AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+            prefix=CONFIG.provider[1:-1],  # Remove surrounding `_`
+            homepage="http://www.aiida.net",
             index_base_url=None,
         ),
         data_available=data_available,
@@ -93,7 +93,7 @@ def general_exception(
     tb = "".join(
         traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)
     )
-    # print(tb)
+    print(tb)
 
     try:
         status_code = exc.status_code
@@ -184,21 +184,36 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     results, more_data_available, data_available, fields = structures.find(params)
     parse_result = urllib.parse.urlparse(str(request.url))
 
+    pagination = {}
+    query = urllib.parse.parse_qs(parse_result.query)
+    query["page_offset"] = int(query.get("page_offset", [0])[0]) - int(
+        query.get("page_limit", [CONFIG.page_limit])[0]
+    )
+    if query["page_offset"] > 0:
+        urlencoded_prev = urllib.parse.urlencode(query, doseq=True)
+        pagination[
+            "prev"
+        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
+    elif query["page_offset"] == 0:
+        pagination["prev"] = f"{request.url}"
     if more_data_available:
-        query = urllib.parse.parse_qs(parse_result.query)
-        query["page_offset"] = int(query.get("page_offset", [0])[0]) + len(results)
-        urlencoded = urllib.parse.urlencode(query, doseq=True)
-        links = ToplevelLinks(
-            next=f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded}"
+        query["page_offset"] = (
+            int(query.get("page_offset", 0))
+            + len(results)
+            + int(query.get("page_limit", [CONFIG.page_limit])[0])
         )
+        urlencoded_next = urllib.parse.urlencode(query, doseq=True)
+        pagination[
+            "next"
+        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_next}"
     else:
-        links = ToplevelLinks(next=None)
+        pagination["next"] = None
 
     if fields:
         results = handle_response_fields(results, fields)
 
     return StructureResponseMany(
-        links=links,
+        links=ToplevelLinks(**pagination),
         data=results,
         meta=meta_values(
             str(request.url), len(results), data_available, more_data_available
@@ -295,12 +310,15 @@ def get_structures_info(request: Request):
     queryable_properties = {"id", "type", "attributes"}
     properties = retrieve_queryable_properties(schema, queryable_properties)
 
+    output_fields_by_format = {"json": list(properties.keys())}
+
     return EntryInfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=EntryInfoResource(
+            formats=list(output_fields_by_format.keys()),
             description="Endpoint to represent AiiDA StructureData Nodes in the OPTiMaDe format",
             properties=properties,
-            output_fields_by_format={"json": list(properties.keys())},
+            output_fields_by_format=output_fields_by_format,
         ),
     )
 

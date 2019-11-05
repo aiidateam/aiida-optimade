@@ -2,10 +2,6 @@ from typing import Any, List, Union
 from aiida.orm import QueryBuilder, StructureData
 
 
-class OptimadeAttributeNotFoundInExtras(Exception):
-    """Could not find an OPTiMaDe attribute in extras, even though it should be there."""
-
-
 class AiidaEntityNotFound(Exception):
     """Could not find an AiiDA entity in the DB."""
 
@@ -31,6 +27,8 @@ class StructureDataParser:
     EXTRAS_KEY = "optimade"
     AIIDA_ENTITY = StructureData
 
+    NODE = None
+
     def _get_extras(self, uuid: str) -> dict:
         query = QueryBuilder(limit=1)
         query.append(self.AIIDA_ENTITY, filters={"uuid": uuid}, project="extras")
@@ -40,43 +38,22 @@ class StructureDataParser:
             )
         return query.first()[0]
 
-    def _get_optimade_attribute(self, uuid: str, optimade_attribute: str) -> Any:
-        try:
-            return self._get_extras(uuid).get(self.EXTRAS_KEY, {})[optimade_attribute]
-        except KeyError:
-            raise OptimadeAttributeNotFoundInExtras(
-                f"Cannot find {optimade_attribute} in extras.{self.EXTRAS_KEY} for {self.AIIDA_ENTITY} with UUID {uuid}."
-            )
-
-    def _optimade_attribute_exists(self, uuid: str, optimade_attribute: str) -> bool:
-        try:
-            self._get_extras(uuid)[self.EXTRAS_KEY][optimade_attribute]
-        except KeyError:
-            return False
-        else:
-            return True
-
     def _get_entity(self, uuid: str) -> StructureData:
-        query = QueryBuilder(limit=1).append(
-            self.AIIDA_ENTITY, filters={"uuid": uuid}, project="*"
-        )
-        if query.count() != 1:
-            raise AiidaEntityNotFound(
-                f"Could not find StructureData with UUID {uuid}. Found {query.count()} StructureData nodes."
+        if not self.NODE or self.NODE.uuid != uuid:
+            self.NODE = None
+            query = QueryBuilder(limit=1).append(
+                self.AIIDA_ENTITY, filters={"uuid": uuid}, project="*"
             )
-        return query.first()[0]
+            if query.count() != 1:
+                raise AiidaEntityNotFound(
+                    f"Could not find StructureData with UUID {uuid}. Found {query.count()} StructureData nodes."
+                )
+            self.NODE = query.first()[0]
+        return self.NODE
 
-    def _update_extras(
-        self, uuid: str, optimade_attributes: dict  # , attribute: str, value: Any
-    ):
+    def _update_extras(self, uuid: str, optimade_attributes: dict):
         structure = self._get_entity(uuid)
         structure.set_extra(self.EXTRAS_KEY, optimade_attributes)
-        # if not self._optimade_attribute_exists(uuid, attribute):
-        #     raise OptimadeAttributeNotFoundInExtras(
-        #         f'After setting extra "{self.EXTRAS_KEY}" with {optimade_attributes}, '
-        #         f'the OPTiMaDe attribute "{attribute}" with the (new) value "{value}" '
-        #         f"could not be found to exists. StructureData: {structure}"
-        #     )
 
     def _save_extra(self, uuid: str, attribute: str, value: Any):
         extras = self._get_extras(uuid)
@@ -84,56 +61,21 @@ class StructureDataParser:
         try:
             optimade = extras[self.EXTRAS_KEY]
         except KeyError:
-            # First time root extras key is created in extras
+            # First time root extras key is created
             optimade = {attribute: value}
-            self._update_extras(uuid, optimade)  # , attribute, value)
+            self._update_extras(uuid, optimade)
             return
-
-        try:
-            existing_value = optimade[attribute]
-        except KeyError:
-            # First time attribute is created in extras
+        else:
             optimade[attribute] = value
-            self._update_extras(uuid, optimade)  # , attribute, value)
+            self._update_extras(uuid, optimade)
             return
-
-        raise Exception(
-            "Somehow reached this stage. "
-            f"Existing value: {existing_value}. UUID: {uuid}. Attribute: {attribute}. "
-            f"Value: {value}. Found extras: {extras}"
-        )
-
-        # if not isinstance(value, type(existing_value)):
-        #     raise TypeError(f"Types of values are not the same. "
-        #         f"\"existing_value\": type={type(existing_value)}, value={existing_value}; "
-        #         f"\"value\": type={type(value)}, value={value}"
-        #     )
-
-        # if isinstance(value, list):
-        #     if len(existing_value) != len(value):
-        #         # Update attribute with new value
-        #         optimade[attribute] = value
-        #         self._update_extras(uuid, optimade, attribute, value)
-        #         return
-
-        #     for item in value:
-        #         if item not in existing_value:
-        #             # Update attribute with new value
-        #             optimade[attribute] = value
-        #             self._update_extras(uuid, optimade, attribute, value)
-        #             return
-
-        # if existing_value != value:
-        #     # Update attribute with new value
-        #     optimade[attribute] = value
-        #     self._update_extras(uuid, optimade, attribute, value)
 
     def get_symbol_weights(self, node: StructureData) -> dict:
-        elements = self.elements(node.uuid)
-        occupation = {}.fromkeys(elements, 0.0)
+        occupation = {}.fromkeys(sorted(node.get_symbols_set()), 0.0)
         for kind in node.kinds:
+            number_of_sites = len([_ for _ in node.sites if _.kind_name == kind.name])
             for i in range(len(kind.symbols)):
-                occupation[kind.symbols[i]] += kind.weights[i]
+                occupation[kind.symbols[i]] += kind.weights[i] * number_of_sites
         return occupation
 
     def has_partial_occupancy(self, node: StructureData) -> bool:
@@ -171,14 +113,11 @@ class StructureDataParser:
             res.append(vector)
         return res
 
+    # Start creating fields
     def elements(self, uuid: str) -> List[str]:
         """Names of elements found in the structure as a list of strings, in alphabetical order."""
 
         attribute = "elements"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
@@ -197,10 +136,6 @@ class StructureDataParser:
 
         attribute = "nelements"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         res = len(self.elements(uuid))
 
@@ -212,10 +147,6 @@ class StructureDataParser:
         """Relative proportions of different elements in the structure."""
 
         attribute = "elements_ratios"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
@@ -241,13 +172,9 @@ class StructureDataParser:
 
         attribute = "chemical_formula_descriptive"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
-        res = node.get_formula(mode="hill")
+        res = node.get_formula()
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
@@ -266,17 +193,13 @@ class StructureDataParser:
 
         attribute = "chemical_formula_reduced"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
 
         occupation = self.get_symbol_weights(node)
         for symbol, weight in occupation.items():
             rounded_weight = round(weight)
-            if rounded_weight == 1:
+            if rounded_weight in {0, 1}:
                 occupation[symbol] = ""
             else:
                 occupation[symbol] = rounded_weight
@@ -297,14 +220,10 @@ class StructureDataParser:
         NOTE: If the system has sites with partial occupation and the total occupations
         of each element do not all sum up to integers, then the Hill formula SHOULD be handled as unset.
 
-        NOTE: This will always be equal to chemical_formula_descriptive if it should not be handles as unset.
+        NOTE: This will always be equal to chemical_formula_descriptive if it should not be handled as unset.
         """
 
         attribute = "chemical_formula_hill"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
@@ -329,10 +248,6 @@ class StructureDataParser:
         import string
 
         attribute = "chemical_formula_anonymous"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
@@ -381,10 +296,6 @@ class StructureDataParser:
 
         attribute = "dimension_types"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
         res = [int(value) for value in node.pbc]
@@ -397,10 +308,6 @@ class StructureDataParser:
         """The three lattice vectors in Cartesian coordinates, in ångström (Å)."""
 
         attribute = "lattice_vectors"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
@@ -419,10 +326,6 @@ class StructureDataParser:
 
         attribute = "cartesian_site_positions"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
         sites = [list(site.position) for site in node.sites]
@@ -436,10 +339,6 @@ class StructureDataParser:
         """An integer specifying the length of the cartesian_site_positions property."""
 
         attribute = "nsites"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         res = len(self.cartesian_site_positions(uuid))
@@ -457,10 +356,6 @@ class StructureDataParser:
 
         attribute = "species_at_sites"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
         res = [site.kind_name for site in node.sites]
@@ -475,20 +370,15 @@ class StructureDataParser:
         Species can be pure chemical elements, or virtual-crystal atoms
         representing a statistical occupation of a given site by multiple chemical elements.
         """
+        import re
 
         attribute = "species"
 
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
-
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
+        res = []
 
-        ### FROM OLDER aiida-optimade
-        import re
-
-        species = {}
+        # Create a species
         for kind in node.kinds:
             name = kind.name
             kind_weight_sum = 0
@@ -500,33 +390,25 @@ class StructureDataParser:
                 # Accumulating sum of weights
                 kind_weight_sum += weight
 
-            # Create pre v0.10 'species' entry
-            species[name] = dict(
-                chemical_symbols=list(kind.symbols),
-                concentration=list(kind.weights),
-                mass=kind.mass,
-                original_name=name,
-            )
+            species = {
+                "name": name,
+                "chemical_symbols": list(kind.symbols),
+                "concentration": list(kind.weights),
+                "mass": kind.mass,
+                "original_name": name,
+            }
 
             if re.match(r"[\w]*X[\d]*", name):
                 # Species includes/is a vacancy
-                species[name]["chemical_symbols"].append("vacancy")
+                species["chemical_symbols"].append("vacancy")
 
                 # Calculate vacancy concentration
                 if 0.0 <= kind_weight_sum <= 1.0:
-                    species[name]["concentration"].append(1.0 - kind_weight_sum)
+                    species["concentration"].append(1.0 - kind_weight_sum)
                 else:
                     raise ValueError("kind_weight_sum must be in the interval [0;1]")
-        ### END
 
-        site_names = self.species_at_sites(uuid)
-        res = []
-        for i in range(self.nsites(uuid)):
-            new_species = {}
-            species_name = site_names[i].split("_")[0]
-            new_species["name"] = site_names[i]
-            new_species.update(species[species_name])
-            res.append(new_species)
+            res.append(species)
 
         # Finally, save OPTiMaDe attribute in extras for AiiDA Node and return value
         self._save_extra(uuid, attribute, res)
@@ -536,10 +418,6 @@ class StructureDataParser:
     #     """A description of groups of sites that are statistically correlated."""
 
     #     attribute = "assemblies"
-
-    #     # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-    #     if self._optimade_attribute_exists(uuid, attribute):
-    #         return self._get_optimade_attribute(uuid, attribute)
 
     #     # Create value from AiiDA Node
     #     node = self._get_entity(uuid)
@@ -555,10 +433,6 @@ class StructureDataParser:
         """
 
         attribute = "structure_features"
-
-        # Return value if OPTiMaDe attribute has already been saved in extras for AiiDA Node
-        if self._optimade_attribute_exists(uuid, attribute):
-            return self._get_optimade_attribute(uuid, attribute)
 
         # Create value from AiiDA Node
         node = self._get_entity(uuid)
