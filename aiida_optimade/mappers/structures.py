@@ -70,26 +70,31 @@ class StructureMapper(ResourceMapper):
             )
 
         res = {}
-        # Gather all available information for entry.
+        # Add existing attributes
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
             res[existing_attribute] = value
             if existing_attribute in missing_attributes:
                 missing_attributes.remove(existing_attribute)
-        parser = cls.PARSER()
-        for attribute in missing_attributes:
-            try:
-                create_attribute = getattr(parser, attribute)
-            except AttributeError:
-                if attribute in cls.REQUIRED_ATTRIBUTES:
-                    parser = None
-                    raise NotImplementedError(
-                        f"Parsing required {attribute} from "
-                        f"{cls.PARSER} has not yet been implemented."
-                    )
-                # Print warning that parsing non-required attribute has not yet been implemented
-            else:
-                res[attribute] = create_attribute(entry_uuid)
 
-        parser = None
+        # Create and add new attributes
+        if missing_attributes:
+            parser = cls.PARSER(entry_uuid)
+            for attribute in missing_attributes:
+                try:
+                    create_attribute = getattr(parser, attribute)
+                except AttributeError:
+                    if attribute in cls.REQUIRED_ATTRIBUTES:
+                        parser = None
+                        raise NotImplementedError(
+                            f"Parsing required {attribute} from "
+                            f"{cls.PARSER} has not yet been implemented."
+                        )
+                    # Print warning that parsing non-required attribute has not yet been implemented
+                else:
+                    res[attribute] = create_attribute()
+            # Store new attributes in `extras`
+            parser.store_attributes()
+            parser = None
+
         return res
