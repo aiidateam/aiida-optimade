@@ -1,5 +1,8 @@
 from lark import Transformer
 
+
+__all__ = ("AiidaTransformer",)
+
 # Conversion map from the OPTiMaDe operators to the QueryBuilder operators
 op_conv_map = {
     "=": "==",

@@ -1,3 +1,4 @@
-__all__ = ("AiidaTransformer",)
+# pylint: disable=undefined-variable
+from .aiida import *
 
-from .aiida import AiidaTransformer
+__all__ = aiida.__all__  # noqa
