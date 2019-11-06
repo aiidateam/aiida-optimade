@@ -1,5 +1,6 @@
 from optimade.models import StructureResourceAttributes
-from aiida_optimade.parsers.structures import StructureDataParser
+
+from aiida_optimade.parsers import StructureDataParser
 
 from .entries import ResourceMapper
 
