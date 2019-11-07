@@ -78,16 +78,14 @@ class AiidaCollection(EntryCollection):
     def __contains__(self, entry) -> Exception:
         raise NotImplementedError("__contains__ is not implemented")
 
-    def _find_all(
-        self, backend: Session, entity_type: orm.Entity, **kwargs
-    ) -> orm.QueryBuilder:
-        query = self._find(backend, entity_type, **kwargs)
+    def _find_all(self, backend: Session, **kwargs) -> orm.QueryBuilder:
+        query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.all()
         del query
         return res
 
     def count(self, backend: Session, **kwargs):  # pylint: disable=arguments-differ
-        query = self._find(backend, **kwargs)
+        query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.count()
         del query
         return res
@@ -120,7 +118,7 @@ class AiidaCollection(EntryCollection):
             fields = all_fields.copy()
 
         results = []
-        entities = self._find_all(backend, self.collection.entity_type, **criteria)
+        entities = self._find_all(backend, **criteria)
         for entity in entities:
             results.append(
                 self.resource_cls(

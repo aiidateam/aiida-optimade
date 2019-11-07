@@ -12,8 +12,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from sqlalchemy.orm import Session
-
 from aiida import orm, load_profile
 
 from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
@@ -37,7 +35,6 @@ from optimade.models import (
     StructureResponseOne,
 )
 
-from aiida_optimade.aiida_session import SessionLocal
 from aiida_optimade.collections import AiidaCollection
 from aiida_optimade.config import CONFIG
 from aiida_optimade.mappers import StructureMapper
@@ -53,7 +50,10 @@ app = FastAPI(
     version="0.10.0",
 )
 
-load_profile("sohier_import")
+profile = load_profile("sohier_import")
+# if profile.database_backend == "django":
+#     backend =
+
 structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper
 )
@@ -116,7 +116,12 @@ def general_exception(
         content=jsonable_encoder(
             ErrorResponse(
                 meta=meta_values(
-                    str(request.url), 0, 0, False, **{CONFIG.provider + "traceback": tb}
+                    # TODO: Add debug and print only tb if debug = True
+                    str(request.url),
+                    0,
+                    0,
+                    False,
+                    **{CONFIG.provider + "traceback": tb},
                 ),
                 errors=errors,
             ),
@@ -126,18 +131,20 @@ def general_exception(
 
 
 @app.middleware("http")
-async def db_session_middleware(request: Request, call_next):
+async def backend_middleware(request: Request, call_next):
     response = Response("Internal server error", status_code=500)
     try:
-        request.state.db = SessionLocal()
+        from aiida_optimade.aiida_session import OptimadeDjangoBackend
+
+        request.state.backend = OptimadeDjangoBackend()
         response = await call_next(request)
     finally:
-        request.state.db.close()
+        request.state.backend.close()
     return response
 
 
-def get_db(request: Request):
-    return request.state.db
+def get_backend(request: Request):
+    return request.state.backend
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -201,7 +208,7 @@ def handle_response_fields(
 def get_structures(
     request: Request,
     params: EntryListingQueryParams = Depends(),
-    backend: Session = Depends(get_db),
+    backend=Depends(get_backend),
 ):
     results, more_data_available, data_available, fields = structures.find(
         backend, params
@@ -255,7 +262,7 @@ def get_single_structure(
     request: Request,
     entry_id: int,
     params: SingleEntryQueryParams = Depends(),
-    backend: Session = Depends(get_db),
+    backend=Depends(get_backend),
 ):
     params.filter = f"id={entry_id}"
     results, more_data_available, data_available, fields = structures.find(

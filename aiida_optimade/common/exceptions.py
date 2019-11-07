@@ -1,4 +1,9 @@
-__all__ = ("AiidaEntityNotFound", "DeductionError", "OptimadeIntegrityError")
+__all__ = (
+    "AiidaEntityNotFound",
+    "DeductionError",
+    "OptimadeIntegrityError",
+    "CausationError",
+)
 
 
 class AiidaEntityNotFound(Exception):
