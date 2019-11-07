@@ -37,9 +37,7 @@ class EntryCollection(OptimadeEntryCollection):
 
         filters = kwargs.get("filters", {})
         order_by = kwargs.get("order_by", None)
-        order_by = (
-            {entity_type: order_by} if order_by else {entity_type: {"uuid": "asc"}}
-        )
+        order_by = {entity_type: order_by} if order_by else {entity_type: {"id": "asc"}}
         limit = kwargs.get("limit", None)
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
