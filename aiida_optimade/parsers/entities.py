@@ -1,7 +1,7 @@
 from typing import Union, Any
 from aiida.orm import Node, QueryBuilder
 
-from .exceptions import AiidaEntityNotFound
+from aiida_optimade.common import AiidaEntityNotFound
 
 
 __all__ = ("AiidaEntityParser",)
@@ -33,9 +33,11 @@ class AiidaEntityParser:
 
     @property
     def _node(self) -> Node:
-        if not self._node_loaded or self._node.uuid != self._uuid:
-            self._node = self._get_unique_node_property("*")
-        return self._node
+        if not self._node_loaded:
+            self.__node = self._get_unique_node_property("*")
+        elif getattr(self.__node, "uuid", "") != self._uuid:
+            self.__node = self._get_unique_node_property("*")
+        return self.__node
 
     @_node.setter
     def _node(self, value: Union[None, Node]):
@@ -51,13 +53,14 @@ class AiidaEntityParser:
 
     def store_attributes(self):
         """Store new attributes in Node extras and reset self._node"""
-        optimade = self._get_optimade_extras()
-        if optimade:
-            optimade.update(self.new_attributes)
-        else:
-            optimade = self.new_attributes
+        if self.new_attributes:
+            optimade = self._get_optimade_extras()
+            if optimade:
+                optimade.update(self.new_attributes)
+            else:
+                optimade = self.new_attributes
 
-        self._node.set_extra(self.EXTRAS_KEY, optimade)
+            self._node.set_extra(self.EXTRAS_KEY, optimade)
 
         # Lastly, reset NODE in an attempt to remove it from memory
         self._node = None

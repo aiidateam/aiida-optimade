@@ -72,6 +72,7 @@ class StructureMapper(ResourceMapper):
 
         res = {}
         # Add existing attributes
+        # TODO: Use sets instead!!
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
             res[existing_attribute] = value

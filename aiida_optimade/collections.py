@@ -1,16 +1,20 @@
 from typing import Tuple, List, Union
 
-from aiida import orm
 from fastapi import HTTPException
+
+from sqlalchemy.orm import Session
+
+from aiida import orm
 
 from optimade.filterparser import LarkParser
 from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
 from optimade.models import NonnegativeInt, EntryResource
 from optimade.server.collections import EntryCollection as OptimadeEntryCollection
 
-from aiida_optimade.transformers import AiidaTransformer
-from aiida_optimade.mappers import ResourceMapper
+from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
+from aiida_optimade.mappers import ResourceMapper
+from aiida_optimade.transformers import AiidaTransformer
 
 
 class EntryCollection(OptimadeEntryCollection):
@@ -23,7 +27,7 @@ class EntryCollection(OptimadeEntryCollection):
         self.resource_mapper = resource_mapper
 
     @staticmethod
-    def _find(entity_type: orm.Entity, **kwargs) -> orm.QueryBuilder:
+    def _find(backend: Session, entity_type: orm.Entity, **kwargs) -> orm.QueryBuilder:
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
                 raise ValueError(
@@ -40,7 +44,7 @@ class EntryCollection(OptimadeEntryCollection):
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
 
-        query = orm.QueryBuilder(limit=limit, offset=offset)
+        query = orm.QueryBuilder(backend=backend, limit=limit, offset=offset)
         query.append(entity_type, project=project, filters=filters)
         query.order_by(order_by)
 
@@ -68,21 +72,45 @@ class AiidaCollection(EntryCollection):
         # "Cache"
         self._data_available = None
 
-    def __len__(self) -> int:
-        return self.collection.count()
+    def __len__(self) -> Exception:
+        raise NotImplementedError("__len__ is not implemented")
 
-    def __contains__(self, entry) -> bool:
-        return self.collection.count(filters={"uuid": entry.uuid}, limit=1) > 0
+    def __contains__(self, entry) -> Exception:
+        raise NotImplementedError("__contains__ is not implemented")
+
+    def _find_all(
+        self, backend: Session, entity_type: orm.Entity, **kwargs
+    ) -> orm.QueryBuilder:
+        query = self._find(backend, entity_type, **kwargs)
+        res = query.all()
+        del query
+        return res
+
+    def count(self, backend: Session, **kwargs):  # pylint: disable=arguments-differ
+        query = self._find(backend, **kwargs)
+        res = query.count()
+        del query
+        return res
 
     @property
     def data_available(self) -> int:
         if not self._data_available:
-            self._data_available = self.collection.count()
+            raise CausationError(
+                "data_available MUST be set before it can be retrieved."
+            )
         return self._data_available
 
-    def find(
-        self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
+    @data_available.setter
+    def data_available(self, value: Session):
+        if not self._data_available:
+            self._data_available = self.count(value)
+
+    def find(  # pylint: disable=arguments-differ
+        self,
+        backend: Session,
+        params: Union[EntryListingQueryParams, SingleEntryQueryParams],
     ) -> Tuple[List[EntryResource], bool, NonnegativeInt, set]:
+        self.data_available = backend
         criteria = self._parse_params(params)
 
         all_fields = criteria.pop("fields")
@@ -92,7 +120,7 @@ class AiidaCollection(EntryCollection):
             fields = all_fields.copy()
 
         results = []
-        entities = self._find(self.collection.entity_type, **criteria).all()
+        entities = self._find_all(backend, self.collection.entity_type, **criteria)
         for entity in entities:
             results.append(
                 self.resource_cls(
@@ -109,14 +137,14 @@ class AiidaCollection(EntryCollection):
             )
         else:
             more_data_available = False
-            if len(results) != 1:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Instead of a single entry, {len(results)} entries were found",
-                )
+            # if len(results) != 1:
+            #     raise HTTPException(
+            #         status_code=404,
+            #         detail=f"Instead of a single entry, {len(results)} entries were found",
+            #     )
 
         if isinstance(params, SingleEntryQueryParams):
-            results = results[0]
+            results = results[0] if results else None
 
         return results, more_data_available, self.data_available, all_fields - fields
 
