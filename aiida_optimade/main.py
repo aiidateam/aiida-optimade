@@ -36,6 +36,7 @@ from optimade.models import (
 )
 
 from aiida_optimade.collections import AiidaCollection
+from aiida_optimade.common.exceptions import AiidaError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.mappers import StructureMapper
 
@@ -50,9 +51,7 @@ app = FastAPI(
     version="0.10.0",
 )
 
-profile = load_profile("sohier_import")
-# if profile.database_backend == "django":
-#     backend =
+profile = load_profile("sohier_import_sqla")
 
 structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper
@@ -134,9 +133,20 @@ def general_exception(
 async def backend_middleware(request: Request, call_next):
     response = Response("Internal server error", status_code=500)
     try:
-        from aiida_optimade.aiida_session import OptimadeDjangoBackend
+        if profile.database_backend == "django":
+            from aiida_optimade.aiida_session import OptimadeDjangoBackend
 
-        request.state.backend = OptimadeDjangoBackend()
+            backend = OptimadeDjangoBackend
+        elif profile.database_backend == "sqlalchemy":
+            from aiida_optimade.aiida_session import OptimadeSqlaBackend
+
+            backend = OptimadeSqlaBackend
+        else:
+            raise AiidaError(
+                f'Unknown AiiDA backend "{profile.database_backend}" for profile {profile}'
+            )
+
+        request.state.backend = backend()
         response = await call_next(request)
     finally:
         request.state.backend.close()
