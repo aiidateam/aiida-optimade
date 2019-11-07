@@ -1,8 +1,9 @@
 from typing import List, Union
 from aiida.orm import StructureData
 
+from aiida_optimade.common import DeductionError, OptimadeIntegrityError
+
 from .entities import AiidaEntityParser
-from .exceptions import DeductionError, OptimadeIntegrityError
 
 
 __all__ = ("StructureDataParser",)

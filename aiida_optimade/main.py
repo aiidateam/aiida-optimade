@@ -10,7 +10,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
+
+from sqlalchemy.orm import Session
 
 from aiida import orm, load_profile
 
@@ -35,9 +37,10 @@ from optimade.models import (
     StructureResponseOne,
 )
 
+from aiida_optimade.aiida_session import SessionLocal
 from aiida_optimade.collections import AiidaCollection
-from aiida_optimade.mappers.structures import StructureMapper
 from aiida_optimade.config import CONFIG
+from aiida_optimade.mappers import StructureMapper
 
 
 app = FastAPI(
@@ -122,6 +125,21 @@ def general_exception(
     )
 
 
+@app.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    response = Response("Internal server error", status_code=500)
+    try:
+        request.state.db = SessionLocal()
+        response = await call_next(request)
+    finally:
+        request.state.db.close()
+    return response
+
+
+def get_db(request: Request):
+    return request.state.db
+
+
 @app.exception_handler(StarletteHTTPException)
 def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return general_exception(request, exc)
@@ -180,8 +198,14 @@ def handle_response_fields(
     response_model_skip_defaults=True,
     tags=["Structure"],
 )
-def get_structures(request: Request, params: EntryListingQueryParams = Depends()):
-    results, more_data_available, data_available, fields = structures.find(params)
+def get_structures(
+    request: Request,
+    params: EntryListingQueryParams = Depends(),
+    backend: Session = Depends(get_db),
+):
+    results, more_data_available, data_available, fields = structures.find(
+        backend, params
+    )
     parse_result = urllib.parse.urlparse(str(request.url))
 
     pagination = {}
@@ -228,10 +252,15 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     tags=["Structure"],
 )
 def get_single_structure(
-    request: Request, entry_id: int, params: SingleEntryQueryParams = Depends()
+    request: Request,
+    entry_id: int,
+    params: SingleEntryQueryParams = Depends(),
+    backend: Session = Depends(get_db),
 ):
     params.filter = f"id={entry_id}"
-    results, more_data_available, data_available, fields = structures.find(params)
+    results, more_data_available, data_available, fields = structures.find(
+        backend, params
+    )
 
     if more_data_available:
         raise StarletteHTTPException(
@@ -243,11 +272,13 @@ def get_single_structure(
     if fields and results is not None:
         results = handle_response_fields(results, fields)[0]
 
+    data_returned = 1 if results else 0
+
     return StructureResponseOne(
         links=links,
         data=results,
         meta=meta_values(
-            str(request.url), data_available, data_available, more_data_available
+            str(request.url), data_returned, data_available, more_data_available
         ),
     )
 
@@ -305,7 +336,7 @@ def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
     response_model_skip_defaults=True,
     tags=["Structure", "Info"],
 )
-def get_structures_info(request: Request):
+def get_info_structures(request: Request):
     schema = StructureResource.schema()
     queryable_properties = {"id", "type", "attributes"}
     properties = retrieve_queryable_properties(schema, queryable_properties)
