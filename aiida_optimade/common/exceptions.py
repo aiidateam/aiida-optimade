@@ -3,6 +3,7 @@ __all__ = (
     "DeductionError",
     "OptimadeIntegrityError",
     "CausationError",
+    "AiidaError",
 )
 
 
@@ -23,3 +24,7 @@ class OptimadeIntegrityError(Exception):
 
 class CausationError(Exception):
     """Cause-and-effect error, something MUST be done before something else is possible."""
+
+
+class AiidaError(Exception):
+    """Error related to AiiDA data or information."""
