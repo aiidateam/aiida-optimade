@@ -1,7 +1,7 @@
 from typing import List, Union
 from aiida.orm import StructureData
 
-from aiida_optimade.common import DeductionError, OptimadeIntegrityError
+from aiida_optimade.common import OptimadeIntegrityError
 
 from .entities import AiidaEntityParser
 
@@ -109,15 +109,8 @@ class StructureDataParser(AiidaEntityParser):
         total_weight = sum(ratios.values())
         res = [ratios[symbol] / total_weight for symbol in self.elements()]
 
-        # Make sure it sums to one
-        should_be_zero = 1.0 - sum(res)
-        if self.check_floating_round_errors([[should_be_zero]]) != [[0]]:
-            raise DeductionError(
-                f"Calculated {attribute} does not sum to float(1): {sum(res)}"
-            )
-
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
-        self.new_attributes[attribute] = res
+        self.new_attributes[attribute] = str(res)
         return res
 
     def chemical_formula_descriptive(self) -> str:
