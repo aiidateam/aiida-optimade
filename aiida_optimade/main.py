@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse
 
 from aiida import orm, load_profile
 
@@ -35,7 +35,7 @@ from optimade.models import (
     StructureResponseOne,
 )
 
-from aiida_optimade.collections import AiidaCollection
+from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.common.exceptions import AiidaError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.mappers import StructureMapper

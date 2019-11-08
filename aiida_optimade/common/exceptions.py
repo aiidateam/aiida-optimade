@@ -1,6 +1,5 @@
 __all__ = (
     "AiidaEntityNotFound",
-    "DeductionError",
     "OptimadeIntegrityError",
     "CausationError",
     "AiidaError",
@@ -9,10 +8,6 @@ __all__ = (
 
 class AiidaEntityNotFound(Exception):
     """Could not find an AiiDA entity in the DB."""
-
-
-class DeductionError(Exception):
-    """Cannot deduce the value of an attribute."""
 
 
 class OptimadeIntegrityError(Exception):

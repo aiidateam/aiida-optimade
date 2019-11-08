@@ -9,7 +9,7 @@ from aiida import orm
 from optimade.filterparser import LarkParser
 from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
 from optimade.models import NonnegativeInt, EntryResource
-from optimade.server.collections import EntryCollection as OptimadeEntryCollection
+from optimade.server.entry_collections import EntryCollection as OptimadeEntryCollection
 
 from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
@@ -133,11 +133,11 @@ class AiidaCollection(EntryCollection):
             )
         else:
             more_data_available = False
-            # if len(results) != 1:
-            #     raise HTTPException(
-            #         status_code=404,
-            #         detail=f"Instead of a single entry, {len(results)} entries were found",
-            #     )
+            if len(results) > 1:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Instead of a single entry, {len(results)} entries were found",
+                )
 
         if isinstance(params, SingleEntryQueryParams):
             results = results[0] if results else None

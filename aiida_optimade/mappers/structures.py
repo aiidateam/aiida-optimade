@@ -62,6 +62,7 @@ class StructureMapper(ResourceMapper):
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
         :type retrieved_attributes: dict
         """
+        import json
 
         try:
             entry_uuid = retrieved_attributes["immutable_id"]
@@ -71,10 +72,13 @@ class StructureMapper(ResourceMapper):
             )
 
         res = {}
+        float_fields_stored_as_strings = {"elements_ratios"}
         # Add existing attributes
         # TODO: Use sets instead!!
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
+            if existing_attribute in float_fields_stored_as_strings:
+                value = json.loads(value)
             res[existing_attribute] = value
             if existing_attribute in missing_attributes:
                 missing_attributes.remove(existing_attribute)
