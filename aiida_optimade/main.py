@@ -131,7 +131,7 @@ def general_exception(
 
 @app.middleware("http")
 async def backend_middleware(request: Request, call_next):
-    response = Response("Internal server error", status_code=500)
+    response = None
     try:
         if profile.database_backend == "django":
             from aiida_optimade.aiida_session import OptimadeDjangoBackend
@@ -150,7 +150,10 @@ async def backend_middleware(request: Request, call_next):
         response = await call_next(request)
     finally:
         request.state.backend.close()
-    return response
+
+    if response:
+        return response
+    raise AiidaError("Failed to properly handle AiiDA backend middleware")
 
 
 def get_backend(request: Request):
