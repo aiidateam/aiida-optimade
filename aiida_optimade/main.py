@@ -42,11 +42,11 @@ from aiida_optimade.mappers import StructureMapper
 
 
 app = FastAPI(
-    title="OPTiMaDe API",
+    title="OPTiMaDe API for AiiDA",
     description=(
-        "The [Open Databases Integration for Materials Design (OPTiMaDe) consortium]"
-        "(http://http://www.optimade.org/) aims to make materials databases interoperational "
-        "by developing a common REST API."
+        """The [Open Databases Integration for Materials Design (OPTiMaDe) consortium](http://www.optimade.org/) aims to make materials databases interoperational by developing a common REST API.
+
+[Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to help researchers with managing complex workflows and making them fully reproducible."""
     ),
     version="0.10.0",
 )
