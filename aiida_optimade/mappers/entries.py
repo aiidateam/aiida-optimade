@@ -1,6 +1,8 @@
 import abc
 from aiida_optimade.transformers.aiida import op_conv_map
 
+from aiida_optimade.parsers.entities import AiidaEntityParser
+
 
 __all__ = ("ResourceMapper",)
 
@@ -8,8 +10,11 @@ __all__ = ("ResourceMapper",)
 class ResourceMapper(metaclass=abc.ABCMeta):
     """Generic Resource Mapper"""
 
-    ALIASES = ()
-    PROJECT_PREFIX = "extras.optimade."
+    ALIASES: tuple = ()
+    PROJECT_PREFIX: str = "extras.optimade."
+    PARSER: AiidaEntityParser = AiidaEntityParser
+    ALL_ATTRIBUTES: list = []
+    REQUIRED_ATTRIBUTES: list = []
 
     @classmethod
     def alias_for(cls, field):
