@@ -51,7 +51,7 @@ app = FastAPI(
     version="0.10.0",
 )
 
-profile = load_profile("sohier_import")
+profile = load_profile("sohier_import_sqla")
 
 structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper

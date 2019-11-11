@@ -1,7 +1,9 @@
+import itertools
+
 from typing import List, Union
 from aiida.orm import StructureData
 
-from aiida_optimade.common import OptimadeIntegrityError
+from aiida_optimade.common import OptimadeIntegrityError, AiidaError
 
 from .entities import AiidaEntityParser
 
@@ -13,24 +15,80 @@ class StructureDataParser(AiidaEntityParser):
     """Create OPTiMaDe "structures" attributes from an AiiDA StructureData Node
 
     Each OPTiMaDe field is a method in this class.
+
+    NOTE: This class succeeds in *never* loading the actual AiiDA Node for optimization purposes.
     """
 
     AIIDA_ENTITY = StructureData
 
+    # StructureData specific properties
+    def __init__(self, uuid: str):
+        super().__init__(uuid)
+
+        self.__kinds = None
+        self.__sites = None
+
+    @property
+    def _kinds(self) -> list:
+        if not self.__kinds:
+            self.__kinds = self._get_unique_node_property("attributes.kinds")
+        return self.__kinds
+
+    @property
+    def _sites(self) -> list:
+        if not self.__sites:
+            self.__sites = self._get_unique_node_property("attributes.sites")
+        return self.__sites
+
     # Helper methods to calculate OPTiMaDe fields
+    def get_symbols_set(self):
+        """Copy of aiida.orm.StructureData:get_symbols_set()"""
+        return set(
+            itertools.chain.from_iterable(kind["symbols"] for kind in self._kinds)
+        )
+
+    def has_vacancies(self):
+        """Copy of aiida.orm.StructureData:has_vacancies"""
+        from aiida.orm.nodes.data.structure import _sum_threshold
+
+        def kind_has_vacancies(weights):
+            """Copy of aiida.orm.Kinds:has_vacancies"""
+            w_sum = sum(weights)
+            return not (1.0 - w_sum < _sum_threshold)
+
+        return any(kind_has_vacancies(kind["weights"]) for kind in self._kinds)
+
+    def get_formula(self, mode="hill", separator=""):
+        """Copy of aiida.orm.StructureData:get_formula()"""
+        from aiida.orm.nodes.data.structure import get_symbols_string, get_formula
+
+        symbol_list = []
+        for site in self._sites:
+            for _kind in self._kinds:
+                if _kind["name"] == site["kind_name"]:
+                    kind = _kind
+                    break
+            else:
+                raise AiidaError(
+                    f"kind with name {site['kind_name']} cannot be found amongst the kinds {self._kinds}"
+                )
+            symbol_list.append(get_symbols_string(kind["symbols"], kind["weights"]))
+
+        return get_formula(symbol_list, mode=mode, separator=separator)
+
     def get_symbol_weights(self) -> dict:
-        occupation = {}.fromkeys(sorted(self._node.get_symbols_set()), 0.0)
-        for kind in self._node.kinds:
+        occupation = {}.fromkeys(sorted(self.get_symbols_set()), 0.0)
+        for kind in self._kinds:
             number_of_sites = len(
-                [_ for _ in self._node.sites if _.kind_name == kind.name]
+                [_ for _ in self._sites if _["kind_name"] == kind["name"]]
             )
-            for i in range(len(kind.symbols)):
-                occupation[kind.symbols[i]] += kind.weights[i] * number_of_sites
+            for i in range(len(kind["symbols"])):
+                occupation[kind["symbols"][i]] += kind["weights"][i] * number_of_sites
         return occupation
 
     def has_partial_occupancy(self) -> bool:
         """Check for partial occupancies (first vacancies, next through element ratios)"""
-        if self._node.has_vacancies:
+        if self.has_vacancies():
             return True
 
         occupation = self.get_symbol_weights()
@@ -72,7 +130,7 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = sorted(self._node.get_symbols_set())
+        res = sorted(self.get_symbols_set())
 
         # If there are vacancies present, remove them
         if "X" in res:
@@ -121,7 +179,7 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = self._node.get_formula()
+        res = self.get_formula()
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -173,7 +231,7 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = self._node.get_formula(mode="hill")
+        res = self.get_formula(mode="hill")
 
         if self.has_partial_occupancy():
             res = None
@@ -244,7 +302,13 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = [int(value) for value in self._node.pbc]
+        res = [
+            int(value)
+            for value in (
+                self._get_unique_node_property(f"attributes.pbc{i + 1}")
+                for i in range(3)
+            )
+        ]
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -258,7 +322,9 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = self.check_floating_round_errors(self._node.cell)
+        res = self.check_floating_round_errors(
+            self._get_unique_node_property("attributes.cell")
+        )
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -276,7 +342,7 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        sites = [list(site.position) for site in self._node.sites]
+        sites = [list(site["position"]) for site in self._sites]
         res = self.check_floating_round_errors(sites)
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
@@ -309,7 +375,7 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = [site.kind_name for site in self._node.sites]
+        res = [site["kind_name"] for site in self._sites]
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -331,22 +397,22 @@ class StructureDataParser(AiidaEntityParser):
         res = []
 
         # Create a species
-        for kind in self._node.kinds:
-            name = kind.name
+        for kind in self._kinds:
+            name = kind["name"]
             kind_weight_sum = 0
 
             # Retrieve elements in 'kind'
-            for i in range(len(kind.symbols)):
-                weight = kind.weights[i]
+            for i in range(len(kind["symbols"])):
+                weight = kind["weights"][i]
 
                 # Accumulating sum of weights
                 kind_weight_sum += weight
 
             species = {
                 "name": name,
-                "chemical_symbols": list(kind.symbols),
-                "concentration": list(kind.weights),
-                "mass": kind.mass,
+                "chemical_symbols": list(kind["symbols"]),
+                "concentration": list(kind["weights"]),
+                "mass": kind.get("mass", 0),
                 "original_name": name,
             }
 
