@@ -95,7 +95,7 @@ class AiidaCollection(EntryCollection):
 
     @property
     def data_available(self) -> int:
-        if not self._data_available:
+        if self._data_available is None:
             raise CausationError(
                 "data_available MUST be set before it can be retrieved."
             )
@@ -136,8 +136,10 @@ class AiidaCollection(EntryCollection):
 
         if isinstance(params, EntryListingQueryParams):
             nresults_now = len(results)
+            criteria_no_limit = criteria.copy()
+            criteria_no_limit.pop("limit", None)
             more_data_available = bool(
-                self.data_available - criteria.get("offset", 0) - nresults_now
+                self.count(backend, **criteria_no_limit) - nresults_now
             )
         else:
             more_data_available = False
