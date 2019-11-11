@@ -1,6 +1,10 @@
 {
     "page_limit": 500,
     "db_page_limit": 1000,
+    "index_base_url": null,
     "provider": "_aiida_",
+    "provider_name": "AiiDA",
+    "provider_description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+    "provider_homepage": "http://www.aiida.net",
     "provider_fields": []
 }
