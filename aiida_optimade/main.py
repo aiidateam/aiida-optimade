@@ -230,7 +230,7 @@ def get_structures(
 
     pagination = {}
     query = urllib.parse.parse_qs(parse_result.query)
-    query["page_offset"] = int(query.get("page_offset", [0])[0]) - int(
+    query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     )
     if query["page_offset"] > 0:
@@ -238,8 +238,16 @@ def get_structures(
         pagination[
             "prev"
         ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
-    elif query["page_offset"] == 0:
-        pagination["prev"] = f"{request.url}"
+    elif query["page_offset"] == 0 or abs(query["page_offset"]) < int(
+        query.get("page_limit", [CONFIG.page_limit])[0]
+    ):
+        prev_query = query.copy()
+        prev_query.pop("page_offset")
+        urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
+        pagination[
+            "prev"
+        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
+
     if more_data_available:
         query["page_offset"] = (
             int(query.get("page_offset", 0))
