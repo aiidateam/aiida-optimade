@@ -49,27 +49,29 @@ class StructureMapper(ResourceMapper):
 
         if "id" in entity_properties:
             new_object["id"] = entity_properties["id"]
+        else:
+            raise KeyError(
+                f'"id" should be present in entity_properties: {entity_properties}'
+            )
 
-        new_object["attributes"] = cls.build_attributes(new_object_attributes)
+        new_object["attributes"] = cls.build_attributes(
+            new_object_attributes, new_object["id"]
+        )
 
         new_object["type"] = "structures"
         return new_object
 
     @classmethod
-    def build_attributes(cls, retrieved_attributes: dict) -> dict:
+    def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
         """Build attributes dictionary for OPTiMaDe structure resource
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
         :type retrieved_attributes: dict
+
+        :param entry_pk: The AiiDA Node's PK
+        :type entry_pk: int
         """
         import json
-
-        try:
-            entry_uuid = retrieved_attributes["immutable_id"]
-        except KeyError:
-            raise KeyError(
-                f'"immutable_id" should be present in retrieved_attributes: {retrieved_attributes}'
-            )
 
         res = {}
         float_fields_stored_as_strings = {"elements_ratios"}
@@ -78,14 +80,14 @@ class StructureMapper(ResourceMapper):
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
             if existing_attribute in float_fields_stored_as_strings:
-                value = json.loads(value)
+                value = json.loads(str(value))
             res[existing_attribute] = value
             if existing_attribute in missing_attributes:
                 missing_attributes.remove(existing_attribute)
 
         # Create and add new attributes
         if missing_attributes:
-            parser = cls.PARSER(entry_uuid)
+            parser = cls.PARSER(entry_pk)
             for attribute in missing_attributes:
                 try:
                     create_attribute = getattr(parser, attribute)

@@ -39,9 +39,12 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractclassmethod
-    def build_attributes(cls, retrieved_attributes: dict) -> dict:
+    def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
         """Build attributes dictionary for OPTiMaDe structure resource
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
         :type retrieved_attributes: dict
+
+        :param entry_pk: The AiiDA Node's PK
+        :type entry_pk: int
         """
