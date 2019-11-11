@@ -134,19 +134,19 @@ async def backend_middleware(request: Request, call_next):
     response = None
     try:
         if profile.database_backend == "django":
-            from aiida_optimade.aiida_session import OptimadeDjangoBackend
-
-            backend = OptimadeDjangoBackend
+            from aiida_optimade.aiida_session import (
+                OptimadeDjangoBackend as OptimadeBackend,
+            )
         elif profile.database_backend == "sqlalchemy":
-            from aiida_optimade.aiida_session import OptimadeSqlaBackend
-
-            backend = OptimadeSqlaBackend
+            from aiida_optimade.aiida_session import (
+                OptimadeSqlaBackend as OptimadeBackend,
+            )
         else:
             raise AiidaError(
                 f'Unknown AiiDA backend "{profile.database_backend}" for profile {profile}'
             )
 
-        request.state.backend = backend()
+        request.state.backend = OptimadeBackend()
         response = await call_next(request)
     finally:
         request.state.backend.close()
@@ -221,7 +221,7 @@ def handle_response_fields(
 def get_structures(
     request: Request,
     params: EntryListingQueryParams = Depends(),
-    backend=Depends(get_backend),
+    backend: orm.implementation.Backend = Depends(get_backend),
 ):
     results, more_data_available, data_available, fields = structures.find(
         backend, params
@@ -275,7 +275,7 @@ def get_single_structure(
     request: Request,
     entry_id: int,
     params: SingleEntryQueryParams = Depends(),
-    backend=Depends(get_backend),
+    backend: orm.implementation.Backend = Depends(get_backend),
 ):
     params.filter = f"id={entry_id}"
     results, more_data_available, data_available, fields = structures.find(

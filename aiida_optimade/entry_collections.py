@@ -2,8 +2,6 @@ from typing import Tuple, List, Union
 
 from fastapi import HTTPException
 
-from sqlalchemy.orm import Session
-
 from aiida import orm
 
 from optimade.filterparser import LarkParser
@@ -27,7 +25,9 @@ class EntryCollection(OptimadeEntryCollection):
         self.resource_mapper = resource_mapper
 
     @staticmethod
-    def _find(backend: Session, entity_type: orm.Entity, **kwargs) -> orm.QueryBuilder:
+    def _find(
+        backend: orm.implementation.Backend, entity_type: orm.Entity, **kwargs
+    ) -> orm.QueryBuilder:
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
                 raise ValueError(
@@ -68,7 +68,8 @@ class AiidaCollection(EntryCollection):
         self.parser = LarkParser(version=(0, 9, 7))
 
         # "Cache"
-        self._data_available = None
+        self._data_available: int = None
+        self._filter_fields: set = None
 
     def __len__(self) -> Exception:
         raise NotImplementedError("__len__ is not implemented")
@@ -76,13 +77,17 @@ class AiidaCollection(EntryCollection):
     def __contains__(self, entry) -> Exception:
         raise NotImplementedError("__contains__ is not implemented")
 
-    def _find_all(self, backend: Session, **kwargs) -> orm.QueryBuilder:
+    def _find_all(
+        self, backend: orm.implementation.Backend, **kwargs
+    ) -> orm.QueryBuilder:
         query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.all()
         del query
         return res
 
-    def count(self, backend: Session, **kwargs):  # pylint: disable=arguments-differ
+    def count(
+        self, backend: orm.implementation.Backend, **kwargs
+    ):  # pylint: disable=arguments-differ
         query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.count()
         del query
@@ -96,17 +101,17 @@ class AiidaCollection(EntryCollection):
             )
         return self._data_available
 
-    @data_available.setter
-    def data_available(self, value: Session):
+    def set_data_available(self, backend: orm.implementation.Backend):
+        """Set _data_available if it has not yet been set"""
         if not self._data_available:
-            self._data_available = self.count(value)
+            self._data_available = self.count(backend)
 
     def find(  # pylint: disable=arguments-differ
         self,
-        backend: Session,
+        backend: orm.implementation.Backend,
         params: Union[EntryListingQueryParams, SingleEntryQueryParams],
     ) -> Tuple[List[EntryResource], bool, NonnegativeInt, set]:
-        self.data_available = backend
+        self.set_data_available(backend)
         criteria = self._parse_params(params)
 
         all_fields = criteria.pop("fields")
@@ -115,8 +120,11 @@ class AiidaCollection(EntryCollection):
         else:
             fields = all_fields.copy()
 
-        results = []
+        if criteria.get("filters", {}):
+            self._check_and_calculate_entities(backend)
+
         entities = self._find_all(backend, **criteria)
+        results = []
         for entity in entities:
             results.append(
                 self.resource_cls(
@@ -144,13 +152,15 @@ class AiidaCollection(EntryCollection):
 
         return results, more_data_available, self.data_available, all_fields - fields
 
-    def _alias_filter(self, filter_: dict) -> dict:
+    def _alias_filter(self, filters: dict) -> dict:
         res = {}
-        for key, value in filter_.items():
+        for key, value in filters.items():
             new_value = value
             if isinstance(value, dict):
                 new_value = self._alias_filter(value)
-            res[self.resource_mapper.alias_for(key)] = new_value
+            aliased_key = self.resource_mapper.alias_for(key)
+            res[aliased_key] = new_value
+            self._filter_fields.add(aliased_key)
         return res
 
     def _parse_params(self, params: EntryListingQueryParams) -> dict:
@@ -160,9 +170,8 @@ class AiidaCollection(EntryCollection):
         if getattr(params, "filter", False):
             tree = self.parser.parse(params.filter)
             aiida_filter = self.transformer.transform(tree)
+            self._filter_fields = set()
             cursor_kwargs["filters"] = self._alias_filter(aiida_filter)
-        else:
-            cursor_kwargs["filters"] = {}
 
         # response_format
         if (
@@ -215,3 +224,52 @@ class AiidaCollection(EntryCollection):
             cursor_kwargs["offset"] = params.page_offset
 
         return cursor_kwargs
+
+    def _get_extras_filter_fields(self) -> set:
+        return {
+            field[len(self.resource_mapper.PROJECT_PREFIX) :]
+            for field in self._filter_fields
+            if field.startswith(self.resource_mapper.PROJECT_PREFIX)
+        }
+
+    def _check_and_calculate_entities(self, backend: orm.implementation.Backend):
+        """Check all entities have OPTiMaDe extras, else calculate them
+
+        For a bit of optimization, we only care about a field if it has specifically been queried for using "filter".
+        """
+        extras_keys = [
+            key for key in self.resource_mapper.PROJECT_PREFIX.split(".") if key
+        ]
+        filter_fields = [
+            {"!has_key": field for field in self._get_extras_filter_fields()}
+        ]
+        necessary_entities_qb = orm.QueryBuilder().append(
+            self.collection.entity_type,
+            filters={
+                "or": [
+                    {extras_keys[0]: {"!has_key": extras_keys[1]}},
+                    {".".join(extras_keys): {"or": filter_fields}},
+                ]
+            },
+            project="id",
+        )
+
+        if necessary_entities_qb.count() > 0:
+            # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe fields.
+            necessary_entity_ids = [pk[0] for pk in necessary_entities_qb.iterall()]
+
+            # Create the missing OPTiMaDe fields:
+            # All OPTiMaDe fields
+            fields = {"id", "type"}
+            fields |= self.get_attribute_fields()
+            # All provider-specific fields
+            fields |= {self.provider + _ for _ in self.provider_fields}
+            fields = list({self.resource_mapper.alias_for(f) for f in fields})
+
+            entities = self._find_all(
+                backend, filters={"id": {"in": necessary_entity_ids}}, project=fields
+            )
+            for entity in entities:
+                self.resource_cls(
+                    **self.resource_mapper.map_back(dict(zip(fields, entity)))
+                )
