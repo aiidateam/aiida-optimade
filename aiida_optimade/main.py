@@ -72,11 +72,11 @@ def meta_values(
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(
-            name="AiiDA",
-            description="AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+            name=CONFIG.provider_name,
+            description=CONFIG.provider_description,
             prefix=CONFIG.provider[1:-1],  # Remove surrounding `_`
-            homepage="http://www.aiida.net",
-            index_base_url=None,
+            homepage=CONFIG.provider_homepage,
+            index_base_url=CONFIG.index_base_url,
         ),
         data_available=data_available,
         **kwargs,
