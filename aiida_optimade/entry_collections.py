@@ -120,7 +120,7 @@ class AiidaCollection(EntryCollection):
         else:
             fields = all_fields.copy()
 
-        if criteria.get("filters", {}):
+        if criteria.get("filters", {}) and self._get_extras_filter_fields():
             self._check_and_calculate_entities(backend)
 
         entities = self._find_all(backend, **criteria)
