@@ -63,6 +63,8 @@ def meta_values(
 ):
     """Helper to initialize the meta values"""
     parse_result = urllib.parse.urlparse(url)
+    provider = CONFIG.provider.copy()
+    provider["prefix"] = provider["prefix"][1:-1]  # Remove surrounding `_`
     return ResponseMeta(
         query=ResponseMetaQuery(
             representation=f"{parse_result.path}?{parse_result.query}"
@@ -71,13 +73,7 @@ def meta_values(
         time_stamp=datetime.utcnow(),
         data_returned=data_returned,
         more_data_available=more_data_available,
-        provider=Provider(
-            name=CONFIG.provider_name,
-            description=CONFIG.provider_description,
-            prefix=CONFIG.provider[1:-1],  # Remove surrounding `_`
-            homepage=CONFIG.provider_homepage,
-            index_base_url=CONFIG.index_base_url,
-        ),
+        provider=Provider(**provider),
         data_available=data_available,
         **kwargs,
     )
@@ -120,7 +116,7 @@ def general_exception(
                     0,
                     0,
                     False,
-                    **{CONFIG.provider + "traceback": tb},
+                    **{CONFIG.provider["prefix"] + "traceback": tb},
                 ),
                 errors=errors,
             ),

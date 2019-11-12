@@ -61,8 +61,8 @@ class AiidaCollection(EntryCollection):
         super().__init__(collection, resource_cls, resource_mapper)
 
         self.transformer = AiidaTransformer()
-        self.provider = CONFIG.provider
-        self.provider_fields = CONFIG.provider_fields
+        self.provider = CONFIG.provider["prefix"]
+        self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
         self.page_limit = CONFIG.page_limit
         self.db_page_limit = CONFIG.db_page_limit
         self.parser = LarkParser(version=(0, 9, 7))

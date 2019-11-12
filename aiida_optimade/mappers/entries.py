@@ -1,5 +1,7 @@
 import abc
+from typing import Tuple
 from aiida_optimade.transformers.aiida import op_conv_map
+from aiida_optimade.config import CONFIG
 
 from aiida_optimade.parsers.entities import AiidaEntityParser
 
@@ -10,11 +12,22 @@ __all__ = ("ResourceMapper",)
 class ResourceMapper(metaclass=abc.ABCMeta):
     """Generic Resource Mapper"""
 
+    ENDPOINT: str = ""
     ALIASES: tuple = ()
     PROJECT_PREFIX: str = "extras.optimade."
     PARSER: AiidaEntityParser = AiidaEntityParser
     ALL_ATTRIBUTES: list = []
     REQUIRED_ATTRIBUTES: list = []
+
+    @classmethod
+    def all_aliases(cls) -> Tuple[Tuple[str, str]]:
+        return (
+            tuple(
+                (CONFIG.provider["prefix"] + field, field)
+                for field in CONFIG.provider_fields[cls.ENDPOINT]
+            )
+            + cls.ALIASES
+        )
 
     @classmethod
     def alias_for(cls, field):
@@ -28,6 +41,8 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         no_prefix = no_prefix.union(set(op_conv_map.values()))
         if real != field or (real == field and real in no_prefix):
             return real
+        if real == field and real.startswith(CONFIG.provider["prefix"]):
+            return real[len(CONFIG.provider["prefix"]) :]
         return f"{cls.PROJECT_PREFIX}{real}"
 
     @abc.abstractclassmethod

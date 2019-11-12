@@ -11,6 +11,7 @@ __all__ = ("StructureMapper",)
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTiMaDe to AiiDA"""
 
+    ENDPOINT = "structures"
     ALIASES = (
         ("immutable_id", "uuid"),
         ("last_modified", "mtime"),
@@ -27,13 +28,18 @@ class StructureMapper(ResourceMapper):
         :return: A resource object in OPTiMaDe format
         """
 
+        mapping_provider_fields = (
+            (real, alias) for alias, real in cls.PROVIDER_ALIASES
+        )
         mapping = ((real, alias) for alias, real in cls.ALIASES)
+
         new_object_attributes = {}
         new_object = {}
 
-        for real, alias in mapping:
-            if real in entity_properties and alias != "type":
-                new_object_attributes[alias] = entity_properties[real]
+        for mapper in (mapping, mapping_provider_fields):
+            for real, alias in mapper:
+                if real in entity_properties and alias != "type":
+                    new_object_attributes[alias] = entity_properties[real]
 
         # Particular attributes
         # Remove "extras.optimade." prefix from reals to create aliases
@@ -58,7 +64,7 @@ class StructureMapper(ResourceMapper):
             new_object_attributes, new_object["id"]
         )
 
-        new_object["type"] = "structures"
+        new_object["type"] = cls.ENDPOINT
         return new_object
 
     @classmethod
