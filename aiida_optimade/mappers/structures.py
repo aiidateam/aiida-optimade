@@ -28,18 +28,14 @@ class StructureMapper(ResourceMapper):
         :return: A resource object in OPTiMaDe format
         """
 
-        mapping_provider_fields = (
-            (real, alias) for alias, real in cls.PROVIDER_ALIASES
-        )
-        mapping = ((real, alias) for alias, real in cls.ALIASES)
+        mapping = ((real, alias) for alias, real in cls.all_aliases())
 
         new_object_attributes = {}
         new_object = {}
 
-        for mapper in (mapping, mapping_provider_fields):
-            for real, alias in mapper:
-                if real in entity_properties and alias != "type":
-                    new_object_attributes[alias] = entity_properties[real]
+        for real, alias in mapping:
+            if real in entity_properties and alias != "type":
+                new_object_attributes[alias] = entity_properties[real]
 
         # Particular attributes
         # Remove "extras.optimade." prefix from reals to create aliases

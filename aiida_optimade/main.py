@@ -17,8 +17,8 @@ from optimade.models import (
     InfoResponse,
     EntryInfoResponse,
     ErrorResponse,
-    EntryResponseMany,
-    EntryResponseOne,
+    StructureResponseMany,
+    StructureResponseOne,
 )
 
 from aiida_optimade.entry_collections import AiidaCollection
@@ -107,7 +107,7 @@ def general_exception_handler(request: Request, exc: Exception):
 
 @app.get(
     "/structures",
-    response_model=Union[EntryResponseMany, ErrorResponse],
+    response_model=Union[StructureResponseMany, ErrorResponse],
     response_model_skip_defaults=True,
     tags=["Structure"],
 )
@@ -157,7 +157,7 @@ def get_structures(
     if fields:
         results = u.handle_response_fields(results, fields)
 
-    return EntryResponseMany(
+    return StructureResponseMany(
         links=ToplevelLinks(**pagination),
         data=results,
         meta=u.meta_values(
@@ -168,7 +168,7 @@ def get_structures(
 
 @app.get(
     "/structures/{entry_id}",
-    response_model=Union[EntryResponseOne, ErrorResponse],
+    response_model=Union[StructureResponseOne, ErrorResponse],
     response_model_skip_defaults=True,
     tags=["Structure"],
 )
@@ -195,7 +195,7 @@ def get_single_structure(
 
     data_returned = 1 if results else 0
 
-    return EntryResponseOne(
+    return StructureResponseOne(
         links=links,
         data=results,
         meta=u.meta_values(

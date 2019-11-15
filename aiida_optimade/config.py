@@ -37,7 +37,6 @@ class ServerConfig(Config):
 
         self.page_limit = int(config.get("page_limit", self.page_limit))
         self.db_page_limit = int(config.get("db_page_limit", self.db_page_limit))
-        self.index_base_url = config.get("index_base_url", self.index_base_url)
         self.provider = config.get("provider", self.provider)
         self.provider_fields = config.get("provider_fields", self.provider_fields)
 
