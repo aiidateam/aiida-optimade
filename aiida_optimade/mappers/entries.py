@@ -13,7 +13,8 @@ class ResourceMapper(metaclass=abc.ABCMeta):
     """Generic Resource Mapper"""
 
     ENDPOINT: str = ""
-    ALIASES: tuple = ()
+    ALIASES: Tuple[Tuple[str, str]] = ()
+
     PROJECT_PREFIX: str = "extras.optimade."
     PARSER: AiidaEntityParser = AiidaEntityParser
     ALL_ATTRIBUTES: list = []
