@@ -120,7 +120,7 @@ def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
                     retrieve_queryable_properties(sub_schema, sub_queryable_properties)
                 )
             else:
-                properties[name] = {"description": value["description"]}
-                if "unit" in value:
-                    properties[name]["unit"] = value["unit"]
+                properties[name] = value
+                # Add sorting key if not an array
+                properties[name]["sortable"] = value["type"] != "array"
     return properties

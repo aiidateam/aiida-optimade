@@ -244,6 +244,10 @@ def get_info_structures(request: Request):
     schema = StructureResource.schema()
     queryable_properties = {"id", "type", "attributes"}
     properties = u.retrieve_queryable_properties(schema, queryable_properties)
+    for field, field_info in tuple(properties.items()):
+        for field_info_name in list(field_info.keys()):
+            if field_info_name not in {"description", "unit", "sortable"}:
+                del properties[field][field_info_name]
 
     output_fields_by_format = {"json": list(properties.keys())}
 

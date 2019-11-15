@@ -13,6 +13,7 @@ from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformer
+from aiida_optimade.utils import retrieve_queryable_properties
 
 
 class EntryCollection(OptimadeEntryCollection):
@@ -51,6 +52,14 @@ class EntryCollection(OptimadeEntryCollection):
 
 class AiidaCollection(EntryCollection):
     """Collection of AiiDA entities"""
+
+    CAST_MAPPING = {
+        "string": "t",
+        "float": "f",
+        "integer": "i",
+        "boolean": "b",
+        "date-time": "d",
+    }
 
     def __init__(
         self,
@@ -170,8 +179,7 @@ class AiidaCollection(EntryCollection):
 
         # filter
         if getattr(params, "filter", False):
-            tree = self.parser.parse(params.filter)
-            aiida_filter = self.transformer.transform(tree)
+            aiida_filter = self.transformer.transform(self.parser.parse(params.filter))
             self._filter_fields = set()
             cursor_kwargs["filters"] = self._alias_filter(aiida_filter)
 
@@ -218,7 +226,23 @@ class AiidaCollection(EntryCollection):
                 if entity_property.startswith("-"):
                     field = field[1:]
                     sort_direction = "desc"
-                sort_spec.append({field: sort_direction})
+                aliased_field = self.resource_mapper.alias_for(field)
+
+                properties = retrieve_queryable_properties(
+                    self.resource_cls.schema(), {"id", "type", "attributes"}
+                )
+                field_type = properties[field].get("format", properties[field]["type"])
+                if field_type == "array":
+                    raise TypeError("Cannot sort on a field with a list value type")
+
+                sort_spec.append(
+                    {
+                        aliased_field: {
+                            "order": sort_direction,
+                            "cast": self.CAST_MAPPING[field_type],
+                        }
+                    }
+                )
             cursor_kwargs["order_by"] = sort_spec
 
         # page_offset
