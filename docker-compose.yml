@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  aiida-optimade:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      AIIDA_PATH: /app
+      AIIDA_PROFILE: quicksetup
+      # BOKEH_PREFIX: /curated-cofs
+    volumes:
+     - '/Users/leopold/Personal/Postdoc-MARVEL/aiida_folders/aiida_rmq/.aiida/repository-quicksetup:/app/.aiida/repository-quicksetup'
+    ports:
+      - '3253:80'
