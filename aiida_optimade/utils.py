@@ -121,6 +121,6 @@ def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
                 )
             else:
                 properties[name] = value
-                # Add sorting key if not an array
-                properties[name]["sortable"] = value["type"] != "array"
+                # We can sort on properties that are not arrays
+                properties[name]["sortable"] = value.get("type", "") != "array"
     return properties
