@@ -1,5 +1,4 @@
 import urllib
-import json
 from typing import Union
 import os
 
@@ -262,14 +261,3 @@ def get_info_structures(request: Request):
             output_fields_by_format=output_fields_by_format,
         ),
     )
-
-
-def update_schema(app):
-    """Update OpenAPI schema in file 'local_openapi.json'"""
-    with open("local_openapi.json", "w") as f:
-        json.dump(app.openapi(), f, indent=2)
-
-
-@app.on_event("startup")
-async def startup_event():
-    update_schema(app)

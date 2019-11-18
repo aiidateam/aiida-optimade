@@ -12,7 +12,7 @@ from optimade.server.entry_collections import EntryCollection as OptimadeEntryCo
 from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.mappers import ResourceMapper
-from aiida_optimade.transformers import AiidaTransformer
+from aiida_optimade.transformers import AiidaTransformerV0_10_1
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
@@ -69,12 +69,12 @@ class AiidaCollection(EntryCollection):
     ):
         super().__init__(collection, resource_cls, resource_mapper)
 
-        self.transformer = AiidaTransformer()
+        self.transformer = AiidaTransformerV0_10_1()
         self.provider = CONFIG.provider["prefix"]
         self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
         self.page_limit = CONFIG.page_limit
         self.db_page_limit = CONFIG.db_page_limit
-        self.parser = LarkParser(version=(0, 9, 7))
+        self.parser = LarkParser(version=(0, 10, 0))
 
         # "Cache"
         self._data_available: int = None
@@ -182,6 +182,7 @@ class AiidaCollection(EntryCollection):
             aiida_filter = self.transformer.transform(self.parser.parse(params.filter))
             self._filter_fields = set()
             cursor_kwargs["filters"] = self._alias_filter(aiida_filter)
+            print(cursor_kwargs["filters"])
 
         # response_format
         if (
@@ -218,6 +219,8 @@ class AiidaCollection(EntryCollection):
         )
 
         # sort
+        # NOTE: sorting only works for extras fields for the nodes already with calculated extras.
+        #       To calculate all extras, make a single filter query using any extra field.
         if getattr(params, "sort", False):
             sort_spec = []
             for entity_property in params.sort.split(","):
@@ -231,7 +234,9 @@ class AiidaCollection(EntryCollection):
                 properties = retrieve_queryable_properties(
                     self.resource_cls.schema(), {"id", "type", "attributes"}
                 )
-                field_type = properties[field].get("format", properties[field]["type"])
+                field_type = properties[field].get(
+                    "format", properties[field].get("type", "")
+                )
                 if field_type == "array":
                     raise TypeError("Cannot sort on a field with a list value type")
 
