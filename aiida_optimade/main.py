@@ -1,6 +1,7 @@
 import urllib
 import json
 from typing import Union
+import os
 
 from pydantic import ValidationError
 from fastapi import FastAPI, Depends
@@ -38,7 +39,8 @@ app = FastAPI(
     version="0.10.0",
 )
 
-profile = load_profile("sohier_import_sqla")
+profile_name = os.getenv("AIIDA_PROFILE", None)
+profile = load_profile(profile_name)
 
 structures = AiidaCollection(
     orm.StructureData.objects, StructureResource, StructureMapper
