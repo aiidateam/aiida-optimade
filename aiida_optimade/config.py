@@ -19,8 +19,8 @@ class ServerConfig(Config):
         "name": "AiiDA",
         "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
         "homepage": "http://www.aiida.net",
+        "index_base_url": None,
     }
-    index_base_url = None
     provider_fields: Dict[str, Set] = {}
 
     def __init__(self, ftype: str = None, filename: str = None):
@@ -33,7 +33,6 @@ class ServerConfig(Config):
         with open(
             Path(__file__).resolve().parent.joinpath(self.FILENAME + ".json")
         ) as config_file:
-            #import pdb; pdb.set_trace()
             config = json.load(config_file)
 
         self.page_limit = int(config.get("page_limit", self.page_limit))
