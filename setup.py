@@ -9,9 +9,9 @@ setup(
     license="MIT Licence",
     author="The AiiDA team",
     install_requires=[
-        "optimade==0.2.0",
+        #"optimade==0.2.0",
         "lark-parser==0.5.6",
         "fastapi[all]==0.28.0",
-        "aiida-core>=1.0.0b6",
+        "aiida-core>=1.0.0",
     ],
 )
