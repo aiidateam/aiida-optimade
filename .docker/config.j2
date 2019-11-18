@@ -1,14 +1,14 @@
 {
     "default_profiles": {
-        "daemon": "quicksetup",
-        "verdi": "quicksetup"
+        "daemon": "optimade",
+        "verdi": "optimade"
     },
     "CONFIG_VERSION": {
         "CURRENT": 1,
         "OLDEST_COMPATIBLE": 0
     },
     "profiles": {
-        "quicksetup": {
+        "optimade": {
             "AIIDADB_ENGINE": "postgresql_psycopg2",
             "AIIDADB_PASS": "{{ aiida_db_pass }}",
             "AIIDADB_NAME": "{{ aiida_db_name }}",
@@ -16,7 +16,7 @@
             "AIIDADB_BACKEND": "{{ aiida_db_backend }}",
             "AIIDADB_PORT": "{{ aiida_db_port }}",
             "default_user_email": "developers@aiida.net",
-            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup",
+            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-optimade",
             "AIIDADB_USER": "{{ aiida_db_user }}"
         }
     }
