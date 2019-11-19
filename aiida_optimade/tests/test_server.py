@@ -4,14 +4,13 @@ import abc
 
 from starlette.testclient import TestClient
 
-from optimade.server.config import CONFIG
+from aiida_optimade.config import CONFIG
 from optimade.validator import ImplementationValidator
 
 # this must be changed before app is imported
 # some tests currently depend on this value remaining at 5
 CONFIG.page_limit = 5  # noqa: E402
 
-from optimade.server.main import app
 from optimade.models import (
     ReferenceResponseMany,
     ReferenceResponseOne,
@@ -21,9 +20,14 @@ from optimade.models import (
     InfoResponse,
 )
 
+from aiida_optimade.main import app
+from aiida_optimade.routers import structures, info
+
 # need to explicitly set base_url, as the default "http://testserver"
 # does not validate as pydantic UrlStr model
-CLIENT = TestClient(app, base_url="http://example.org/optimade")
+app.include_router(structures.router)
+app.include_router(info.router)
+CLIENT = TestClient(app, base_url="http://localhost:5000/optimade")
 
 
 class EndpointTests(abc.ABC):
@@ -42,7 +46,7 @@ class EndpointTests(abc.ABC):
         self.assertEqual(
             self.response.status_code,
             200,
-            msg=f"Request failed: {self.response.json()}",
+            msg=f"Request to {self.request_str} failed: {self.json_response}",
         )
 
     def test_meta_response(self):
@@ -77,6 +81,9 @@ class InfoEndpointTests(EndpointTests, unittest.TestCase):
     request_str = "/info"
     response_cls = InfoResponse
 
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
     def test_info_endpoint_attributes(self):
         self.assertTrue("data" in self.json_response)
         self.assertEqual(self.json_response["data"]["type"], "info")
@@ -97,26 +104,44 @@ class InfoStructuresEndpointTests(EndpointTests, unittest.TestCase):
     request_str = "/info/structures"
     response_cls = EntryInfoResponse
 
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
     def test_info_structures_endpoint_data(self):
         self.assertTrue("data" in self.json_response)
         data_keys = ["description", "properties", "formats", "output_fields_by_format"]
         self.check_keys(data_keys, self.json_response["data"])
 
 
+@unittest.skip("References has not yet been implemented.")
 class InfoReferencesEndpointTests(EndpointTests, unittest.TestCase):
-    request_str = "info/references"
+    request_str = "/info/references"
     response_cls = EntryInfoResponse
 
+    @unittest.skip("References has not yet been implemented.")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+
+@unittest.skip("References has not yet been implemented.")
 class ReferencesEndpointTests(EndpointTests, unittest.TestCase):
-    request_str = "references"
+    request_str = "/references"
     response_cls = ReferenceResponseMany
 
+    @unittest.skip("References has not yet been implemented.")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+
+@unittest.skip("References has not yet been implemented.")
 class SingleReferenceEndpointTests(EndpointTests, unittest.TestCase):
     test_id = "Dijkstra1968"
-    request_str = f"references/{test_id}"
+    request_str = f"/references/{test_id}"
     response_cls = ReferenceResponseOne
+
+    @unittest.skip("References has not yet been implemented.")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class StructuresEndpointTests(EndpointTests, unittest.TestCase):
@@ -124,11 +149,14 @@ class StructuresEndpointTests(EndpointTests, unittest.TestCase):
     request_str = "/structures"
     response_cls = StructureResponseMany
 
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
     def test_structures_endpoint_data(self):
         self.assertTrue("data" in self.json_response)
         self.assertEqual(len(self.json_response["data"]), CONFIG.page_limit)
         self.assertTrue("meta" in self.json_response)
-        self.assertEqual(self.json_response["meta"]["data_available"], 17)
+        self.assertEqual(self.json_response["meta"]["data_available"], 1089)
         self.assertEqual(self.json_response["meta"]["more_data_available"], True)
 
     def test_get_next_responses(self):
@@ -136,7 +164,8 @@ class StructuresEndpointTests(EndpointTests, unittest.TestCase):
         more_data_available = True
         next_request = self.json_response["links"]["next"]
 
-        while more_data_available:
+        id_ = len(cursor)
+        while more_data_available and id_ < CONFIG.page_limit * 5:
             next_response = self.client.get(next_request).json()
             next_request = next_response["links"]["next"]
             cursor.extend(next_response["data"])
@@ -144,16 +173,22 @@ class StructuresEndpointTests(EndpointTests, unittest.TestCase):
             if more_data_available:
                 self.assertEqual(len(next_response["data"]), CONFIG.page_limit)
             else:
-                self.assertEqual(len(next_response["data"]), 2)
+                self.assertEqual(len(next_response["data"]), 1089 % CONFIG.page_limit)
+            id_ += len(next_response["data"])
 
-        self.assertEqual(len(cursor), 17)
+        self.assertEqual(len(cursor), id_)
 
 
+@unittest.skip("Must be updated with local test data.")
 class SingleStructureEndpointTests(EndpointTests, unittest.TestCase):
 
     test_id = "mpf_1"
     request_str = f"/structures/{test_id}"
     response_cls = StructureResponseOne
+
+    @unittest.skip("Must be updated with local test data.")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def test_structures_endpoint_data(self):
         self.assertTrue("data" in self.json_response)
@@ -167,22 +202,26 @@ class SingleStructureEndpointTests(EndpointTests, unittest.TestCase):
 
 class ServerTestWithValidator(unittest.TestCase):
     def test_with_validator(self):
-        validator = ImplementationValidator(client=CLIENT)
+        validator = ImplementationValidator(client=CLIENT, verbosity=2)
         validator.main()
         self.assertTrue(validator.valid)
 
 
 class SingleStructureEndpointEmptyTest(EndpointTests, unittest.TestCase):
 
-    test_id = "non_existent_id"
+    test_id = "0"
     request_str = f"/structures/{test_id}"
     response_cls = StructureResponseOne
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
 
     def test_structures_endpoint_data(self):
         self.assertTrue("data" in self.json_response)
         self.assertEqual(self.json_response["data"], None)
 
 
+@unittest.skip("Must be updated with local test data.")
 class FilterTests(unittest.TestCase):
 
     client = CLIENT
@@ -226,7 +265,6 @@ class FilterTests(unittest.TestCase):
         expected_ids = ["mpf_1", "mpf_2"]
         self._check_response(request, expected_ids)
 
-    @unittest.skip("Skipping HAS ALL until implemented in server code.")
     def test_list_has_all(self):
         request = '/structures?filter=elements HAS ALL "Ba","F","H","Mn","O","Re","Si"'
         expected_ids = ["mpf_3819"]
@@ -236,7 +274,6 @@ class FilterTests(unittest.TestCase):
         expected_ids = ["mpf_3819"]
         self._check_response(request, expected_ids)
 
-    @unittest.skip("Skipping HAS ANY until implemented in server code.")
     def test_list_has_any(self):
         request = '/structures?filter=elements HAS ANY "Re","Ti"'
         expected_ids = ["mpf_3819"]
@@ -247,7 +284,6 @@ class FilterTests(unittest.TestCase):
         expected_ids = ["mpf_3819"]
         self._check_response(request, expected_ids)
 
-    @unittest.skip("Skipping LENGTH until implemented in server code.")
     def test_list_length(self):
         request = "/structures?filter=LENGTH elements = 9"
         expected_ids = ["mpf_3819"]
@@ -261,7 +297,6 @@ class FilterTests(unittest.TestCase):
         expected_ids = []
         self._check_response(request, expected_ids)
 
-    @unittest.skip("Skipping HAS ONLY until implemented in server code.")
     def test_list_has_only(self):
         request = '/structures?filter=elements HAS ONLY "Ac"'
         expected_ids = ["mpf_1"]
@@ -366,5 +401,5 @@ class FilterTests(unittest.TestCase):
             self.assertEqual(response["meta"]["data_returned"], len(expected_id))
         except Exception as exc:
             print("Request attempted:")
-            print(f"http://localhost:5000{request}")
+            print(f"{self.client.base_url}{request}")
             raise exc

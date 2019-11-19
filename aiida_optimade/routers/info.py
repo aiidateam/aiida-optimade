@@ -24,7 +24,7 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 @router.get(
     "/info",
     response_model=Union[InfoResponse, ErrorResponse],
-    response_model_skip_defaults=True,
+    response_model_skip_defaults=False,
     tags=["Info"],
 )
 def get_info(request: Request):

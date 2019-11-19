@@ -26,7 +26,7 @@ app = FastAPI(
     openapi_url="/extensions/openapi.json",
 )
 
-profile_name = os.getenv("AIIDA_PROFILE", None)
+profile_name = os.getenv("AIIDA_PROFILE", "optimade_cod")
 profile = load_profile(profile_name)
 
 valid_prefixes = ["/optimade"]
