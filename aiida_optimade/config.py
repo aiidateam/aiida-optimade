@@ -12,6 +12,7 @@ class ServerConfig(Config):
 
     FILENAME = "config"
 
+    version = "v1.0.0"
     page_limit = 500
     db_page_limit = 1000
     provider = {
@@ -35,6 +36,7 @@ class ServerConfig(Config):
         ) as config_file:
             config = json.load(config_file)
 
+        self.version = config.get("version", self.version)
         self.page_limit = int(config.get("page_limit", self.page_limit))
         self.db_page_limit = int(config.get("db_page_limit", self.db_page_limit))
         self.provider = config.get("provider", self.provider)

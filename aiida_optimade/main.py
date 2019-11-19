@@ -1,31 +1,15 @@
-import urllib
-from typing import Union
 import os
 
 from pydantic import ValidationError
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
-from aiida import orm, load_profile
-
-
-from optimade.models import (
-    ToplevelLinks,
-    StructureResource,
-    InfoResponse,
-    EntryInfoResponse,
-    ErrorResponse,
-    StructureResponseMany,
-    StructureResponseOne,
-)
+from aiida import load_profile
 
 from aiida_optimade.common.exceptions import AiidaError
 from aiida_optimade.config import CONFIG
-from aiida_optimade.deps import EntryListingQueryParams, SingleEntryQueryParams
-from aiida_optimade.entry_collections import AiidaCollection
-from aiida_optimade.mappers import StructureMapper
 import aiida_optimade.utils as u
 
 
@@ -36,7 +20,7 @@ app = FastAPI(
 
 [Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to help researchers with managing complex workflows and making them fully reproducible."""
     ),
-    version="0.10.1",
+    version=CONFIG.version,
     docs_url="/extensions/docs",
     redoc_url="/extensions/redoc",
     openapi_url="/extensions/openapi.json",
@@ -45,9 +29,14 @@ app = FastAPI(
 profile_name = os.getenv("AIIDA_PROFILE", None)
 profile = load_profile(profile_name)
 
-structures = AiidaCollection(
-    orm.StructureData.objects, StructureResource, StructureMapper
-)
+valid_prefixes = ["/optimade"]
+version = [int(_) for _ in CONFIG.version[1:].split(".")]
+while version:
+    if version[0] or len(version) >= 2:
+        valid_prefixes.append(
+            "/optimade/v{}".format(".".join([str(_) for _ in version]))
+        )
+    version.pop(-1)
 
 
 @app.middleware("http")
@@ -110,158 +99,11 @@ def general_exception_handler(request: Request, exc: Exception):
     return u.general_exception(request, exc)
 
 
-@app.get(
-    "/structures",
-    response_model=Union[StructureResponseMany, ErrorResponse],
-    response_model_skip_defaults=True,
-    tags=["Structure"],
+from aiida_optimade.routers import (  # pylint: disable=wrong-import-position
+    structures,
+    info,
 )
-def get_structures(
-    request: Request,
-    params: EntryListingQueryParams = Depends(),
-    backend: orm.implementation.Backend = Depends(u.get_backend),
-):
-    results, more_data_available, data_available, fields = structures.find(
-        backend, params
-    )
-    parse_result = urllib.parse.urlparse(str(request.url))
 
-    pagination = {}
-    query = urllib.parse.parse_qs(parse_result.query)
-    query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
-        query.get("page_limit", [CONFIG.page_limit])[0]
-    )
-    if query["page_offset"] > 0:
-        urlencoded_prev = urllib.parse.urlencode(query, doseq=True)
-        pagination[
-            "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
-    elif query["page_offset"] == 0 or abs(query["page_offset"]) < int(
-        query.get("page_limit", [CONFIG.page_limit])[0]
-    ):
-        prev_query = query.copy()
-        prev_query.pop("page_offset")
-        urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
-        pagination[
-            "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
-
-    if more_data_available:
-        query["page_offset"] = (
-            int(query.get("page_offset", 0))
-            + len(results)
-            + int(query.get("page_limit", [CONFIG.page_limit])[0])
-        )
-        urlencoded_next = urllib.parse.urlencode(query, doseq=True)
-        pagination[
-            "next"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_next}"
-    else:
-        pagination["next"] = None
-
-    if fields:
-        results = u.handle_response_fields(results, fields)
-
-    return StructureResponseMany(
-        links=ToplevelLinks(**pagination),
-        data=results,
-        meta=u.meta_values(
-            str(request.url), len(results), data_available, more_data_available
-        ),
-    )
-
-
-@app.get(
-    "/structures/{entry_id}",
-    response_model=Union[StructureResponseOne, ErrorResponse],
-    response_model_skip_defaults=True,
-    tags=["Structure"],
-)
-def get_single_structure(
-    request: Request,
-    entry_id: int,
-    params: SingleEntryQueryParams = Depends(),
-    backend: orm.implementation.Backend = Depends(u.get_backend),
-):
-    params.filter = f"id={entry_id}"
-    results, more_data_available, data_available, fields = structures.find(
-        backend, params
-    )
-
-    if more_data_available:
-        raise StarletteHTTPException(
-            status_code=500,
-            detail=f"more_data_available MUST be False for single entry response, however it is {more_data_available}",
-        )
-    links = ToplevelLinks(next=None)
-
-    if fields and results is not None:
-        results = u.handle_response_fields(results, fields)[0]
-
-    data_returned = 1 if results else 0
-
-    return StructureResponseOne(
-        links=links,
-        data=results,
-        meta=u.meta_values(
-            str(request.url), data_returned, data_available, more_data_available
-        ),
-    )
-
-
-@app.get(
-    "/info",
-    response_model=Union[InfoResponse, ErrorResponse],
-    response_model_skip_defaults=True,
-    tags=["Info"],
-)
-def get_info(request: Request):
-    from optimade.models import BaseInfoResource, BaseInfoAttributes
-
-    parse_result = urllib.parse.urlparse(str(request.url))
-    return InfoResponse(
-        meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
-        data=BaseInfoResource(
-            attributes=BaseInfoAttributes(
-                api_version="v0.10",
-                available_api_versions=[
-                    {
-                        "url": f"{parse_result.scheme}://{parse_result.netloc}",
-                        "version": "0.10.0",
-                    }
-                ],
-                entry_types_by_format={"json": ["structures"]},
-                available_endpoints=["info", "structures"],
-            )
-        ),
-    )
-
-
-@app.get(
-    "/info/structures",
-    response_model=Union[EntryInfoResponse, ErrorResponse],
-    response_model_skip_defaults=True,
-    tags=["Structure", "Info"],
-)
-def get_info_structures(request: Request):
-    from optimade.models import EntryInfoResource
-
-    schema = StructureResource.schema()
-    queryable_properties = {"id", "type", "attributes"}
-    properties = u.retrieve_queryable_properties(schema, queryable_properties)
-    for field, field_info in tuple(properties.items()):
-        for field_info_name in list(field_info.keys()):
-            if field_info_name not in {"description", "unit", "sortable"}:
-                del properties[field][field_info_name]
-
-    output_fields_by_format = {"json": list(properties.keys())}
-
-    return EntryInfoResponse(
-        meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
-        data=EntryInfoResource(
-            formats=list(output_fields_by_format.keys()),
-            description="Endpoint to represent AiiDA StructureData Nodes in the OPTiMaDe format",
-            properties=properties,
-            output_fields_by_format=output_fields_by_format,
-        ),
-    )
+for prefix in valid_prefixes:
+    app.include_router(structures.router, prefix=prefix)
+    app.include_router(info.router, prefix=prefix)

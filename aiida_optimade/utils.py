@@ -1,7 +1,7 @@
 import urllib
 import traceback
 from datetime import datetime
-from typing import Union, Dict, Any, List, Sequence
+from typing import Dict, Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.requests import Request
@@ -13,7 +13,6 @@ from optimade.models import (
     Provider,
     Error,
     ErrorResponse,
-    EntryResource,
 )
 
 from aiida_optimade.config import CONFIG
@@ -84,28 +83,7 @@ def get_backend(request: Request):
     return request.state.backend
 
 
-def handle_response_fields(
-    results: Union[List[EntryResource], EntryResource], fields: set
-) -> dict:
-    if not isinstance(results, list):
-        results = [results]
-    non_attribute_fields = {"id", "type"}
-    top_level = {_ for _ in non_attribute_fields if _ in fields}
-    attribute_level = fields - non_attribute_fields
-    new_results = []
-    while results:
-        entry = results.pop(0)
-        new_entry = entry.dict(exclude=top_level, skip_defaults=True)
-        for field in attribute_level:
-            if field in new_entry["attributes"]:
-                del new_entry["attributes"][field]
-        if not new_entry["attributes"]:
-            del new_entry["attributes"]
-        new_results.append(new_entry)
-    return new_results
-
-
-def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
+def retrieve_queryable_properties(schema: dict, queryable_properties: list) -> dict:
     properties = {}
     for name, value in schema["properties"].items():
         if name in queryable_properties:
@@ -120,7 +98,8 @@ def retrieve_queryable_properties(schema: dict, queryable_properties: Sequence):
                     retrieve_queryable_properties(sub_schema, sub_queryable_properties)
                 )
             else:
-                properties[name] = value
-                # We can sort on properties that are not arrays
-                properties[name]["sortable"] = value.get("type", "") != "array"
+                properties[name] = {"description": value.get("description", "")}
+                for extra_key in ["unit", "sortable"]:
+                    if extra_key in value:
+                        properties[name][extra_key] = value[extra_key]
     return properties
