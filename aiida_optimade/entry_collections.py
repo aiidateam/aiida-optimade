@@ -5,12 +5,12 @@ from fastapi import HTTPException
 from aiida import orm
 
 from optimade.filterparser import LarkParser
-from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
 from optimade.models import NonnegativeInt, EntryResource
 from optimade.server.entry_collections import EntryCollection as OptimadeEntryCollection
 
 from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
+from aiida_optimade.deps import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformerV0_10_1
 from aiida_optimade.utils import retrieve_queryable_properties

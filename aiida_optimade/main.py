@@ -10,7 +10,7 @@ from starlette.requests import Request
 
 from aiida import orm, load_profile
 
-from optimade.server.deps import EntryListingQueryParams, SingleEntryQueryParams
+
 from optimade.models import (
     ToplevelLinks,
     StructureResource,
@@ -21,9 +21,10 @@ from optimade.models import (
     StructureResponseOne,
 )
 
-from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.common.exceptions import AiidaError
 from aiida_optimade.config import CONFIG
+from aiida_optimade.deps import EntryListingQueryParams, SingleEntryQueryParams
+from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.mappers import StructureMapper
 import aiida_optimade.utils as u
 
@@ -35,7 +36,10 @@ app = FastAPI(
 
 [Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to help researchers with managing complex workflows and making them fully reproducible."""
     ),
-    version="0.10.0",
+    version="0.10.1",
+    docs_url="/extensions/docs",
+    redoc_url="/extensions/redoc",
+    openapi_url="/extensions/openapi.json",
 )
 
 profile_name = os.getenv("AIIDA_PROFILE", None)
