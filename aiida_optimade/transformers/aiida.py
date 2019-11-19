@@ -210,12 +210,6 @@ class AiidaTransformerV0_10_1(Transformer):
             for oper, prop in arg[1].items()
         }
 
-    def predicate_comparison(self, arg):
-        # predicate_comparison: length_comparison
-        if not arg:
-            return None
-        return arg[0]
-
     @v_args(inline=True)
     def value_op_rhs(self, operator, value):
         # value_op_rhs: OPERATOR value
@@ -278,8 +272,8 @@ class AiidaTransformerV0_10_1(Transformer):
         # ANY value_zip_list )
         raise NotImplementedError
 
-    def length_comparison(self, arg):
-        # length_comparison: LENGTH property OPERATOR value
+    def predicate_comparison(self, arg):
+        # predicate_comparison: LENGTH property OPERATOR value
         operator = arg[2].value
         if operator in self.list_operator_map:
             return {arg[1]: {self.list_operator_map[operator]: arg[3]}}

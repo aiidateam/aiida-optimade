@@ -96,6 +96,10 @@ class StructureDataParser(AiidaEntityParser):
             if not occ.is_integer():
                 return True
 
+        for kind in self._kinds:
+            if len(kind["weights"]) > 1:
+                return True
+
         return False
 
     def check_floating_round_errors(self, some_list: List[Union[List, float]]) -> list:
@@ -208,6 +212,16 @@ class StructureDataParser(AiidaEntityParser):
                 occupation[symbol] = ""
             else:
                 occupation[symbol] = rounded_weight
+        values = [_ for _ in occupation.values() if _]
+        if len(values) == len(occupation.values()):
+            min_occupation = min(values)
+            for symbol, weight in occupation.items():
+                weight = weight / min_occupation
+                rounded_weight = round(weight)
+                if rounded_weight in {0, 1}:
+                    occupation[symbol] = ""
+                else:
+                    occupation[symbol] = rounded_weight
         res = "".join([f"{symbol}{occupation[symbol]}" for symbol in self.elements()])
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
@@ -231,10 +245,10 @@ class StructureDataParser(AiidaEntityParser):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = self.get_formula(mode="hill")
-
         if self.has_partial_occupancy():
             res = None
+        else:
+            res = self.get_formula(mode="hill")
 
         # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res

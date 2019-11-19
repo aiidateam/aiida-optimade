@@ -34,7 +34,11 @@ class StructureMapper(ResourceMapper):
         new_object = {}
 
         for real, alias in mapping:
-            if real in entity_properties and alias != "type":
+            if (
+                real in entity_properties
+                and entity_properties[real] is not None
+                and alias != "type"
+            ):
                 new_object_attributes[alias] = entity_properties[real]
 
         # Particular attributes
@@ -81,7 +85,7 @@ class StructureMapper(ResourceMapper):
         # TODO: Use sets instead!!
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
-            if existing_attribute in float_fields_stored_as_strings:
+            if existing_attribute in float_fields_stored_as_strings and value:
                 value = json.loads(str(value))
             res[existing_attribute] = value
             if existing_attribute in missing_attributes:
