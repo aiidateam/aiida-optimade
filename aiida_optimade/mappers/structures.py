@@ -13,6 +13,7 @@ class StructureMapper(ResourceMapper):
 
     ENDPOINT = "structures"
     ALIASES = (
+        ("id", "id"),
         ("immutable_id", "uuid"),
         ("last_modified", "mtime"),
         ("type", "extras.something.non.existing.type"),
@@ -37,7 +38,7 @@ class StructureMapper(ResourceMapper):
             if (
                 real in entity_properties
                 and entity_properties[real] is not None
-                and alias != "type"
+                and alias not in ["id", "type"]
             ):
                 new_object_attributes[alias] = entity_properties[real]
 

@@ -1,6 +1,6 @@
 # pylint: disable=no-member,wrong-import-position
 import unittest
-import abc
+import pytest
 
 from starlette.testclient import TestClient
 
@@ -12,12 +12,15 @@ from optimade.validator import ImplementationValidator
 CONFIG.page_limit = 5  # noqa: E402
 
 from optimade.models import (
+    ResponseMeta,
     ReferenceResponseMany,
     ReferenceResponseOne,
     StructureResponseMany,
     StructureResponseOne,
     EntryInfoResponse,
     InfoResponse,
+    BaseInfoAttributes,
+    EntryInfoResource,
 )
 
 from aiida_optimade.main import app
@@ -30,137 +33,116 @@ app.include_router(info.router)
 CLIENT = TestClient(app, base_url="http://localhost:5000/optimade")
 
 
-class EndpointTests(abc.ABC):
-    """ Abstract base class for common tests between endpoints. """
-
-    request_str = None
-    response_cls = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.client = CLIENT
-
-        self.response = self.client.get(self.request_str)
-        self.json_response = self.response.json()
-        self.assertEqual(
-            self.response.status_code,
-            200,
-            msg=f"Request to {self.request_str} failed: {self.json_response}",
-        )
-
-    def test_meta_response(self):
-        self.assertTrue("meta" in self.json_response)
-        meta_required_keys = [
-            "query",
-            "api_version",
-            "time_stamp",
-            "data_returned",
-            "more_data_available",
-            "provider",
-        ]
-
-        self.check_keys(meta_required_keys, self.json_response["meta"])
-
-    def test_serialize_response(self):
-        self.assertTrue(
-            self.response_cls is not None, msg="Response class unset for this endpoint"
-        )
-        self.response_cls(**self.json_response)  # pylint: disable=not-callable
-
-    def check_keys(self, keys, response_subset):
-        for key in keys:
-            self.assertTrue(
-                key in response_subset,
-                msg="{} missing from response {}".format(key, response_subset),
-            )
+@pytest.mark.skip("References has not yet been implemented.")
+class TestServerTestWithValidator(unittest.TestCase):
+    def test_with_validator(self):
+        validator = ImplementationValidator(client=CLIENT, verbosity=2)
+        validator.main()
+        assert validator.valid is True
 
 
-class InfoEndpointTests(EndpointTests, unittest.TestCase):
+class BaseTestCases:
+    class EndpointTests(unittest.TestCase):
+        """ Base test class for common tests of endpoints. """
+
+        request_str = None
+        response_cls = None
+
+        @classmethod
+        def setUpClass(cls):
+            cls.client = CLIENT
+            cls.response = cls.client.get(cls.request_str)
+            cls.json_response = cls.response.json()
+
+        def check_keys(self, keys, response_subset):
+            for key in keys:
+                assert (
+                    key in response_subset
+                ), f"{key} missing from response {response_subset}"
+
+        def test_response_okay(self):
+            assert (
+                self.response.status_code == 200
+            ), f"Request to {self.request_str} failed: {self.json_response}"
+
+        def test_meta_response(self):
+            assert "meta" in self.json_response
+            meta_required_keys = ResponseMeta.schema().get("required")
+            self.check_keys(meta_required_keys, self.json_response["meta"])
+
+        def test_serialize_response(self):
+            assert (
+                self.response_cls is not None
+            ), "Response model class unset for this endpoint"
+            self.response_cls(**self.json_response)  # pylint: disable=not-callable
+
+
+class TestInfoEndpointTests(BaseTestCases.EndpointTests):
 
     request_str = "/info"
     response_cls = InfoResponse
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
     def test_info_endpoint_attributes(self):
-        self.assertTrue("data" in self.json_response)
-        self.assertEqual(self.json_response["data"]["type"], "info")
-        self.assertEqual(self.json_response["data"]["id"], "/")
-        self.assertTrue("attributes" in self.json_response["data"])
-        attributes = [
-            "api_version",
-            "available_api_versions",
-            "formats",
-            "entry_types_by_format",
-            "available_endpoints",
-        ]
+        assert "data" in self.json_response
+        assert self.json_response["data"]["type"] == "info"
+        assert self.json_response["data"]["id"] == "/"
+        assert "attributes" in self.json_response["data"]
+        attributes = list(BaseInfoAttributes.schema().get("properties").keys())
         self.check_keys(attributes, self.json_response["data"]["attributes"])
 
 
-class InfoStructuresEndpointTests(EndpointTests, unittest.TestCase):
+@pytest.mark.skip("References has not yet been implemented.")
+class TestInfoReferencesEndpointTests(BaseTestCases.EndpointTests):
+
+    request_str = "/info/references"
+    response_cls = EntryInfoResponse
+
+    def test_info_references_endpoint_data(self):
+        assert "data" in self.json_response
+        data = EntryInfoResource.schema().get("required")
+        self.check_keys(data, self.json_response["data"])
+
+
+class TestInfoStructuresEndpointTests(BaseTestCases.EndpointTests):
 
     request_str = "/info/structures"
     response_cls = EntryInfoResponse
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
     def test_info_structures_endpoint_data(self):
-        self.assertTrue("data" in self.json_response)
-        data_keys = ["description", "properties", "formats", "output_fields_by_format"]
-        self.check_keys(data_keys, self.json_response["data"])
+        assert "data" in self.json_response
+        data = EntryInfoResource.schema().get("required")
+        self.check_keys(data, self.json_response["data"])
 
 
-@unittest.skip("References has not yet been implemented.")
-class InfoReferencesEndpointTests(EndpointTests, unittest.TestCase):
-    request_str = "/info/references"
-    response_cls = EntryInfoResponse
+@pytest.mark.skip("References has not yet been implemented.")
+class TestReferencesEndpointTests(BaseTestCases.EndpointTests):
 
-    @unittest.skip("References has not yet been implemented.")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-@unittest.skip("References has not yet been implemented.")
-class ReferencesEndpointTests(EndpointTests, unittest.TestCase):
     request_str = "/references"
     response_cls = ReferenceResponseMany
 
-    @unittest.skip("References has not yet been implemented.")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
+@pytest.mark.skip("References has not yet been implemented.")
+class TestSingleReferenceEndpointTests(BaseTestCases.EndpointTests):
 
-@unittest.skip("References has not yet been implemented.")
-class SingleReferenceEndpointTests(EndpointTests, unittest.TestCase):
     test_id = "Dijkstra1968"
     request_str = f"/references/{test_id}"
     response_cls = ReferenceResponseOne
 
-    @unittest.skip("References has not yet been implemented.")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class StructuresEndpointTests(EndpointTests, unittest.TestCase):
+class TestStructuresEndpointTests(BaseTestCases.EndpointTests):
 
     request_str = "/structures"
     response_cls = StructureResponseMany
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
     def test_structures_endpoint_data(self):
-        self.assertTrue("data" in self.json_response)
-        self.assertEqual(len(self.json_response["data"]), CONFIG.page_limit)
-        self.assertTrue("meta" in self.json_response)
-        self.assertEqual(self.json_response["meta"]["data_available"], 1089)
-        self.assertEqual(self.json_response["meta"]["more_data_available"], True)
+        assert "data" in self.json_response
+        assert len(self.json_response["data"]) == CONFIG.page_limit
+        assert "meta" in self.json_response
+        assert self.json_response["meta"]["data_available"] == 1089
+        assert self.json_response["meta"]["more_data_available"]
 
     def test_get_next_responses(self):
-        cursor = self.json_response["data"]
+        cursor = self.json_response["data"].copy()
         more_data_available = True
         next_request = self.json_response["links"]["next"]
 
@@ -171,58 +153,42 @@ class StructuresEndpointTests(EndpointTests, unittest.TestCase):
             cursor.extend(next_response["data"])
             more_data_available = next_response["meta"]["more_data_available"]
             if more_data_available:
-                self.assertEqual(len(next_response["data"]), CONFIG.page_limit)
+                assert len(next_response["data"]) == CONFIG.page_limit
             else:
-                self.assertEqual(len(next_response["data"]), 1089 % CONFIG.page_limit)
+                assert len(next_response["data"]) == 1089 % CONFIG.page_limit
             id_ += len(next_response["data"])
 
-        self.assertEqual(len(cursor), id_)
+        assert len(cursor) == id_
 
 
-@unittest.skip("Must be updated with local test data.")
-class SingleStructureEndpointTests(EndpointTests, unittest.TestCase):
+@pytest.mark.skip("Must be updated with local test data.")
+class TestSingleStructureEndpointTests(BaseTestCases.EndpointTests):
 
     test_id = "mpf_1"
     request_str = f"/structures/{test_id}"
     response_cls = StructureResponseOne
 
-    @unittest.skip("Must be updated with local test data.")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def test_structures_endpoint_data(self):
-        self.assertTrue("data" in self.json_response)
-        self.assertEqual(self.json_response["data"]["id"], self.test_id)
-        self.assertEqual(self.json_response["data"]["type"], "structures")
-        self.assertTrue("attributes" in self.json_response["data"])
-        self.assertTrue(
-            "_exmpl__mp_chemsys" in self.json_response["data"]["attributes"]
-        )
+        assert "data" in self.json_response
+        assert self.json_response["data"]["id"] == self.test_id
+        assert self.json_response["data"]["type"] == "structures"
+        assert "attributes" in self.json_response["data"]
+        assert "_exmpl__mp_chemsys" in self.json_response["data"]["attributes"]
 
 
-class ServerTestWithValidator(unittest.TestCase):
-    def test_with_validator(self):
-        validator = ImplementationValidator(client=CLIENT, verbosity=2)
-        validator.main()
-        self.assertTrue(validator.valid)
-
-
-class SingleStructureEndpointEmptyTest(EndpointTests, unittest.TestCase):
+class TestSingleStructureEndpointEmptyTest(BaseTestCases.EndpointTests):
 
     test_id = "0"
     request_str = f"/structures/{test_id}"
     response_cls = StructureResponseOne
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
     def test_structures_endpoint_data(self):
-        self.assertTrue("data" in self.json_response)
-        self.assertEqual(self.json_response["data"], None)
+        assert "data" in self.json_response
+        assert self.json_response["data"] is None
 
 
-@unittest.skip("Must be updated with local test data.")
-class FilterTests(unittest.TestCase):
+@pytest.mark.skip("Must be updated with local test data.")
+class TestFilterTests(unittest.TestCase):
 
     client = CLIENT
 
@@ -302,7 +268,6 @@ class FilterTests(unittest.TestCase):
         expected_ids = ["mpf_1"]
         self._check_response(request, expected_ids)
 
-    @unittest.skip("Skipping correlated list query until implemented in server code.")
     def test_list_correlated(self):
         request = '/structures?filter=elements:elements_ratios HAS "Ag":"0.2"'
         expected_ids = ["mpf_259"]
@@ -392,13 +357,12 @@ class FilterTests(unittest.TestCase):
     def _check_response(self, request, expected_id):
         try:
             response = self.client.get(request)
-            self.assertEqual(
-                response.status_code, 200, msg=f"Request failed: {response.json()}"
-            )
+            assert response.status_code == 200, f"Request failed: {response.json()}"
+
             response = response.json()
             response_ids = [struct["id"] for struct in response["data"]]
-            self.assertEqual(sorted(expected_id), sorted(response_ids))
-            self.assertEqual(response["meta"]["data_returned"], len(expected_id))
+            assert sorted(expected_id) == sorted(response_ids)
+            assert response["meta"]["data_returned"] == len(expected_id)
         except Exception as exc:
             print("Request attempted:")
             print(f"{self.client.base_url}{request}")
