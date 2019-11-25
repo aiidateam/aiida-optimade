@@ -1,10 +1,17 @@
-# aiida-optimade
+# Optimade API implementation for AiiDA
 
-Optimade API implementation for AiiDA
+This is a server using [FastAPI](https://fastapi.tiangolo.com/) that exposes an AiiDA database according to the [OPTiMaDe specification](https://github.com/Materials-Consortia/OPTiMaDe/blob/develop/optimade.rst).
+
+The server is based on the test server "template" used in [`optimade-python-tools`](https://github.com/Materials-Consortia/optimade-python-tools).
+Indeed, the filter grammar and parser and [`pydantic`](https://5d584fcca7c9b70007d1c997--pydantic-docs.netlify.com/) models from `optimade-python-tools` are used directly here.
+
+Lastly, the server utilizes the FastAPI concept of [routers](https://fastapi.tiangolo.com/tutorial/bigger-applications/#apirouter), which means each endpoint can be "setup" several times, allowing multiple base URLs and more flexibility.
 
 ## Prerequisites
 
 Environment where AiiDA is installed.
+
+> **Note**: At the moment, `aiida-optimade` works most optimally with an AiiDA database using the SQLAlchemy backend.
 
 ## Installation
 
