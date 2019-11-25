@@ -92,7 +92,7 @@ def get_entries(
     params: EntryListingQueryParams,
 ) -> EntryResponseMany:
     """Generalized /{entry} endpoint getter"""
-    results, more_data_available, data_available, fields = collection.find(
+    results, data_returned, more_data_available, data_available, fields = collection.find(
         backend, params
     )
 
@@ -107,7 +107,7 @@ def get_entries(
         links=ToplevelLinks(**pagination),
         data=results,
         meta=meta_values(
-            str(request.url), len(results), data_available, more_data_available
+            str(request.url), data_returned, data_available, more_data_available
         ),
     )
 
@@ -121,7 +121,7 @@ def get_single_entry(  # pylint: disable=too-many-arguments
     params: SingleEntryQueryParams,
 ) -> EntryResponseOne:
     params.filter = f"id={entry_id}"
-    results, more_data_available, data_available, fields = collection.find(
+    results, data_returned, more_data_available, data_available, fields = collection.find(
         backend, params
     )
 
@@ -135,8 +135,6 @@ def get_single_entry(  # pylint: disable=too-many-arguments
 
     if fields and results is not None:
         results = handle_response_fields(results, fields)[0]
-
-    data_returned = 1 if results else 0
 
     return response(
         links=links,

@@ -1,4 +1,6 @@
 # pylint: disable=no-member,wrong-import-position
+import os
+
 import unittest
 import pytest
 
@@ -10,6 +12,9 @@ from optimade.validator import ImplementationValidator
 # this must be changed before app is imported
 # some tests currently depend on this value remaining at 5
 CONFIG.page_limit = 5  # noqa: E402
+
+# Use specific AiiDA profile
+os.environ["AIIDA_PROFILE"] = "optimade_sqla"
 
 from optimade.models import (
     ResponseMeta,

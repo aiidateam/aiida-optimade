@@ -10,7 +10,7 @@ from aiida import load_profile
 
 from aiida_optimade.common.exceptions import AiidaError
 from aiida_optimade.config import CONFIG
-import aiida_optimade.utils as u
+import aiida_optimade.exceptions as exc_handlers
 
 
 app = FastAPI(
@@ -26,7 +26,7 @@ app = FastAPI(
     openapi_url="/extensions/openapi.json",
 )
 
-profile_name = os.getenv("AIIDA_PROFILE", "optimade_cod")
+profile_name = os.getenv("AIIDA_PROFILE")
 profile = load_profile(profile_name)
 
 valid_prefixes = ["/optimade"]
@@ -73,37 +73,12 @@ async def backend_middleware(request: Request, call_next):
     raise AiidaError("Failed to properly handle AiiDA backend middleware")
 
 
-@app.exception_handler(StarletteHTTPException)
-def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    return u.general_exception(request, exc)
-
-
-@app.exception_handler(RequestValidationError)
-def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    return u.general_exception(request, exc)
-
-
-@app.exception_handler(ValidationError)
-def validation_exception_handler(request: Request, exc: ValidationError):
-    from optimade.models import Error, ErrorSource
-
-    status = 500
-    title = "ValidationError"
-    errors = []
-    for error in exc.errors():
-        pointer = "/" + "/".join([str(_) for _ in error["loc"]])
-        source = ErrorSource(pointer=pointer)
-        code = error["type"]
-        detail = error["msg"]
-        errors.append(
-            Error(detail=detail, status=status, title=title, source=source, code=code)
-        )
-    return u.general_exception(request, exc, status_code=status, errors=errors)
-
-
-@app.exception_handler(Exception)
-def general_exception_handler(request: Request, exc: Exception):
-    return u.general_exception(request, exc)
+app.add_exception_handler(StarletteHTTPException, exc_handlers.http_exception_handler)
+app.add_exception_handler(
+    RequestValidationError, exc_handlers.request_validation_exception_handler
+)
+app.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
+app.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
 from aiida_optimade.routers import (  # pylint: disable=wrong-import-position

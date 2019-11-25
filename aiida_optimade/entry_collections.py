@@ -119,7 +119,7 @@ class AiidaCollection(EntryCollection):
         self,
         backend: orm.implementation.Backend,
         params: Union[EntryListingQueryParams, SingleEntryQueryParams],
-    ) -> Tuple[List[EntryResource], bool, NonnegativeInt, set]:
+    ) -> Tuple[List[EntryResource], NonnegativeInt, bool, NonnegativeInt, set]:
         self.set_data_available(backend)
         criteria = self._parse_params(params)
 
@@ -147,10 +147,10 @@ class AiidaCollection(EntryCollection):
             nresults_now = len(results)
             criteria_no_limit = criteria.copy()
             criteria_no_limit.pop("limit", None)
-            more_data_available = bool(
-                self.count(backend, **criteria_no_limit) - nresults_now
-            )
+            data_returned = self.count(backend, **criteria_no_limit)
+            more_data_available = bool(data_returned - nresults_now)
         else:
+            data_returned = 1
             more_data_available = False
             if len(results) > 1:
                 raise HTTPException(
@@ -161,7 +161,13 @@ class AiidaCollection(EntryCollection):
         if isinstance(params, SingleEntryQueryParams):
             results = results[0] if results else None
 
-        return results, more_data_available, self.data_available, all_fields - fields
+        return (
+            results,
+            data_returned,
+            more_data_available,
+            self.data_available,
+            all_fields - fields,
+        )
 
     def _alias_filter(self, filters: Any) -> Union[dict, list]:
         if isinstance(filters, dict):
