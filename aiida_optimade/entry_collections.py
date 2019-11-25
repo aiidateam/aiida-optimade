@@ -78,7 +78,9 @@ class AiidaCollection(EntryCollection):
 
         # "Cache"
         self._data_available: int = None
+        self._data_returned: int = None
         self._filter_fields: set = None
+        self._latest_filter: dict = None
 
     def __len__(self) -> Exception:
         raise NotImplementedError("__len__ is not implemented")
@@ -115,6 +117,28 @@ class AiidaCollection(EntryCollection):
         if not self._data_available:
             self._data_available = self.count(backend)
 
+    @property
+    def data_returned(self) -> int:
+        if self._data_returned is None:
+            raise CausationError(
+                "data_returned MUST be set before it can be retrieved."
+            )
+        return self._data_returned
+
+    def set_data_returned(self, backend: orm.implementation.Backend, **criteria):
+        """Set _data_returned if it has not yet been set or new filter does not equal latest filter.
+
+        NB! Nested lists in filters are not accounted for.
+        """
+        if not self._data_returned or (
+            self._latest_filter and criteria.get("filters", {}) != self._latest_filter
+        ):
+            for key in ["limit", "offset"]:
+                if key in list(criteria.keys()):
+                    del criteria[key]
+            self._latest_filter = criteria.get("filters", {})
+            self._data_returned = self.count(backend, **criteria)
+
     def find(  # pylint: disable=arguments-differ
         self,
         backend: orm.implementation.Backend,
@@ -132,6 +156,8 @@ class AiidaCollection(EntryCollection):
         if criteria.get("filters", {}) and self._get_extras_filter_fields():
             self._check_and_calculate_entities(backend)
 
+        self.set_data_returned(backend, **criteria)
+
         entities = self._find_all(backend, **criteria)
         results = []
         for entity in entities:
@@ -144,13 +170,12 @@ class AiidaCollection(EntryCollection):
             )
 
         if isinstance(params, EntryListingQueryParams):
-            nresults_now = len(results)
             criteria_no_limit = criteria.copy()
             criteria_no_limit.pop("limit", None)
-            data_returned = self.count(backend, **criteria_no_limit)
-            more_data_available = bool(data_returned - nresults_now)
+            more_data_available = len(results) < self.count(
+                backend, **criteria_no_limit
+            )
         else:
-            data_returned = 1
             more_data_available = False
             if len(results) > 1:
                 raise HTTPException(
@@ -163,7 +188,7 @@ class AiidaCollection(EntryCollection):
 
         return (
             results,
-            data_returned,
+            self.data_returned,
             more_data_available,
             self.data_available,
             all_fields - fields,
