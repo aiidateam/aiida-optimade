@@ -1,7 +1,7 @@
 {
   "version": "v0.10.1",
-  "page_limit": 500,
-  "db_page_limit": 1000,
+  "page_limit": 100,
+  "db_page_limit": 500,
   "index_base_url": null,
   "provider": {
     "prefix": "_aiida_",

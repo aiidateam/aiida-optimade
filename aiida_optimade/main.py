@@ -47,6 +47,13 @@ async def backend_middleware(request: Request, call_next):
             from aiida_optimade.aiida_session import (
                 OptimadeDjangoBackend as OptimadeBackend,
             )
+
+            from warnings import warn
+
+            warn(
+                "The django backend does not support the special 1 AiiDA DB session per 1 HTTP request implemented in this package!"
+            )
+
         elif profile.database_backend == "sqlalchemy":
             from aiida_optimade.aiida_session import (
                 OptimadeSqlaBackend as OptimadeBackend,

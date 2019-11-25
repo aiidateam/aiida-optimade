@@ -8,23 +8,11 @@ class TransformerError(Exception):
 __all__ = ("AiidaTransformerV0_9_7", "AiidaTransformerV0_10_1")
 
 # Conversion map from the OPTiMaDe operators to the QueryBuilder operators
-op_conv_map = {
-    "=": "==",
-    "!=": "!==",
-    "in": "contains",
-    "not": "!in",
-    ">": ">",
-    "<": "<",
-    ">=": ">=",
-    "<=": "<=",
-    "like": "like",
-    "ilike": "ilike",
-    "or": "or",
-    "and": "and",
-    "of_length": "of_length",
-    "shorter": "shorter",
-    "longer": "longer",
-}
+operator_conversion = {"=": "==", "!=": "!==", "in": "contains"}
+
+
+def op_conv_map(operator):
+    return operator_conversion.get(operator, operator)
 
 
 def conjoin_args(args):
@@ -87,7 +75,7 @@ class AiidaTransformerV0_9_7(Transformer):
                 )
             return {field: {"in": args[2]}}
 
-        op = op_conv_map[args[1].value]
+        op = op_conv_map(args[1].value)
         value_token = args[2]
         try:
             value = float(value_token.value)
@@ -132,9 +120,7 @@ class AiidaTransformerV0_10_1(Transformer):
 
     def filter(self, arg):
         # filter: expression*
-        if not arg:
-            return None
-        return arg[0]
+        return arg[0] if arg else None
 
     @v_args(inline=True)
     def constant(self, value):
@@ -188,8 +174,7 @@ class AiidaTransformerV0_10_1(Transformer):
             return arg[0]
 
         # with NOT
-        # TODO: This implementation probably fails in the case of `predicate_comparison` or `"(" expression ")"`
-        return {prop: {"not": expr} for prop, expr in arg[1].items()}
+        return {"!and": [arg[1]]}
 
     @v_args(inline=True)
     def comparison(self, value):
@@ -213,18 +198,15 @@ class AiidaTransformerV0_10_1(Transformer):
     @v_args(inline=True)
     def value_op_rhs(self, operator, value):
         # value_op_rhs: OPERATOR value
-        return {op_conv_map[operator]: value}
+        return {op_conv_map(operator.value): value}
 
     def known_op_rhs(self, arg):
         # known_op_rhs: IS ( KNOWN | UNKNOWN )
         if arg[1] == "KNOWN":
-            return {"exists": True}
+            key = "!of_type"
         if arg[1] == "UNKNOWN":
-            return {"exists": False}
-
-        raise TransformerError(
-            f'"known_op_rhs" can only be "KNOWN" or "UNKNOWN". Passed: {arg[1]}'
-        )
+            key = "of_type"
+        return {key: "null"}
 
     def fuzzy_string_op_rhs(self, arg):
         # fuzzy_string_op_rhs: CONTAINS string | STARTS [ WITH ] string | ENDS [ WITH ] string
@@ -236,15 +218,12 @@ class AiidaTransformerV0_10_1(Transformer):
             pattern = arg[1]
 
         if arg[0] == "CONTAINS":
-            return {"regex": f"{pattern}"}
-        if arg[0] == "STARTS":
-            return {"regex": f"^{pattern}"}
-        if arg[0] == "ENDS":
-            return {"regex": f"{pattern}$"}
-
-        raise TransformerError(
-            f'"fuzzy_string_op_rhs" can only have arguments "CONTAINS", "STARTS", and "ENDS". Passed: {arg[0]}'
-        )
+            like = f"%{pattern}%"
+        elif arg[0] == "STARTS":
+            like = f"{pattern}%"
+        elif arg[0] == "ENDS":
+            like = f"%{pattern}"
+        return {"like": like}
 
     def set_op_rhs(self, arg):
         # set_op_rhs: HAS ( [ OPERATOR ] value | ALL value_list | ANY value_list | ONLY value_list )
@@ -287,7 +266,9 @@ class AiidaTransformerV0_10_1(Transformer):
                 }
             }
 
-        raise TransformerError(f"length_comparison has failed with {arg}")
+        raise TransformerError(
+            f"length_comparison has failed with {arg}. Unknown operator."
+        )
 
     def property_zip_addon(self, arg):
         # property_zip_addon: ":" property (":" property)*
@@ -306,13 +287,10 @@ class AiidaTransformerV0_10_1(Transformer):
         # number: SIGNED_INT | SIGNED_FLOAT
         token = arg[0]
         if token.type == "SIGNED_INT":
-            return int(token)
-        if token.type == "SIGNED_FLOAT":
-            return float(token)
-
-        raise TransformerError(
-            f'"number" MUST be either of types "SIGNED_INT" or "SIGNED_FLOAT". Passed type: {token.type}'
-        )
+            type_ = int
+        elif token.type == "SIGNED_FLOAT":
+            type_ = float
+        return type_(token)
 
     def __default__(self, data, children, meta):
         raise NotImplementedError(
