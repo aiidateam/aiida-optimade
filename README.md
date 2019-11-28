@@ -30,14 +30,22 @@ export AIIDA_PROFILE=optimade
 sh run.sh
 ```
 
-Navigate to `http://127.0.0.1:5000/info`
+Navigate to `http://127.0.0.1:5000/optimade/info`
 
 ## Running via docker
 
-Adapt `docker-compose.yml` and `.docker/config.json` appropriately.
-
+Adapt `profiles/quicksetup.json` and `profiles/docker-compose.yml` appropriately.
 ```shell
-docker-compose up --build
+docker-compose -f profiles/docker-compose.yml up --build
+```
+Navigate to `http://127.0.0.1:3253/optimade/info`
+
+Stop using
+```
+docker-compose -f profiles/docker-compose.yml down
 ```
 
-Navigate to `http://127.0.0.1:3253/info`
+## Design choices
+
+ * Q: Why create an individual `config.json` file instead of just mounting an existing `.aiida` directory and using that directly? 
+   A: This, currently, wouldn't work because the `REPOSITORY_URI` needs to point to the right path *inside* the container, not on the host. Furthermore, storing all configurations in the same file can be fragile.

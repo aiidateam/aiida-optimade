@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  aiida-optimade-{{ aiida_profile }}:
+    restart: always
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      AIIDA_PATH: /app
+      AIIDA_PROFILE: {{ aiida_profile }}
+    volumes:
+     - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
+     - '{{ config_folder }}:/profiles'
+    ports:
+      - '{{ port }}:80'
