@@ -1,0 +1,20 @@
+{
+    "CONFIG_VERSION": {
+        "CURRENT": 3,
+        "OLDEST_COMPATIBLE": 3
+    },
+    "default_profile": "quicksetup",
+    "profiles": {
+        "quicksetup": {
+            "AIIDADB_ENGINE": "postgresql_psycopg2",
+            "AIIDADB_PASS": "7rvbeWPTH90trfKnCAsY7F18PupI31ZEJzSJ0wT6is6XalcN1A",
+            "AIIDADB_NAME": "test_qb_speed_leopold_7887e09294d3db7f91be99cc227fddf6",
+            "AIIDADB_HOST": "host.docker.internal",
+            "AIIDADB_USER": "aiida_qs_leopold_7887e09294d3db7f91be99cc227fddf6",
+            "AIIDADB_PORT": "5432",
+            "AIIDADB_BACKEND": "django",
+            "default_user_email": "developers@aiida.net",
+            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup"
+        }
+    }
+}
