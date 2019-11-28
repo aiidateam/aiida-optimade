@@ -47,5 +47,5 @@ docker-compose -f profiles/docker-compose.yml down
 
 ## Design choices
 
- * Q: Why create an individual `config.json` file instead of just mount an existing `.aiida` directory and using that directly? 
+ * Q: Why create an individual `config.json` file instead of just mounting an existing `.aiida` directory and using that directly? 
    A: This, currently, wouldn't work because the `REPOSITORY_URI` needs to point to the right path *inside* the container, not on the host. Furthermore, storing all configurations in the same file can be fragile.
