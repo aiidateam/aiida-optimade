@@ -30,7 +30,7 @@ export AIIDA_PROFILE=optimade
 sh run.sh
 ```
 
-Navigate to `http://127.0.0.1:5000/info`
+Navigate to `http://127.0.0.1:5000/optimade/info`
 
 ## Running via docker
 
@@ -38,7 +38,7 @@ Adapt `profiles/quicksetup.json` and `profiles/docker-compose.yml` appropriately
 ```shell
 docker-compose -f profiles/docker-compose.yml up --build
 ```
-Navigate to `http://127.0.0.1:3253/info`
+Navigate to `http://127.0.0.1:3253/optimade/info`
 
 Stop using
 ```
