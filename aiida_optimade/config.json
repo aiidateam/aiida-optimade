@@ -1,13 +1,13 @@
 {
   "page_limit": 15,
-  "page_limit_max": 500,
+  "page_limit_max": 100,
   "base_url": null,
   "provider": {
-    "prefix": "aiida",
-    "name": "AiiDA",
-    "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
-    "homepage": "http://www.aiida.net",
-    "index_base_url": null
+    "prefix": "mcloud",
+    "name": "Materials Cloud",
+    "description": "A platform for Open Science built for seamless sharing of resources in computational materials science",
+    "homepage": "https://materialscloud.org",
+    "index_base_url": "https://materialscloud.org/optimade"
   },
   "implementation": {
     "name": "aiida-optimade",
