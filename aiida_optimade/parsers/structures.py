@@ -430,7 +430,7 @@ class StructureDataParser(AiidaEntityParser):
                 "original_name": name,
             }
 
-            if re.match(r"[\w]*X[\d]*", name):
+            if re.match(r".*X(?!e).*", name):
                 # Species includes/is a vacancy
                 species["chemical_symbols"].append("vacancy")
 
