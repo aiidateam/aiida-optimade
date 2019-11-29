@@ -2,7 +2,7 @@ import abc
 from typing import Tuple
 
 from aiida_optimade.config import CONFIG
-from aiida_optimade.parsers.entities import AiidaEntityParser
+from aiida_optimade.translators.entities import AiidaEntityTranslator
 
 
 __all__ = ("ResourceMapper",)
@@ -15,7 +15,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
 
     ENDPOINT: str = ""
     ALIASES: Tuple[Tuple[str, str]] = ()
-    PARSER: AiidaEntityParser = AiidaEntityParser
+    TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
     ALL_ATTRIBUTES: list = []
     REQUIRED_ATTRIBUTES: list = []
 

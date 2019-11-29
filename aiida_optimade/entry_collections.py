@@ -196,6 +196,10 @@ class AiidaCollection(EntryCollection):
         )
 
     def _alias_filter(self, filters: Any) -> Union[dict, list]:
+        """Get aliased field names in nested filter query.
+
+        I.e. turn OPTiMaDe field names into AiiDA field names
+        """
         if isinstance(filters, dict):
             res = {}
             for key, value in filters.items():
@@ -219,6 +223,7 @@ class AiidaCollection(EntryCollection):
         return res
 
     def _parse_params(self, params: EntryListingQueryParams) -> dict:
+        """Parse query parameters and transform them into AiiDA QueryBuilder concepts"""
         cursor_kwargs = {}
 
         # filter

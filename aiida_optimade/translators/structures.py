@@ -5,13 +5,13 @@ from aiida.orm import StructureData
 
 from aiida_optimade.common import OptimadeIntegrityError, AiidaError
 
-from .entities import AiidaEntityParser
+from .entities import AiidaEntityTranslator
 
 
-__all__ = ("StructureDataParser",)
+__all__ = ("StructureDataTranslator",)
 
 
-class StructureDataParser(AiidaEntityParser):
+class StructureDataTranslator(AiidaEntityTranslator):
     """Create OPTiMaDe "structures" attributes from an AiiDA StructureData Node
 
     Each OPTiMaDe field is a method in this class.

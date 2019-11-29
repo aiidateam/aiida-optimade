@@ -1,6 +1,6 @@
 from optimade.models import StructureResourceAttributes
 
-from aiida_optimade.parsers import StructureDataParser
+from aiida_optimade.translators import StructureDataTranslator
 
 from .entries import ResourceMapper
 
@@ -18,7 +18,7 @@ class StructureMapper(ResourceMapper):
         ("last_modified", "mtime"),
         ("type", "extras.something.non.existing.type"),
     )
-    PARSER = StructureDataParser
+    TRANSLATOR = StructureDataTranslator
     ALL_ATTRIBUTES = list(StructureResourceAttributes.schema().get("properties").keys())
     REQUIRED_ATTRIBUTES = StructureResourceAttributes.schema().get("required")
 
@@ -94,22 +94,22 @@ class StructureMapper(ResourceMapper):
 
         # Create and add new attributes
         if missing_attributes:
-            parser = cls.PARSER(entry_pk)
+            translator = cls.TRANSLATOR(entry_pk)
             for attribute in missing_attributes:
                 try:
-                    create_attribute = getattr(parser, attribute)
+                    create_attribute = getattr(translator, attribute)
                 except AttributeError:
                     if attribute in cls.REQUIRED_ATTRIBUTES:
-                        parser = None
+                        translator = None
                         raise NotImplementedError(
                             f"Parsing required {attribute} from "
-                            f"{cls.PARSER} has not yet been implemented."
+                            f"{cls.TRANSLATOR} has not yet been implemented."
                         )
                     # Print warning that parsing non-required attribute has not yet been implemented
                 else:
                     res[attribute] = create_attribute()
             # Store new attributes in `extras`
-            parser.store_attributes()
-            parser = None
+            translator.store_attributes()
+            translator = None
 
         return res

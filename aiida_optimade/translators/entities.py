@@ -5,10 +5,10 @@ from aiida.manage.manager import get_manager
 from aiida_optimade.common import AiidaEntityNotFound, AiidaError
 
 
-__all__ = ("AiidaEntityParser",)
+__all__ = ("AiidaEntityTranslator",)
 
 
-class AiidaEntityParser:
+class AiidaEntityTranslator:
     """Create OPTiMaDe entry attributes from an AiiDA Entity Node - Base class
 
     For speed and reusability, save attributes in the Node's extras.
