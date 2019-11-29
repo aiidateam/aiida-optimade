@@ -130,8 +130,9 @@ class AiidaCollection(EntryCollection):
 
         NB! Nested lists in filters are not accounted for.
         """
-        if not self._data_returned or (
-            self._latest_filter and criteria.get("filters", {}) != self._latest_filter
+        if self._data_returned is None or (
+            self._latest_filter is not None
+            and criteria.get("filters", {}) != self._latest_filter
         ):
             for key in ["limit", "offset"]:
                 if key in list(criteria.keys()):
