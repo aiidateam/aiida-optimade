@@ -21,9 +21,9 @@ app = FastAPI(
 [Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to help researchers with managing complex workflows and making them fully reproducible."""
     ),
     version=CONFIG.version,
-    docs_url="/extensions/docs",
-    redoc_url="/extensions/redoc",
-    openapi_url="/extensions/openapi.json",
+    docs_url="/optimade/extensions/docs",
+    redoc_url="/optimade/extensions/redoc",
+    openapi_url="/optimade/extensions/openapi.json",
 )
 
 profile_name = os.getenv("AIIDA_PROFILE")

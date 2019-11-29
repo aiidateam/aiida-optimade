@@ -203,10 +203,10 @@ class AiidaTransformerV0_10_1(Transformer):
     def known_op_rhs(self, arg):
         # known_op_rhs: IS ( KNOWN | UNKNOWN )
         if arg[1] == "KNOWN":
-            key = "!of_type"
+            key = "!=="
         if arg[1] == "UNKNOWN":
-            key = "of_type"
-        return {key: "null"}
+            key = "=="
+        return {key: None}
 
     def fuzzy_string_op_rhs(self, arg):
         # fuzzy_string_op_rhs: CONTAINS string | STARTS [ WITH ] string | ENDS [ WITH ] string

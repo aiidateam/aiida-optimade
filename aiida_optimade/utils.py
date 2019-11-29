@@ -1,7 +1,7 @@
 import urllib
 import traceback
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 from fastapi.encoders import jsonable_encoder
 from starlette.requests import Request
@@ -83,8 +83,12 @@ def get_backend(request: Request):
     return request.state.backend
 
 
-def retrieve_queryable_properties(schema: dict, queryable_properties: list) -> dict:
+def retrieve_queryable_properties(
+    schema: dict, queryable_properties: list
+) -> Tuple[dict, dict]:
     properties = {}
+    all_properties = {}
+
     for name, value in schema["properties"].items():
         if name in queryable_properties:
             if "$ref" in value:
@@ -94,12 +98,16 @@ def retrieve_queryable_properties(schema: dict, queryable_properties: list) -> d
                     next_key = path.pop(0)
                     sub_schema = sub_schema[next_key]
                 sub_queryable_properties = sub_schema["properties"].keys()
-                properties.update(
-                    retrieve_queryable_properties(sub_schema, sub_queryable_properties)
+                new_properties, new_all_properties = retrieve_queryable_properties(
+                    sub_schema, sub_queryable_properties
                 )
+                properties.update(new_properties)
+                all_properties.update(new_all_properties)
             else:
+                all_properties[name] = value
                 properties[name] = {"description": value.get("description", "")}
-                for extra_key in ["unit", "sortable"]:
+                for extra_key in ["unit"]:
                     if extra_key in value:
                         properties[name][extra_key] = value[extra_key]
-    return properties
+
+    return properties, all_properties

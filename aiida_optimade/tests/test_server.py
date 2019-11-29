@@ -14,7 +14,7 @@ from optimade.validator import ImplementationValidator
 CONFIG.page_limit = 5  # noqa: E402
 
 # Use specific AiiDA profile
-os.environ["AIIDA_PROFILE"] = "optimade_sqla"
+os.environ["AIIDA_PROFILE"] = "optimade_v1_aiida_sqla"
 
 from optimade.models import (
     ResponseMeta,
@@ -166,10 +166,9 @@ class TestStructuresEndpointTests(BaseTestCases.EndpointTests):
         assert len(cursor) == id_
 
 
-@pytest.mark.skip("Must be updated with local test data.")
 class TestSingleStructureEndpointTests(BaseTestCases.EndpointTests):
 
-    test_id = "mpf_1"
+    test_id = "1"
     request_str = f"/structures/{test_id}"
     response_cls = StructureResponseOne
 
@@ -178,7 +177,10 @@ class TestSingleStructureEndpointTests(BaseTestCases.EndpointTests):
         assert self.json_response["data"]["id"] == self.test_id
         assert self.json_response["data"]["type"] == "structures"
         assert "attributes" in self.json_response["data"]
-        assert "_exmpl__mp_chemsys" in self.json_response["data"]["attributes"]
+        assert (
+            f"{CONFIG.provider['prefix']}{CONFIG.provider_fields['structures'][0]}"
+            in self.json_response["data"]["attributes"]
+        )
 
 
 class TestSingleStructureEndpointEmptyTest(BaseTestCases.EndpointTests):
@@ -192,182 +194,211 @@ class TestSingleStructureEndpointEmptyTest(BaseTestCases.EndpointTests):
         assert self.json_response["data"] is None
 
 
-@pytest.mark.skip("Must be updated with local test data.")
 class TestFilterTests(unittest.TestCase):
 
     client = CLIENT
 
+    @pytest.mark.skip(
+        "Un-skip when a fix for optimade-python-tools issue #102 is in place."
+    )
     def test_custom_field(self):
-        request = '/structures?filter=_exmpl__mp_chemsys="Ac"'
-        expected_ids = ["mpf_1"]
+        request = f'/structures?filter={CONFIG.provider["prefix"]}{CONFIG.provider_fields["structures"][0]}="2019-11-19T18:42:25.844780+01:00"'
+        expected_ids = ["1"]
         self._check_response(request, expected_ids)
 
     def test_id(self):
-        request = "/structures?filter=id=mpf_2"
-        expected_ids = ["mpf_2"]
+        request = "/structures?filter=id=7"
+        expected_ids = ["7"]
         self._check_response(request, expected_ids)
 
     def test_geq(self):
-        request = "/structures?filter=nelements>=9"
-        expected_ids = ["mpf_3819"]
+        request = "/structures?filter=nelements>=18"
+        expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_gt(self):
-        request = "/structures?filter=nelements>8"
-        expected_ids = ["mpf_3819"]
+        request = "/structures?filter=nelements>17"
+        expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_gt_none(self):
-        request = "/structures?filter=nelements>9"
+        request = "/structures?filter=nelements>18"
         expected_ids = []
         self._check_response(request, expected_ids)
 
     def test_list_has(self):
-        request = '/structures?filter=elements HAS "Ti"'
-        expected_ids = ["mpf_3803", "mpf_3819"]
+        request = '/structures?filter=elements HAS "Ga"'
+        expected_ids = ["574", "658"]
         self._check_response(request, expected_ids)
 
     def test_page_limit(self):
-        request = '/structures?filter=elements HAS "Ac"&page_limit=2'
-        expected_ids = ["mpf_1", "mpf_2"]
-        self._check_response(request, expected_ids)
+        request = '/structures?filter=elements HAS "Ge"&page_limit=2'
+        expected_ids = ["161", "247", "324", "367", "705"]
+        self._check_response(request, expected_ids, page_limit=2)
 
-        request = '/structures?page_limit=2&filter=elements HAS "Ac"'
-        expected_ids = ["mpf_1", "mpf_2"]
-        self._check_response(request, expected_ids)
+        request = '/structures?page_limit=2&filter=elements HAS "Ge"'
+        self._check_response(request, expected_ids, page_limit=2)
 
     def test_list_has_all(self):
-        request = '/structures?filter=elements HAS ALL "Ba","F","H","Mn","O","Re","Si"'
-        expected_ids = ["mpf_3819"]
-        self._check_response(request, expected_ids)
-
-        request = '/structures?filter=elements HAS ALL "Re","Ti"'
-        expected_ids = ["mpf_3819"]
+        request = '/structures?filter=elements HAS ALL "Ge","Na","Al","Cl","O"'
+        expected_ids = ["161"]
         self._check_response(request, expected_ids)
 
     def test_list_has_any(self):
-        request = '/structures?filter=elements HAS ANY "Re","Ti"'
-        expected_ids = ["mpf_3819"]
+        elements = '"La","Ba"'
+        request = f"/structures?filter=elements HAS ALL {elements}"
+        expected_ids = ["52"]
+        self._check_response(request, expected_ids)
+
+        request = f"/structures?filter=elements HAS ANY {elements}"
+        expected_ids = [
+            "48",
+            "52",
+            "60",
+            "65",
+            "66",
+            "67",
+            "386",
+            "429",
+            "475",
+            "537",
+            "602",
+            "603",
+            "705",
+            "727",
+            "1045",
+            "1047",
+            "1048",
+            "1050",
+            "1054",
+            "1087",
+        ]
         self._check_response(request, expected_ids)
 
     def test_list_length_basic(self):
-        request = "/structures?filter=LENGTH elements = 9"
-        expected_ids = ["mpf_3819"]
+        request = "/structures?filter=LENGTH elements = 18"
+        expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_list_length(self):
-        request = "/structures?filter=LENGTH elements = 9"
-        expected_ids = ["mpf_3819"]
+        request = "/structures?filter=LENGTH elements = 17"
+        expected_ids = ["1047"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH elements >= 9"
-        expected_ids = ["mpf_3819"]
+        request = "/structures?filter=LENGTH elements >= 17"
+        expected_ids = ["1047", "1048"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH structure_features > 0"
-        expected_ids = []
+        request = "/structures?filter=LENGTH cartesian_site_positions > 5000"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
+    @pytest.mark.skip("HAS ONLY is not implemented.")
     def test_list_has_only(self):
         request = '/structures?filter=elements HAS ONLY "Ac"'
-        expected_ids = ["mpf_1"]
+        expected_ids = [""]
         self._check_response(request, expected_ids)
 
+    @pytest.mark.skip("Zips are not implemented.")
     def test_list_correlated(self):
         request = '/structures?filter=elements:elements_ratios HAS "Ag":"0.2"'
-        expected_ids = ["mpf_259"]
+        expected_ids = [""]
         self._check_response(request, expected_ids)
 
-    def test_is_known(self):
-        request = "/structures?filter=nsites IS KNOWN AND nsites>=44"
-        expected_ids = ["mpf_551", "mpf_3803", "mpf_3819"]
+    def test_saved_extras_is_known(self):
+        request = "/structures?filter=nsites IS KNOWN AND nsites>=5280"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=lattice_vectors IS KNOWN AND nsites>=44"
-        expected_ids = ["mpf_551", "mpf_3803", "mpf_3819"]
+        request = "/structures?filter=lattice_vectors IS KNOWN AND nsites>=5280"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
-    def test_aliased_is_known(self):
-        request = "/structures?filter=id IS KNOWN AND nsites>=44"
-        expected_ids = ["mpf_551", "mpf_3803", "mpf_3819"]
+    def test_node_columns_is_known(self):
+        request = f"/structures?filter={CONFIG.provider['prefix']}{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=chemical_formula_reduced IS KNOWN AND nsites>=44"
-        expected_ids = ["mpf_551", "mpf_3803", "mpf_3819"]
+        request = "/structures?filter=last_modified IS KNOWN AND nsites>=5280"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
-        request = (
-            "/structures?filter=chemical_formula_descriptive IS KNOWN AND nsites>=44"
-        )
-        expected_ids = ["mpf_551", "mpf_3803", "mpf_3819"]
+        request = "/structures?filter=id IS KNOWN AND nsites>=5280"
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
-    def test_aliased_fields(self):
-        request = '/structures?filter=chemical_formula_anonymous="A"'
-        expected_ids = ["mpf_1", "mpf_200"]
+    def test_node_column_fields(self):
+        request = '/structures?filter=id="302"'
+        expected_ids = ["302"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=chemical_formula_anonymous CONTAINS "A2BC"'
-        expected_ids = ["mpf_2", "mpf_3", "mpf_110"]
+    def test_saved_extras_fields(self):
+        request = '/structures?filter=chemical_formula_anonymous CONTAINS "A2B3"'
+        expected_ids = ["1038", "1045"]
         self._check_response(request, expected_ids)
 
     def test_string_contains(self):
-        request = '/structures?filter=chemical_formula_descriptive CONTAINS "c2Ag"'
-        expected_ids = ["mpf_3", "mpf_2"]
+        request = '/structures?filter=chemical_formula_descriptive CONTAINS "Ag4Cl"'
+        expected_ids = ["285", "550"]
         self._check_response(request, expected_ids)
 
     def test_string_start(self):
-        request = (
-            '/structures?filter=chemical_formula_descriptive STARTS WITH "Ag2CSNCl"'
-        )
-        expected_ids = ["mpf_259"]
+        request = '/structures?filter=chemical_formula_descriptive STARTS WITH "H"'
+        expected_ids = ["68", "119", "977"]
         self._check_response(request, expected_ids)
 
     def test_string_end(self):
-        request = '/structures?filter=chemical_formula_descriptive ENDS WITH "NClO4"'
-        expected_ids = ["mpf_259"]
+        request = '/structures?filter=chemical_formula_descriptive ENDS WITH "0}9"'
+        expected_ids = ["63", "64", "1080"]
         self._check_response(request, expected_ids)
 
     def test_list_has_and(self):
-        request = '/structures?filter=elements HAS "Ac" AND nelements=1'
-        expected_ids = ["mpf_1"]
+        request = '/structures?filter=elements HAS "Na" AND nelements=18'
+        expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_not_or_and_precedence(self):
-        request = '/structures?filter=NOT elements HAS "Ac" AND nelements=1'
-        expected_ids = ["mpf_200"]
+        request = '/structures?filter=NOT elements HAS "Na" AND nelements=5'
+        expected_ids = ["327", "445", "473", "666"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=nelements=1 AND NOT elements HAS "Ac"'
-        expected_ids = ["mpf_200"]
+        request = '/structures?filter=nelements=5 AND NOT elements HAS "Na"'
+        expected_ids = ["327", "445", "473", "666"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=NOT elements HAS "Ac" AND nelements=1 OR nsites=1'
-        expected_ids = ["mpf_1", "mpf_200"]
+        request = (
+            '/structures?filter=NOT elements HAS "Na" AND nelements=5 OR nsites>5000'
+        )
+        expected_ids = ["302", "327", "445", "473", "666", "683"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=elements HAS "Ac" AND nelements>1 AND nsites=1'
-        expected_ids = []
+        request = '/structures?filter=elements HAS "Na" AND nelements>1 AND nsites>5000'
+        expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
     def test_brackets(self):
-        request = '/structures?filter=elements HAS "Ac" AND nelements=1 OR nsites=1'
-        expected_ids = ["mpf_200", "mpf_1"]
+        request = '/structures?filter=elements HAS "Ga" AND nelements=7 OR nsites=464'
+        expected_ids = ["382", "574", "658", "1055"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=(elements HAS "Ac" AND nelements=1) OR (elements HAS "Ac" AND nsites=1)'
-        expected_ids = ["mpf_1"]
+        request = '/structures?filter=(elements HAS "Ga" AND nelements=7) OR (elements HAS "Ga" AND nsites=464)'
+        expected_ids = ["574", "658"]
         self._check_response(request, expected_ids)
 
-    def _check_response(self, request, expected_id):
+    def _check_response(self, request, expected_id, page_limit=None):
+        if not page_limit:
+            page_limit = CONFIG.page_limit
         try:
             response = self.client.get(request)
             assert response.status_code == 200, f"Request failed: {response.json()}"
 
             response = response.json()
             response_ids = [struct["id"] for struct in response["data"]]
-            assert sorted(expected_id) == sorted(response_ids)
             assert response["meta"]["data_returned"] == len(expected_id)
+            if len(expected_id) > page_limit:
+                assert expected_id[:page_limit] == response_ids
+            else:
+                assert expected_id == response_ids
         except Exception as exc:
             print("Request attempted:")
             print(f"{self.client.base_url}{request}")

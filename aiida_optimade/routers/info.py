@@ -73,7 +73,7 @@ def get_info_entry(request: Request, entry: str):
 
     schema = ENTRY_INFO_SCHEMAS[entry]()
     queryable_properties = {"id", "type", "attributes"}
-    properties = u.retrieve_queryable_properties(schema, queryable_properties)
+    properties, _ = u.retrieve_queryable_properties(schema, queryable_properties)
 
     output_fields_by_format = {"json": list(properties.keys())}
 

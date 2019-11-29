@@ -279,7 +279,7 @@ class AiidaCollection(EntryCollection):
                     sort_direction = "desc"
                 aliased_field = self.resource_mapper.alias_for(field)
 
-                properties = retrieve_queryable_properties(
+                _, properties = retrieve_queryable_properties(
                     self.resource_cls.schema(), {"id", "type", "attributes"}
                 )
                 field_type = properties[field].get(
