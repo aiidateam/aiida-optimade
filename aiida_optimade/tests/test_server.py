@@ -14,7 +14,8 @@ from optimade.validator import ImplementationValidator
 CONFIG.page_limit = 5  # noqa: E402
 
 # Use specific AiiDA profile
-os.environ["AIIDA_PROFILE"] = "optimade_v1_aiida_sqla"
+if os.getenv("AIIDA_PROFILE", None) is None:
+    os.environ["AIIDA_PROFILE"] = "optimade_v1_aiida_sqla"
 
 from optimade.models import (
     ResponseMeta,
