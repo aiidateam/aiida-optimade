@@ -109,8 +109,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
         :type some_list: list
         """
         might_as_well_be_zero = (
-            1e-8
-        )  # This is for Å, so 1e-8 Å can by all means be considered 0 Å
+            1e-8  # This is for Å, so 1e-8 Å can by all means be considered 0 Å
+        )
         res = []
 
         for item in some_list:
