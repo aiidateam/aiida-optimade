@@ -16,9 +16,10 @@ import aiida_optimade.exceptions as exc_handlers
 app = FastAPI(
     title="OPTiMaDe API for AiiDA",
     description=(
-        """The [Open Databases Integration for Materials Design (OPTiMaDe) consortium](http://www.optimade.org/) aims to make materials databases interoperational by developing a common REST API.
-
-[Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to help researchers with managing complex workflows and making them fully reproducible."""
+        "The [Open Databases Integration for Materials Design (OPTiMaDe) consortium](http://www.optimade.org/) "
+        "aims to make materials databases inter-operational by developing a common REST API.\n\n"
+        "[Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) "
+        "aims to help researchers with managing complex workflows and making them fully reproducible."
     ),
     version=CONFIG.version,
     docs_url="/optimade/extensions/docs",

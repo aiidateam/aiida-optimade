@@ -14,7 +14,7 @@ from optimade.models import (
 )
 
 from aiida_optimade.config import CONFIG
-from aiida_optimade.deps import EntryListingQueryParams, SingleEntryQueryParams
+from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.utils import meta_values
 
