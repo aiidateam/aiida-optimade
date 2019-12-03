@@ -6,7 +6,6 @@ from aiida import orm
 
 from optimade.filterparser import LarkParser
 from optimade.models import NonnegativeInt, EntryResource
-from optimade.server.entry_collections import EntryCollection as OptimadeEntryCollection
 
 from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
@@ -16,14 +15,55 @@ from aiida_optimade.transformers import AiidaTransformerV0_10_1
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
-class EntryCollection(OptimadeEntryCollection):
+class AiidaCollection:
+    """Collection of AiiDA entities"""
+
+    CAST_MAPPING = {
+        "string": "t",
+        "float": "f",
+        "integer": "i",
+        "boolean": "b",
+        "date-time": "d",
+    }
+
     def __init__(
-        self, collection, resource_cls: EntryResource, resource_mapper: ResourceMapper
+        self,
+        collection: orm.entities.Collection,
+        resource_cls: EntryResource,
+        resource_mapper: ResourceMapper,
     ):
         self.collection = collection
         self.parser = LarkParser()
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
+
+        self.transformer = AiidaTransformerV0_10_1()
+        self.provider = CONFIG.provider["prefix"]
+        self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
+        self.page_limit = CONFIG.page_limit
+        self.db_page_limit = CONFIG.db_page_limit
+        self.parser = LarkParser(version=(0, 10, 0))
+
+        # "Cache"
+        self._data_available: int = None
+        self._data_returned: int = None
+        self._filter_fields: set = None
+        self._latest_filter: dict = None
+
+    def get_attribute_fields(self) -> set:
+        schema = self.resource_cls.schema()
+        attributes = schema["properties"]["attributes"]
+        if "allOf" in attributes:
+            allOf = attributes.pop("allOf")
+            for dict_ in allOf:
+                attributes.update(dict_)
+        if "$ref" in attributes:
+            path = attributes["$ref"].split("/")[1:]
+            attributes = schema.copy()
+            while path:
+                next_key = path.pop(0)
+                attributes = attributes[next_key]
+        return set(attributes["properties"].keys())
 
     @staticmethod
     def _find(
@@ -48,45 +88,6 @@ class EntryCollection(OptimadeEntryCollection):
         query.order_by(order_by)
 
         return query
-
-
-class AiidaCollection(EntryCollection):
-    """Collection of AiiDA entities"""
-
-    CAST_MAPPING = {
-        "string": "t",
-        "float": "f",
-        "integer": "i",
-        "boolean": "b",
-        "date-time": "d",
-    }
-
-    def __init__(
-        self,
-        collection: orm.entities.Collection,
-        resource_cls: EntryResource,
-        resource_mapper: ResourceMapper,
-    ):
-        super().__init__(collection, resource_cls, resource_mapper)
-
-        self.transformer = AiidaTransformerV0_10_1()
-        self.provider = CONFIG.provider["prefix"]
-        self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
-        self.page_limit = CONFIG.page_limit
-        self.db_page_limit = CONFIG.db_page_limit
-        self.parser = LarkParser(version=(0, 10, 0))
-
-        # "Cache"
-        self._data_available: int = None
-        self._data_returned: int = None
-        self._filter_fields: set = None
-        self._latest_filter: dict = None
-
-    def __len__(self) -> Exception:
-        raise NotImplementedError("__len__ is not implemented")
-
-    def __contains__(self, entry) -> Exception:
-        raise NotImplementedError("__contains__ is not implemented")
 
     def _find_all(
         self, backend: orm.implementation.Backend, **kwargs
