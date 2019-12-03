@@ -1,0 +1,20 @@
+{
+    "CONFIG_VERSION": {
+        "CURRENT": 3,
+        "OLDEST_COMPATIBLE": 3
+    },
+    "default_profile": "{{ aiida_profile }}",
+    "profiles": {
+        "{{ aiida_profile }}": {
+            "AIIDADB_ENGINE": "postgresql_psycopg2",
+            "AIIDADB_PASS": "{{ aiida_db_pass }}",
+            "AIIDADB_NAME": "{{ aiida_db_name }}",
+            "AIIDADB_HOST": "{{ aiida_db_host }}",
+            "AIIDADB_USER": "{{ aiida_db_user }}",
+            "AIIDADB_PORT": "{{ aiida_db_port }}",
+            "AIIDADB_BACKEND": "{{ aiida_db_backend }}",
+            "default_user_email": "developers@aiida.net",
+            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup"
+        }
+    }
+}

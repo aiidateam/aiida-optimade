@@ -1,0 +1,7 @@
+include .docker/run.sh
+include profiles/*
+include Dockerfile
+include .dockerignore
+include LICENSE
+include README.md
+include run.sh

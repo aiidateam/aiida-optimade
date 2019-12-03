@@ -1,0 +1,18 @@
+{
+  "version": "v0.10.1",
+  "page_limit": 100,
+  "db_page_limit": 500,
+  "index_base_url": null,
+  "provider": {
+    "prefix": "_aiida_",
+    "name": "AiiDA",
+    "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+    "homepage": "http://www.aiida.net"
+  },
+  "provider_fields": {
+    "structures": [
+      "ctime"
+    ],
+    "references": []
+  }
+}
