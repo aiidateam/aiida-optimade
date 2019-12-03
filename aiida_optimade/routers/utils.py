@@ -92,9 +92,13 @@ def get_entries(
     params: EntryListingQueryParams,
 ) -> EntryResponseMany:
     """Generalized /{entry} endpoint getter"""
-    results, data_returned, more_data_available, data_available, fields = collection.find(
-        backend, params
-    )
+    (
+        results,
+        data_returned,
+        more_data_available,
+        data_available,
+        fields,
+    ) = collection.find(backend, params)
 
     pagination = handle_pagination(
         request=request, more_data_available=more_data_available, nresults=len(results)
@@ -120,10 +124,15 @@ def get_single_entry(  # pylint: disable=too-many-arguments
     request: Request,
     params: SingleEntryQueryParams,
 ) -> EntryResponseOne:
+    """Generalized /{entry}/{entry_id} endpoint getter"""
     params.filter = f"id={entry_id}"
-    results, data_returned, more_data_available, data_available, fields = collection.find(
-        backend, params
-    )
+    (
+        results,
+        data_returned,
+        more_data_available,
+        data_available,
+        fields,
+    ) = collection.find(backend, params)
 
     if more_data_available:
         raise StarletteHTTPException(
