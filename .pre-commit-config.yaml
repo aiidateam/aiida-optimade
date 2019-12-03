@@ -5,9 +5,19 @@ repos:
   - id: trailing-whitespace
     exclude: README.md
   - id: check-yaml
+  - id: check-json
 
 - repo: https://github.com/ambv/black
   rev: stable
   hooks:
   - id: black
-    language_version: python3.7
+    name: Blacken
+
+- repo: local
+  hooks:
+  - id: codecov-validator
+    name: Validate .codecov.yml
+    description: Validate .codecov.yml using codecov's online validation tool.
+    entry: ./.ci/codecov-validator.sh
+    files: .codecov.yml
+    language: system
