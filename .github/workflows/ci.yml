@@ -3,8 +3,10 @@ name: aiida-optimade
 on:
   pull_request:
   push:
-    develop
-    master
+    branches:
+    - '!aiidateam/**'
+    - develop
+    - master
 
 jobs:
 
