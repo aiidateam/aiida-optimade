@@ -90,7 +90,7 @@ class AiidaCollection:
         return query
 
     def _find_all(self, **kwargs) -> list:
-        """Helper function to instantiate an AiiDA QueryBuilder"""
+        """Execute AiiDA QueryBuilder query, return all results."""
         query = self._find(self.entity, **kwargs)
         res = query.all()
         del query
@@ -306,6 +306,7 @@ class AiidaCollection:
         return cursor_kwargs
 
     def _get_extras_filter_fields(self) -> set:
+        """Get all queried fields saved in Node extras."""
         return {
             field[len(self.resource_mapper.PROJECT_PREFIX) :]  # noqa: E203
             for field in self._filter_fields
