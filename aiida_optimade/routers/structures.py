@@ -3,7 +3,7 @@ from typing import Union
 
 from fastapi import APIRouter, Depends, Request
 
-from aiida.orm import StructureData
+from aiida.orm import StructureData, CifData
 
 from optimade.models import (
     ErrorResponse,
@@ -22,6 +22,7 @@ from .utils import get_entries, get_single_entry, close_session
 ROUTER = APIRouter(redirect_slashes=True)
 
 STRUCTURES = AiidaCollection(StructureData, StructureResource, StructureMapper)
+CIFS = AiidaCollection(CifData, StructureResource, StructureMapper)
 
 
 @ROUTER.get(
