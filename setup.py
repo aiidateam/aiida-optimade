@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[
-        "aiida-core~=1.0",
+        "aiida-core~=1.0.1",
         "fastapi~=0.44",
         "lark-parser~=0.7.8",
         "optimade~=0.2",

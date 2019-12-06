@@ -18,6 +18,7 @@ if tag_version == package_version:
 
 print(
     f"""The current package version '{package_version}' does not equal the tag version '{tag_version}'.
-Please remove the tag from both GitHub and your fork!"""
+Update setup.json with new version.
+Please remove the tag from both GitHub and your local repository!"""
 )
 exit(1)
