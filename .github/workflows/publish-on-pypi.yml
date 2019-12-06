@@ -24,6 +24,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v1
 
+    - name: Assert package version
+      env:
+        TAG_VERSION: ${{ github.ref }}
+      run: python ./.ci/assert_version.py
+
     - name: Build source distribution
       run: python ./setup.py sdist
 
