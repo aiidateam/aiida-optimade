@@ -1,0 +1,30 @@
+{
+  "name": "aiida-optimade",
+  "version": "0.2.0",
+  "url": "https://github.com/aiidateam/aiida-optimade",
+  "license": "MIT License",
+  "author": "The AiiDA team",
+  "author_email": "developers@aiida.net",
+  "description": "Expose an AiiDA database according to the OPTiMaDe specification.",
+  "keywords": "optimade aiida materials",
+  "include_package_data": true,
+  "classifiers": [
+    "Development Status :: 4 - Beta",
+    "Framework :: AiiDA",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Intended Audience :: Developers",
+    "Topic :: Database",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics"
+  ]
+}

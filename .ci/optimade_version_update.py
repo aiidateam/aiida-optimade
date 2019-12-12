@@ -1,15 +1,19 @@
 import json
 from pathlib import Path
 
-from aiida_optimade.config import CONFIG
-
 shields_json = Path(__file__).resolve().parent.joinpath("optimade-version.json")
+config_json = (
+    Path(__file__).resolve().parent.parent.joinpath("aiida_optimade/config.json")
+)
 
 with open(shields_json, "r") as fp:
     shield = json.load(fp)
 
+with open(config_json, "r") as fp:
+    config = json.load(fp)
+
 shield_version = shield["message"]
-current_version = CONFIG.version
+current_version = config["version"]
 
 if shield_version == current_version:
     # The shield has the newest implemented version
