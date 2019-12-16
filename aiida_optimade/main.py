@@ -35,37 +35,19 @@ PROFILE = load_profile(PROFILE_NAME)
 
 @APP.middleware("http")
 async def backend_middleware(request: Request, call_next):
-    """Use custom AiiDA backend for all requests"""
+    from aiida.manage.manager import get_manager
+
     response = None
-    try:
-        # if PROFILE.database_backend == "django":
-        #     from aiida_optimade.aiida_session import (
-        #         OptimadeDjangoBackend as OptimadeBackend,
-        #     )
 
-        #     from warnings import warn
+    if get_manager().backend_loaded:
+        get_manager().get_backend_manager().reset_backend_environment()
 
-        #     warn(
-        #         "The django backend does not support the special 1 AiiDA DB session per 1 HTTP request implemented in this package!"
-        #     )
-
-        # elif PROFILE.database_backend == "sqlalchemy":
-        #     from aiida_optimade.aiida_session import (
-        #         OptimadeSqlaBackend as OptimadeBackend,
-        #     )
-        # else:
-        #     raise AiidaError(
-        #         f'Unknown AiiDA backend "{PROFILE.database_backend}" for profile {PROFILE}'
-        #     )
-        from aiida.manage.manager import get_manager
-
-        request.state.backend = get_manager().get_backend()
-        response = await call_next(request)
-    finally:
-        request.state.backend.close_session()
+    request.state.backend = get_manager().get_backend()
+    response = await call_next(request)
 
     if response:
         return response
+
     raise AiidaError("Failed to properly handle AiiDA backend middleware")
 
 

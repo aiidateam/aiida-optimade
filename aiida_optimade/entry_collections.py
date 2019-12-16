@@ -28,11 +28,11 @@ class AiidaCollection:
 
     def __init__(
         self,
-        collection: orm.entities.Collection,
+        entity: orm.entities.Entity,
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
     ):
-        self.collection = collection
+        self._entity = entity
         self.parser = LarkParser()
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
@@ -49,6 +49,10 @@ class AiidaCollection:
         self._data_returned: int = None
         self._filter_fields: set = None
         self._latest_filter: dict = None
+
+    @property
+    def collection(self) -> orm.entities.Collection:
+        return self._entity.objects
 
     def get_attribute_fields(self) -> set:
         """Get all attribute properties/fields for OPTiMaDe entity"""
@@ -85,7 +89,7 @@ class AiidaCollection:
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
 
-        query = orm.QueryBuilder(backend=backend, limit=limit, offset=offset)
+        query = orm.QueryBuilder(limit=limit, offset=offset)
         query.append(entity_type, project=project, filters=filters)
         query.order_by(order_by)
 
