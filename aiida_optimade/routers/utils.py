@@ -4,8 +4,6 @@ from typing import Union, List
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
-from aiida import orm
-
 from optimade.models import (
     ToplevelLinks,
     EntryResource,
@@ -90,7 +88,6 @@ def handle_response_fields(
 
 
 def get_entries(
-    backend: orm.implementation.Backend,
     collection: AiidaCollection,
     response: EntryResponseMany,
     request: Request,
@@ -103,7 +100,7 @@ def get_entries(
         more_data_available,
         data_available,
         fields,
-    ) = collection.find(backend, params)
+    ) = collection.find(params)
 
     pagination = handle_pagination(
         request=request, more_data_available=more_data_available, nresults=len(results)
@@ -121,8 +118,7 @@ def get_entries(
     )
 
 
-def get_single_entry(  # pylint: disable=too-many-arguments
-    backend: orm.implementation.Backend,
+def get_single_entry(
     collection: AiidaCollection,
     entry_id: str,
     response: EntryResponseOne,
@@ -137,7 +133,7 @@ def get_single_entry(  # pylint: disable=too-many-arguments
         more_data_available,
         data_available,
         fields,
-    ) = collection.find(backend, params)
+    ) = collection.find(params)
 
     if more_data_available:
         raise StarletteHTTPException(

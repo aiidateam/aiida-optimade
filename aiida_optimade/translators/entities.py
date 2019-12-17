@@ -86,7 +86,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
                     f"{profile}"
                 )
 
-            # For posterity, this is how to the same, going through AiiDA's API:
+            # For posterity, this is how to do the same, going through AiiDA's API:
             # self._node.set_extra(self.EXTRAS_KEY, optimade)
 
         # Lastly, reset NODE in an attempt to remove it from memory

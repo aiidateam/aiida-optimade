@@ -45,7 +45,7 @@ async def backend_middleware(request: Request, call_next):
         reset_session(get_manager().get_profile())
 
     # Re-load backend (getting a new session and engine)
-    request.state.backend = get_manager().get_backend()
+    # request.state.backend = get_manager().get_backend()
 
     response = await call_next(request)
     if response:
