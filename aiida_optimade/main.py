@@ -30,24 +30,26 @@ APP = FastAPI(
 )
 
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
-PROFILE = load_profile(PROFILE_NAME)
+load_profile(PROFILE_NAME)
 
 
 @APP.middleware("http")
 async def backend_middleware(request: Request, call_next):
     from aiida.manage.manager import get_manager
+    from aiida.backends.sqlalchemy import reset_session
 
     response = None
 
+    # Reset global AiiDA session and engine
     if get_manager().backend_loaded:
-        get_manager().get_backend_manager().reset_backend_environment()
+        reset_session(get_manager().get_profile())
 
+    # Re-load backend (getting a new session and engine)
     request.state.backend = get_manager().get_backend()
-    response = await call_next(request)
 
+    response = await call_next(request)
     if response:
         return response
-
     raise AiidaError("Failed to properly handle AiiDA backend middleware")
 
 

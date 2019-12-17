@@ -23,7 +23,7 @@ from .utils import get_entries, get_single_entry
 
 ROUTER = APIRouter()
 
-structures = AiidaCollection(orm.StructureData, StructureResource, StructureMapper)
+STRUCTURES = AiidaCollection(orm.StructureData, StructureResource, StructureMapper)
 
 
 @ROUTER.get(
