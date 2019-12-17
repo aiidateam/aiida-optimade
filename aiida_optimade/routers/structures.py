@@ -4,7 +4,7 @@ from typing import Union
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
-from aiida import orm
+from aiida.orm import StructureData
 
 from optimade.models import (
     ErrorResponse,
@@ -22,7 +22,7 @@ from .utils import get_entries, get_single_entry
 
 ROUTER = APIRouter()
 
-STRUCTURES = AiidaCollection(orm.StructureData, StructureResource, StructureMapper)
+STRUCTURES = AiidaCollection(StructureData, StructureResource, StructureMapper)
 
 
 @ROUTER.get(
