@@ -19,8 +19,6 @@ Lastly, the server utilizes the FastAPI concept of [routers](https://fastapi.tia
 Environment where AiiDA is installed.  
 AiiDA database containing `StructureData` nodes, since these are the _only_ AiiDA nodes that are currently exposed with this API (under the `/structures` endpoint).
 
-> **Note**: At the moment, `aiida-optimade` works most optimally with an AiiDA database using the SQLAlchemy backend.
-
 ## Installation
 
 ```shell
