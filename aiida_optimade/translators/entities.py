@@ -30,7 +30,9 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        return query.first()[0]
+        res = query.first()[0]
+        del query
+        return res
 
     @property
     def _node(self) -> Node:

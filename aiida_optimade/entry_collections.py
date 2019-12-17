@@ -89,14 +89,14 @@ class AiidaCollection:
 
         return query
 
-    def _find_all(self, **kwargs) -> QueryBuilder:
+    def _find_all(self, **kwargs) -> list:
         """Helper function to instantiate an AiiDA QueryBuilder"""
         query = self._find(self.entity, **kwargs)
         res = query.all()
         del query
         return res
 
-    def count(self, **kwargs):
+    def count(self, **kwargs) -> int:
         """Count amount of data returned for query"""
         query = self._find(self.entity, **kwargs)
         res = query.count()
@@ -325,8 +325,7 @@ class AiidaCollection:
         filter_fields = [
             {"!has_key": field for field in self._get_extras_filter_fields()}
         ]
-        necessary_entities_qb = QueryBuilder().append(
-            self.entity,
+        necessary_entities_qb = self._find_all(
             filters={
                 "or": [
                     {extras_keys[0]: {"!has_key": extras_keys[1]}},
@@ -336,10 +335,10 @@ class AiidaCollection:
             project="id",
         )
 
-        if necessary_entities_qb.count() > 0:
+        if necessary_entities_qb:
             # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe
             # fields.
-            necessary_entity_ids = [pk[0] for pk in necessary_entities_qb.iterall()]
+            necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
             # Create the missing OPTiMaDe fields:
             # All OPTiMaDe fields
