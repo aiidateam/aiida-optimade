@@ -13,10 +13,11 @@ class StructureMapper(ResourceMapper):
 
     ENDPOINT = "structures"
     ALIASES = (
-        ("id", "id"),
         ("immutable_id", "uuid"),
         ("last_modified", "mtime"),
-        ("type", "extras.something.non.existing.type"),
+        ("type", "attributes.something.non.existing"),
+        ("relationships", "attributes.something.non.existing"),
+        ("links", "attributes.something.non.existing"),
     )
     TRANSLATOR = StructureDataTranslator
     ALL_ATTRIBUTES = list(StructureResourceAttributes.schema().get("properties").keys())
@@ -26,9 +27,12 @@ class StructureMapper(ResourceMapper):
     def map_back(cls, entity_properties: dict) -> dict:
         """Map properties from AiiDA to OPTiMaDe
 
-        :return: A resource object in OPTiMaDe format
-        """
+        :param entity_properties: Found AiiDA properties through QueryBuilder query
+        :type entity_properties: dict
 
+        :return: A resource object in OPTiMaDe format
+        :rtype: dict
+        """
         mapping = ((real, alias) for alias, real in cls.all_aliases())
 
         new_object_attributes = {}
@@ -38,34 +42,26 @@ class StructureMapper(ResourceMapper):
             if (
                 real in entity_properties
                 and entity_properties[real] is not None
-                and alias not in ["id", "type"]
+                and alias not in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
             ):
                 new_object_attributes[alias] = entity_properties[real]
 
-        # Particular attributes
-        # Remove "extras.optimade." prefix from reals to create aliases
-        reals = []
-        for field, value in entity_properties.items():
-            if field.startswith(cls.PROJECT_PREFIX):
-                if value is None:
-                    continue
-                reals.append(field)
-        for real in reals:
-            alias = real[len(cls.PROJECT_PREFIX) :]
-            new_object_attributes[alias] = entity_properties[real]
-
-        if "id" in entity_properties:
-            new_object["id"] = entity_properties["id"]
-        else:
+        # We always need "id"
+        if "id" not in entity_properties:
             raise KeyError(
                 f'"id" should be present in entity_properties: {entity_properties}'
             )
 
+        for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS:
+            value = entity_properties.get(field, None)
+            if value is not None:
+                new_object[field] = value
+
         new_object["attributes"] = cls.build_attributes(
             new_object_attributes, new_object["id"]
         )
-
         new_object["type"] = cls.ENDPOINT
+
         return new_object
 
     @classmethod

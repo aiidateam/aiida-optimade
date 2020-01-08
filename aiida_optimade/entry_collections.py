@@ -97,9 +97,7 @@ class AiidaCollection:
         del query
         return res
 
-    def count(
-        self, backend: orm.implementation.Backend, **kwargs
-    ):  # pylint: disable=arguments-differ
+    def count(self, backend: orm.implementation.Backend, **kwargs):
         query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.count()
         del query
@@ -141,7 +139,7 @@ class AiidaCollection:
             self._latest_filter = criteria.get("filters", {})
             self._data_returned = self.count(backend, **criteria)
 
-    def find(  # pylint: disable=arguments-differ
+    def find(
         self,
         backend: orm.implementation.Backend,
         params: Union[EntryListingQueryParams, SingleEntryQueryParams],
@@ -258,7 +256,7 @@ class AiidaCollection:
 
         # response_fields
         # All OPTiMaDe fields
-        fields = {"id", "type"}
+        fields = self.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
         fields |= self.get_attribute_fields()
         # All provider-specific fields
         fields |= {self.provider + _ for _ in self.provider_fields}

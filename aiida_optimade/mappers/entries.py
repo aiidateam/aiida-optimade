@@ -15,6 +15,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
 
     ENDPOINT: str = ""
     ALIASES: Tuple[Tuple[str, str]] = ()
+    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: set = {"id", "type", "relationships", "links"}
     TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
     ALL_ATTRIBUTES: list = []
     REQUIRED_ATTRIBUTES: list = []
@@ -24,7 +25,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         res = (
             tuple(
                 (CONFIG.provider["prefix"] + field, field)
-                for field in CONFIG.provider_fields[cls.ENDPOINT]
+                for field in CONFIG.provider_fields.get(cls.ENDPOINT, {})
             )
             + cls.ALIASES
         )
@@ -46,6 +47,9 @@ class ResourceMapper(metaclass=abc.ABCMeta):
     @abc.abstractclassmethod
     def map_back(self, entity_properties: dict) -> dict:
         """Map properties from AiiDA to OPTiMaDe
+
+        :param entity_properties: Found AiiDA properties through QueryBuilder query
+        :type entity_properties: dict
 
         :return: A resource object in OPTiMaDe format
         :rtype: dict
