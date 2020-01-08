@@ -153,7 +153,7 @@ class TestStructuresEndpointTests(BaseTestCases.EndpointTests):
         next_request = self.json_response["links"]["next"]
 
         id_ = len(cursor)
-        while more_data_available and id_ < CONFIG.page_limit * 5:
+        while more_data_available and id_ < CONFIG.page_limit * 3:
             next_response = self.client.get(next_request).json()
             next_request = next_response["links"]["next"]
             cursor.extend(next_response["data"])
