@@ -33,7 +33,7 @@ from aiida_optimade.main import app
 from aiida_optimade.routers import structures, info
 
 # need to explicitly set base_url, as the default "http://testserver"
-# does not validate as pydantic UrlStr model
+# does not validate as pydantic AnyUrl model
 app.include_router(structures.router)
 app.include_router(info.router)
 CLIENT = TestClient(app, base_url="http://localhost:5000/optimade")

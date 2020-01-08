@@ -30,7 +30,7 @@ structures = AiidaCollection(
 @router.get(
     "/structures",
     response_model=Union[StructureResponseMany, ErrorResponse],
-    response_model_skip_defaults=True,
+    response_model_exclude_unset=True,
     tags=["Structures"],
 )
 def get_structures(
@@ -50,7 +50,7 @@ def get_structures(
 @router.get(
     "/structures/{entry_id}",
     response_model=Union[StructureResponseOne, ErrorResponse],
-    response_model_skip_defaults=True,
+    response_model_exclude_unset=True,
     tags=["Structures"],
 )
 def get_single_structure(

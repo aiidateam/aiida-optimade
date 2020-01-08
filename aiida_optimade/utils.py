@@ -74,7 +74,7 @@ def general_exception(
                 ),
                 errors=errors,
             ),
-            skip_defaults=True,
+            exclude_unset=True,
         ),
     )
 
