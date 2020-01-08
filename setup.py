@@ -20,7 +20,7 @@ setup(
         "fastapi~=0.44",
         "lark-parser~=0.7.8",
         "optimade~=0.2",
-        "pydantic<1.0.0",
+        "pydantic~=1.0, <2.0.0",
         "uvicorn",
     ],
     extras_require={"dev": dev_deps, "testing": testing_deps},
