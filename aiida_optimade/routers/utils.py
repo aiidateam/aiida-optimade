@@ -31,20 +31,21 @@ def handle_pagination(
     query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     )
+    urlencoded_prev = None
     if query["page_offset"] > 0:
         urlencoded_prev = urllib.parse.urlencode(query, doseq=True)
-        pagination[
-            "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
     elif query["page_offset"] == 0 or abs(query["page_offset"]) < int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     ):
+        print("here now")
         prev_query = query.copy()
         prev_query.pop("page_offset")
         urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
+    if urlencoded_prev:
         pagination[
             "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_prev}"
+        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        pagination["prev"] += f"?{urlencoded_prev}"
 
     # "next"
     if more_data_available:
@@ -56,7 +57,9 @@ def handle_pagination(
         urlencoded_next = urllib.parse.urlencode(query, doseq=True)
         pagination[
             "next"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}?{urlencoded_next}"
+        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        if urlencoded_next:
+            pagination["next"] += f"?{urlencoded_next}"
     else:
         pagination["next"] = None
 
