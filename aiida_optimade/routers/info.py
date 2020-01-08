@@ -59,7 +59,7 @@ def get_info(request: Request):
     "/info/{entry}",
     response_model=Union[EntryInfoResponse, ErrorResponse],
     response_model_skip_defaults=True,
-    tags=["Info", "Structure"],
+    tags=["Info"],
 )
 def get_info_entry(request: Request, entry: str):
     from optimade.models import EntryInfoResource
