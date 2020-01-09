@@ -52,8 +52,7 @@ jobs:
         pip install pre-commit
 
     - name: Test with pre-commit
-      run: |
-        pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+      run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
 
   pytest:
 
@@ -100,21 +99,21 @@ jobs:
         pip install -e .[dev]
         reentry scan
 
+    - name: Setup server.cfg for AiiDA OPTiMaDe server
+      run: cp .ci/server_template.cfg ./server.cfg
+
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-      run: |
-        .github/workflows/setup_aiida.sh
+      run: .github/workflows/setup_aiida.sh
 
     - name: Load test data
-      run: |
-        verdi import --migration --non-interactive .github/aiida/optimade.aiida
+      run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Test with pytest
       env:
         AIIDA_PROFILE: test_${{ matrix.backend }}
-      run: |
-        pytest --cov=./aiida_optimade/ --cov-report=xml
+      run: pytest --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.7
