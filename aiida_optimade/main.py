@@ -81,7 +81,7 @@ APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 #   /optimade/vMajor.Minor
 #   /optimade/vMajor.Minor.Patch
 VALID_PREFIXES = ["/optimade"]
-VERSION = [int(_) for _ in CONFIG.VERSION.split(".")]
+VERSION = [int(_) for _ in CONFIG.version.split(".")]
 while VERSION:
     if VERSION[0] or len(VERSION) >= 2:
         VALID_PREFIXES.append(
