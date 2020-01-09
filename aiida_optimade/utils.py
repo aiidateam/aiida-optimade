@@ -11,6 +11,7 @@ from optimade.models import (
     ResponseMeta,
     ResponseMetaQuery,
     Provider,
+    Implementation,
     Error,
     ErrorResponse,
 )
@@ -29,12 +30,13 @@ def meta_values(
         query=ResponseMetaQuery(
             representation=f"{parse_result.path}?{parse_result.query}"
         ),
-        api_version=CONFIG.version,
+        api_version=f"v{CONFIG.version}",
         time_stamp=datetime.utcnow(),
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(**provider),
         data_available=data_available,
+        implementation=Implementation(**CONFIG.implementation),
         **kwargs,
     )
 

@@ -35,21 +35,21 @@ def get_info(request: Request):
         meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
-                api_version=CONFIG.version,
+                api_version=f"v{CONFIG.version}",
                 available_api_versions=[
                     {
                         "url": f"{parse_result.scheme}://{parse_result.netloc}",
-                        "version": f"{CONFIG.version[1:]}",
+                        "version": CONFIG.version,
                     }
                 ],
-                entry_types_by_format={"json": ["structures"]},
+                entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},
                 available_endpoints=[
                     "info",
-                    "structures",
                     "extensions/docs",
                     "extensions/redoc",
                     "extensions/openapi.json",
-                ],
+                ]
+                + list(ENTRY_INFO_SCHEMAS.keys()),
             )
         ),
     )
@@ -64,7 +64,7 @@ def get_info(request: Request):
 def get_info_entry(request: Request, entry: str):
     from optimade.models import EntryInfoResource
 
-    valid_entry_info_endpoints = {"structures"}
+    valid_entry_info_endpoints = ENTRY_INFO_SCHEMAS.keys()
     if entry not in valid_entry_info_endpoints:
         raise StarletteHTTPException(
             status_code=404,

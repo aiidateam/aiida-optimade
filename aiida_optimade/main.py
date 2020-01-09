@@ -30,15 +30,6 @@ app = FastAPI(
 profile_name = os.getenv("AIIDA_PROFILE")
 profile = load_profile(profile_name)
 
-valid_prefixes = ["/optimade"]
-version = [int(_) for _ in CONFIG.version[1:].split(".")]
-while version:
-    if version[0] or len(version) >= 2:
-        valid_prefixes.append(
-            "/optimade/v{}".format(".".join([str(_) for _ in version]))
-        )
-    version.pop(-1)
-
 
 @app.middleware("http")
 async def backend_middleware(request: Request, call_next):
@@ -81,6 +72,20 @@ app.add_exception_handler(
 app.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
 app.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
+
+# Create the following prefixes:
+#   /optimade
+#   /optimade/vMajor (but only if Major >= 1)
+#   /optimade/vMajor.Minor
+#   /optimade/vMajor.Minor.Patch
+valid_prefixes = ["/optimade"]
+version = [int(_) for _ in CONFIG.version.split(".")]
+while version:
+    if version[0] or len(version) >= 2:
+        valid_prefixes.append(
+            "/optimade/v{}".format(".".join([str(_) for _ in version]))
+        )
+    version.pop(-1)
 
 from aiida_optimade.routers import (  # pylint: disable=wrong-import-position
     structures,

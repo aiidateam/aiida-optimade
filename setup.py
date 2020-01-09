@@ -8,7 +8,7 @@ with open(module_dir.joinpath("setup.json")) as fp:
     SETUP_JSON = json.load(fp)
 
 testing_deps = ["pytest~=3.6", "pytest-cov", "codecov"]
-dev_deps = ["pylint", "black", "pre-commit"] + testing_deps
+dev_deps = ["pylint", "black", "pre-commit", "invoke"] + testing_deps
 
 setup(
     long_description=open(module_dir.joinpath("README.md")).read(),
