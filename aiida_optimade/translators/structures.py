@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 import itertools
 
 from typing import List, Union
@@ -54,7 +55,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         def kind_has_vacancies(weights):
             """Copy of aiida.orm.Kinds:has_vacancies"""
             w_sum = sum(weights)
-            return not (1.0 - w_sum < _sum_threshold)
+            return not 1.0 - w_sum < _sum_threshold
 
         return any(kind_has_vacancies(kind["weights"]) for kind in self._kinds)
 
@@ -77,6 +78,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         return get_formula(symbol_list, mode=mode, separator=separator)
 
     def get_symbol_weights(self) -> dict:
+        """Get weights of all symbols / chemical elements"""
         occupation = {}.fromkeys(sorted(self.get_symbols_set()), 0.0)
         for kind in self._kinds:
             number_of_sites = len(
@@ -282,10 +284,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
                 ]
             # NOTE: This does not expect more than Zz elements (26+26*26 = 702) - should be enough ...
             anonymous_elements.append(symbol)
-        map_anonymous = {
-            symbol: new_symbol
-            for symbol, new_symbol in zip(elements, anonymous_elements)
-        }
+        map_anonymous = dict(zip(elements, anonymous_elements))
 
         occupation = self.get_symbol_weights()
         for symbol, weight in occupation.items():

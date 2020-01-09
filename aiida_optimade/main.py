@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 import os
 
 from pydantic import ValidationError
@@ -13,7 +14,7 @@ from aiida_optimade.config import CONFIG
 import aiida_optimade.exceptions as exc_handlers
 
 
-app = FastAPI(
+APP = FastAPI(
     title="OPTiMaDe API for AiiDA",
     description=(
         "The [Open Databases Integration for Materials Design (OPTiMaDe) consortium](http://www.optimade.org/) "
@@ -27,15 +28,16 @@ app = FastAPI(
     openapi_url="/optimade/extensions/openapi.json",
 )
 
-profile_name = os.getenv("AIIDA_PROFILE")
-profile = load_profile(profile_name)
+PROFILE_NAME = os.getenv("AIIDA_PROFILE")
+PROFILE = load_profile(PROFILE_NAME)
 
 
-@app.middleware("http")
+@APP.middleware("http")
 async def backend_middleware(request: Request, call_next):
+    """Use custom AiiDA backend for all requests"""
     response = None
     try:
-        if profile.database_backend == "django":
+        if PROFILE.database_backend == "django":
             from aiida_optimade.aiida_session import (
                 OptimadeDjangoBackend as OptimadeBackend,
             )
@@ -46,13 +48,13 @@ async def backend_middleware(request: Request, call_next):
                 "The django backend does not support the special 1 AiiDA DB session per 1 HTTP request implemented in this package!"
             )
 
-        elif profile.database_backend == "sqlalchemy":
+        elif PROFILE.database_backend == "sqlalchemy":
             from aiida_optimade.aiida_session import (
                 OptimadeSqlaBackend as OptimadeBackend,
             )
         else:
             raise AiidaError(
-                f'Unknown AiiDA backend "{profile.database_backend}" for profile {profile}'
+                f'Unknown AiiDA backend "{PROFILE.database_backend}" for profile {PROFILE}'
             )
 
         request.state.backend = OptimadeBackend()
@@ -65,12 +67,12 @@ async def backend_middleware(request: Request, call_next):
     raise AiidaError("Failed to properly handle AiiDA backend middleware")
 
 
-app.add_exception_handler(StarletteHTTPException, exc_handlers.http_exception_handler)
-app.add_exception_handler(
+APP.add_exception_handler(StarletteHTTPException, exc_handlers.http_exception_handler)
+APP.add_exception_handler(
     RequestValidationError, exc_handlers.request_validation_exception_handler
 )
-app.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
-app.add_exception_handler(Exception, exc_handlers.general_exception_handler)
+APP.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
+APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
 # Create the following prefixes:
@@ -78,20 +80,20 @@ app.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 #   /optimade/vMajor (but only if Major >= 1)
 #   /optimade/vMajor.Minor
 #   /optimade/vMajor.Minor.Patch
-valid_prefixes = ["/optimade"]
-version = [int(_) for _ in CONFIG.version.split(".")]
-while version:
-    if version[0] or len(version) >= 2:
-        valid_prefixes.append(
-            "/optimade/v{}".format(".".join([str(_) for _ in version]))
+VALID_PREFIXES = ["/optimade"]
+VERSION = [int(_) for _ in CONFIG.VERSION.split(".")]
+while VERSION:
+    if VERSION[0] or len(VERSION) >= 2:
+        VALID_PREFIXES.append(
+            "/optimade/v{}".format(".".join([str(_) for _ in VERSION]))
         )
-    version.pop(-1)
+    VERSION.pop(-1)
 
 from aiida_optimade.routers import (  # pylint: disable=wrong-import-position
     structures,
     info,
 )
 
-for prefix in valid_prefixes:
-    app.include_router(structures.router, prefix=prefix)
-    app.include_router(info.router, prefix=prefix)
+for prefix in VALID_PREFIXES:
+    APP.include_router(structures.ROUTER, prefix=prefix)
+    APP.include_router(info.ROUTER, prefix=prefix)

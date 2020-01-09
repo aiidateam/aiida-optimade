@@ -2,16 +2,16 @@ import json
 from pathlib import Path
 from setuptools import setup, find_packages
 
-module_dir = Path(__file__).resolve().parent
+MODULE_DIR = Path(__file__).resolve().parent
 
-with open(module_dir.joinpath("setup.json")) as fp:
-    SETUP_JSON = json.load(fp)
+with open(MODULE_DIR.joinpath("setup.json")) as handle:
+    SETUP_JSON = json.load(handle)
 
-testing_deps = ["pytest~=3.6", "pytest-cov", "codecov"]
-dev_deps = ["pylint", "black", "pre-commit", "invoke"] + testing_deps
+TESTING = ["pytest~=3.6", "pytest-cov", "codecov"]
+DEV = ["pylint", "black", "pre-commit", "invoke"] + TESTING
 
 setup(
-    long_description=open(module_dir.joinpath("README.md")).read(),
+    long_description=open(MODULE_DIR.joinpath("README.md")).read(),
     long_description_content_type="text/markdown",
     packages=find_packages(),
     python_requires=">=3.7",
@@ -23,6 +23,6 @@ setup(
         "pydantic~=1.0, <2.0.0",
         "uvicorn",
     ],
-    extras_require={"dev": dev_deps, "testing": testing_deps},
+    extras_require={"dev": DEV, "testing": TESTING},
     **SETUP_JSON
 )

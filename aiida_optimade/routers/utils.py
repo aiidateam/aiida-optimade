@@ -67,11 +67,14 @@ def handle_pagination(
 
 
 def handle_response_fields(
-    results: Union[List[EntryResource], EntryResource], fields: set
+    results: Union[List[EntryResource], EntryResource],
+    fields: set,
+    collection: AiidaCollection,
 ) -> dict:
+    """Prune results to only include queried fields (from `response_fields`)"""
     if not isinstance(results, list):
         results = [results]
-    non_attribute_fields = {"id", "type"}
+    non_attribute_fields = collection.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
     top_level = {_ for _ in non_attribute_fields if _ in fields}
     attribute_level = fields - non_attribute_fields
     new_results = []
@@ -108,7 +111,7 @@ def get_entries(
     )
 
     if fields:
-        results = handle_response_fields(results, fields)
+        results = handle_response_fields(results, fields, collection)
 
     return response(
         links=ToplevelLinks(**pagination),
@@ -140,13 +143,14 @@ def get_single_entry(  # pylint: disable=too-many-arguments
     if more_data_available:
         raise StarletteHTTPException(
             status_code=500,
-            detail=f"more_data_available MUST be False for single entry response, however it is {more_data_available}",
+            detail="more_data_available MUST be False for single entry response, "
+            f"however it is {more_data_available}",
         )
 
     links = ToplevelLinks(next=None)
 
     if fields and results is not None:
-        results = handle_response_fields(results, fields)[0]
+        results = handle_response_fields(results, fields, collection)[0]
 
     return response(
         links=links,

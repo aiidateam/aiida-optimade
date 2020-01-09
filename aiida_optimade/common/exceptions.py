@@ -18,7 +18,10 @@ class OptimadeIntegrityError(Exception):
 
 
 class CausationError(Exception):
-    """Cause-and-effect error, something MUST be done before something else is possible."""
+    """Cause-and-effect error
+
+    Something MUST be done before something else is possible.
+    """
 
 
 class AiidaError(Exception):

@@ -1,3 +1,4 @@
+# pylint: disable=missing-function-docstring
 import urllib
 from typing import Union
 
@@ -16,12 +17,12 @@ from aiida_optimade.config import CONFIG
 import aiida_optimade.utils as u
 
 
-router = APIRouter()
+ROUTER = APIRouter()
 
 ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 
 
-@router.get(
+@ROUTER.get(
     "/info",
     response_model=Union[InfoResponse, ErrorResponse],
     response_model_exclude_unset=False,
@@ -55,7 +56,7 @@ def get_info(request: Request):
     )
 
 
-@router.get(
+@ROUTER.get(
     "/info/{entry}",
     response_model=Union[EntryInfoResponse, ErrorResponse],
     response_model_exclude_unset=True,
@@ -68,7 +69,8 @@ def get_info_entry(request: Request, entry: str):
     if entry not in valid_entry_info_endpoints:
         raise StarletteHTTPException(
             status_code=404,
-            detail=f"Entry info not found for {entry}, valid entry info endpoints are: {valid_entry_info_endpoints}",
+            detail=f"Entry info not found for {entry}, valid entry info endpoints are:"
+            f" {valid_entry_info_endpoints}",
         )
 
     schema = ENTRY_INFO_SCHEMAS[entry]()

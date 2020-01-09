@@ -11,7 +11,7 @@ from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.mappers import ResourceMapper
-from aiida_optimade.transformers import AiidaTransformerV0_10_1
+from aiida_optimade.transformers import AiidaTransformerV0_10_0
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
@@ -37,7 +37,7 @@ class AiidaCollection:
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
 
-        self.transformer = AiidaTransformerV0_10_1()
+        self.transformer = AiidaTransformerV0_10_0()
         self.provider = CONFIG.provider["prefix"]
         self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
         self.page_limit = CONFIG.page_limit
@@ -51,10 +51,11 @@ class AiidaCollection:
         self._latest_filter: dict = None
 
     def get_attribute_fields(self) -> set:
+        """Get all attribute properties/fields for OPTiMaDe entity"""
         schema = self.resource_cls.schema()
         attributes = schema["properties"]["attributes"]
         if "allOf" in attributes:
-            allOf = attributes.pop("allOf")
+            allOf = attributes.pop("allOf")  # pylint: disable=invalid-name
             for dict_ in allOf:
                 attributes.update(dict_)
         if "$ref" in attributes:
@@ -69,6 +70,7 @@ class AiidaCollection:
     def _find(
         backend: orm.implementation.Backend, entity_type: orm.Entity, **kwargs
     ) -> orm.QueryBuilder:
+        """Workhorse function to perform AiiDA QueryBuilder query"""
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
                 raise ValueError(
@@ -92,12 +94,14 @@ class AiidaCollection:
     def _find_all(
         self, backend: orm.implementation.Backend, **kwargs
     ) -> orm.QueryBuilder:
+        """Helper function to instantiate an AiiDA QueryBuilder"""
         query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.all()
         del query
         return res
 
     def count(self, backend: orm.implementation.Backend, **kwargs):
+        """Count amount of data returned for query"""
         query = self._find(backend, self.collection.entity_type, **kwargs)
         res = query.count()
         del query
@@ -105,6 +109,7 @@ class AiidaCollection:
 
     @property
     def data_available(self) -> int:
+        """Get amount of data available under endpoint"""
         if self._data_available is None:
             raise CausationError(
                 "data_available MUST be set before it can be retrieved."
@@ -118,6 +123,7 @@ class AiidaCollection:
 
     @property
     def data_returned(self) -> int:
+        """Get amount of data returned for query"""
         if self._data_returned is None:
             raise CausationError(
                 "data_returned MUST be set before it can be retrieved."
@@ -125,7 +131,8 @@ class AiidaCollection:
         return self._data_returned
 
     def set_data_returned(self, backend: orm.implementation.Backend, **criteria):
-        """Set _data_returned if it has not yet been set or new filter does not equal latest filter.
+        """Set _data_returned if it has not yet been set or new filter does not equal
+        latest filter.
 
         NB! Nested lists in filters are not accounted for.
         """
@@ -144,6 +151,7 @@ class AiidaCollection:
         backend: orm.implementation.Backend,
         params: Union[EntryListingQueryParams, SingleEntryQueryParams],
     ) -> Tuple[List[EntryResource], NonnegativeInt, bool, NonnegativeInt, set]:
+        """Find all requested AiiDA entities as OPTiMaDe JSON objects"""
         self.set_data_available(backend)
         criteria = self._parse_params(params)
 
@@ -180,7 +188,8 @@ class AiidaCollection:
             if len(results) > 1:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Instead of a single entry, {len(results)} entries were found",
+                    detail=f"Instead of a single entry, {len(results)} entries were "
+                    "found",
                 )
 
         if isinstance(params, SingleEntryQueryParams):
@@ -248,7 +257,8 @@ class AiidaCollection:
             if limit > self.db_page_limit:
                 raise HTTPException(
                     status_code=403,
-                    detail=f"Max allowed page_limit is {self.db_page_limit}, you requested {limit}",
+                    detail=f"Max allowed page_limit is {self.db_page_limit}, "
+                    f"you requested {limit}",
                 )
             if limit == 0:
                 limit = self.page_limit
@@ -266,8 +276,9 @@ class AiidaCollection:
         )
 
         # sort
-        # NOTE: sorting only works for extras fields for the nodes already with calculated extras.
-        #       To calculate all extras, make a single filter query using any extra field.
+        # NOTE: sorting only works for extras fields for the nodes already with
+        #       calculated extras. To calculate all extras, make a single filter query
+        #       using any extra field.
         if getattr(params, "sort", False):
             sort_spec = []
             for entity_property in params.sort.split(","):
@@ -313,7 +324,8 @@ class AiidaCollection:
     def _check_and_calculate_entities(self, backend: orm.implementation.Backend):
         """Check all entities have OPTiMaDe extras, else calculate them
 
-        For a bit of optimization, we only care about a field if it has specifically been queried for using "filter".
+        For a bit of optimization, we only care about a field if it has specifically
+        been queried for using "filter".
         """
         extras_keys = [
             key for key in self.resource_mapper.PROJECT_PREFIX.split(".") if key
@@ -333,7 +345,8 @@ class AiidaCollection:
         )
 
         if necessary_entities_qb.count() > 0:
-            # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe fields.
+            # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe
+            # fields.
             necessary_entity_ids = [pk[0] for pk in necessary_entities_qb.iterall()]
 
             # Create the missing OPTiMaDe fields:

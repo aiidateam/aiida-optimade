@@ -101,7 +101,8 @@ class StructureMapper(ResourceMapper):
                             f"Parsing required {attribute} from "
                             f"{cls.TRANSLATOR} has not yet been implemented."
                         )
-                    # Print warning that parsing non-required attribute has not yet been implemented
+                    # Print warning that parsing non-required attribute has not yet
+                    # been implemented
                 else:
                     res[attribute] = create_attribute()
             # Store new attributes in `extras`

@@ -1,4 +1,7 @@
-# pylint: disable=no-member,wrong-import-position
+# pylint: disable=wrong-import-position,ungrouped-imports,useless-suppression
+# pylint: disable=missing-class-docstring,no-self-use,missing-function-docstring
+# pylint: disable=too-few-public-methods,too-many-public-methods
+
 import os
 
 import unittest
@@ -9,7 +12,7 @@ from starlette.testclient import TestClient
 from aiida_optimade.config import CONFIG
 from optimade.validator import ImplementationValidator
 
-# this must be changed before app is imported
+# this must be changed before APP is imported
 # some tests currently depend on this value remaining at 5
 CONFIG.page_limit = 5  # noqa: E402
 
@@ -29,14 +32,14 @@ from optimade.models import (
     EntryInfoResource,
 )
 
-from aiida_optimade.main import app
+from aiida_optimade.main import APP
 from aiida_optimade.routers import structures, info
 
 # need to explicitly set base_url, as the default "http://testserver"
 # does not validate as pydantic AnyUrl model
-app.include_router(structures.router)
-app.include_router(info.router)
-CLIENT = TestClient(app, base_url="http://localhost:5000/optimade")
+APP.include_router(structures.ROUTER)
+APP.include_router(info.ROUTER)
+CLIENT = TestClient(APP, base_url="http://localhost:5000/optimade")
 
 
 @pytest.mark.skip("References has not yet been implemented.")
@@ -203,7 +206,11 @@ class TestFilterTests(unittest.TestCase):
         "Un-skip when a fix for optimade-python-tools issue #102 is in place."
     )
     def test_custom_field(self):
-        request = f'/structures?filter={CONFIG.provider["prefix"]}{CONFIG.provider_fields["structures"][0]}="2019-11-19T18:42:25.844780+01:00"'
+        request = (
+            f'/structures?filter={CONFIG.provider["prefix"]}'
+            f'{CONFIG.provider_fields["structures"][0]}'
+            '="2019-11-19T18:42:25.844780+01:00"'
+        )
         expected_ids = ["1"]
         self._check_response(request, expected_ids)
 
@@ -316,7 +323,10 @@ class TestFilterTests(unittest.TestCase):
         self._check_response(request, expected_ids)
 
     def test_node_columns_is_known(self):
-        request = f"/structures?filter={CONFIG.provider['prefix']}{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
+        request = (
+            f"/structures?filter={CONFIG.provider['prefix']}"
+            f"{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
+        )
         expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
@@ -382,7 +392,10 @@ class TestFilterTests(unittest.TestCase):
         expected_ids = ["382", "574", "658", "1055"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=(elements HAS "Ga" AND nelements=7) OR (elements HAS "Ga" AND nsites=464)'
+        request = (
+            '/structures?filter=(elements HAS "Ga" AND nelements=7) OR '
+            '(elements HAS "Ga" AND nsites=464)'
+        )
         expected_ids = ["574", "658"]
         self._check_response(request, expected_ids)
 

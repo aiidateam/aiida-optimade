@@ -1,3 +1,4 @@
+# pylint: disable=attribute-defined-outside-init
 import json
 from typing import Any
 from pathlib import Path
@@ -11,7 +12,7 @@ class ServerConfig(Config):
     """Load config file"""
 
     @staticmethod
-    def _DEFAULTS(field: str) -> Any:
+    def _DEFAULTS(field: str) -> Any:  # pylint: disable=invalid-name
         res = {
             "api_version": "1.0.0",
             "page_limit": 100,
@@ -19,7 +20,9 @@ class ServerConfig(Config):
             "provider": {
                 "prefix": "_aiida_",
                 "name": "AiiDA",
-                "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
+                "description": "AiiDA: Automated Interactive Infrastructure and "
+                "Database for Computational Science (http://www."
+                "aiida.net)",
                 "homepage": "http://www.aiida.net",
                 "index_base_url": None,
             },
