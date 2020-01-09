@@ -22,6 +22,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
 
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:
+        """Get all ALIASES as a tuple"""
         res = (
             tuple(
                 (CONFIG.provider["prefix"] + field, field)
@@ -45,7 +46,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         return dict(cls.all_aliases()).get(field, field)
 
     @abc.abstractclassmethod
-    def map_back(self, entity_properties: dict) -> dict:
+    def map_back(cls, entity_properties: dict) -> dict:
         """Map properties from AiiDA to OPTiMaDe
 
         :param entity_properties: Found AiiDA properties through QueryBuilder query

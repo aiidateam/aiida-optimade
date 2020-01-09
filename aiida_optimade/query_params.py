@@ -1,5 +1,6 @@
+# pylint: disable=line-too-long,too-few-public-methods
 from fastapi import Query
-from pydantic import EmailStr  # pylint: disable=no-name-in-module
+from pydantic import EmailStr  # pylint: disable=no-name-in-module,useless-suppression
 
 from optimade.models import NonnegativeInt
 

@@ -1,51 +1,53 @@
 import json
+import sys
 from pathlib import Path
 
-shields_json = Path(__file__).resolve().parent.joinpath("optimade-version.json")
-config_json = (
+SHIELDS_JSON = Path(__file__).resolve().parent.joinpath("optimade-version.json")
+CONFIG_JSON = (
     Path(__file__).resolve().parent.parent.joinpath("aiida_optimade/config.json")
 )
 
-with open(shields_json, "r") as fp:
-    shield = json.load(fp)
+with open(SHIELDS_JSON, "r") as fp:
+    SHIELD = json.load(fp)
 
-with open(config_json, "r") as fp:
-    config = json.load(fp)
+with open(CONFIG_JSON, "r") as fp:
+    CONFIG = json.load(fp)
 
-shield_version = shield["message"]
-current_version = config["version"]
+SHIELD_VERSION = SHIELD["message"]
+CURRENT_VERSION = f"v{CONFIG['api_version']}"
 
-if shield_version == current_version:
+if SHIELD_VERSION == CURRENT_VERSION:
     # The shield has the newest implemented version
     print(
-        f"""They are the same: {current_version}
+        f"""They are the same: {CURRENT_VERSION}
 Shield file:
-{json.dumps(shield, indent=2)}"""
+{json.dumps(SHIELD, indent=2)}"""
     )
-    exit(0)
+    sys.exit(0)
 
 print(
     f"""The shield version is outdated.
-Shield version: {shield_version}
-Current version: {current_version}
+Shield version: {SHIELD_VERSION}
+Current version: {CURRENT_VERSION}
 """
 )
 
-shield["message"] = current_version
-with open(shields_json, "w") as fp:
-    json.dump(shield, fp, indent=2)
+SHIELD["message"] = CURRENT_VERSION
+with open(SHIELDS_JSON, "w") as fp:
+    json.dump(SHIELD, fp, indent=2)
+    fp.write("\n")
 
 # Check file was saved correctly
-with open(shields_json, "r") as fp:
-    update_shield = json.load(fp)
+with open(SHIELDS_JSON, "r") as fp:
+    UPDATE_SHIELD = json.load(fp)
 
-if update_shield["message"] == current_version:
-    print(f"Successfully updated the shield version to {update_shield['message']}")
-    exit(0)
+if UPDATE_SHIELD["message"] == CURRENT_VERSION:
+    print(f"Successfully updated the shield version to {UPDATE_SHIELD['message']}")
+    sys.exit(0)
 else:
     print(
         f"""Something went wrong !
 Shield file:
-{json.dumps(update_shield, indent=2)}"""
+{json.dumps(UPDATE_SHIELD, indent=2)}"""
     )
-    exit(1)
+    sys.exit(1)

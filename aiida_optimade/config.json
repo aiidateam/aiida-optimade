@@ -1,5 +1,5 @@
 {
-  "version": "v0.10.0",
+  "api_version": "0.10.0",
   "page_limit": 100,
   "db_page_limit": 500,
   "index_base_url": null,
@@ -8,6 +8,12 @@
     "name": "AiiDA",
     "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
     "homepage": "http://www.aiida.net"
+  },
+  "implementation": {
+    "name": "aiida-optimade",
+    "version": "0.3.1",
+    "source_url": "https://github.com/aiidateam/aiida-optimade",
+    "maintainer": {"email": "casper.andersen@epfl.ch"}
   },
   "provider_fields": {
     "structures": [
