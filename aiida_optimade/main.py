@@ -9,8 +9,9 @@ from starlette.requests import Request
 
 from aiida import load_profile
 
+from optimade import __api_version__
+
 from aiida_optimade.common.exceptions import AiidaError
-from aiida_optimade.config import CONFIG
 import aiida_optimade.exceptions as exc_handlers
 
 
@@ -22,7 +23,7 @@ APP = FastAPI(
         "[Automated Interactive Infrastructure and Database for Computational Science (AiiDA)](http://www.aiida.net) "
         "aims to help researchers with managing complex workflows and making them fully reproducible."
     ),
-    version=CONFIG.version,
+    version=__api_version__,
     docs_url="/optimade/extensions/docs",
     redoc_url="/optimade/extensions/redoc",
     openapi_url="/optimade/extensions/openapi.json",
@@ -81,7 +82,7 @@ APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 #   /optimade/vMajor.Minor
 #   /optimade/vMajor.Minor.Patch
 VALID_PREFIXES = ["/optimade"]
-VERSION = [int(_) for _ in CONFIG.version.split(".")]
+VERSION = [int(_) for _ in __api_version__.split(".")]
 while VERSION:
     if VERSION[0] or len(VERSION) >= 2:
         VALID_PREFIXES.append(

@@ -14,8 +14,7 @@ class ServerConfig(Config):
     @staticmethod
     def _DEFAULTS(field: str) -> Any:  # pylint: disable=invalid-name
         res = {
-            "api_version": "1.0.0",
-            "page_limit": 100,
+            "page_limit": 15,
             "db_page_limit": 500,
             "provider": {
                 "prefix": "_aiida_",
@@ -52,7 +51,6 @@ class ServerConfig(Config):
         with open(self._path) as config_file:
             config = json.load(config_file)
 
-        self.version = config.get("api_version", self._DEFAULTS("api_version"))
         self.page_limit = int(config.get("page_limit", self._DEFAULTS("page_limit")))
         self.db_page_limit = int(
             config.get("db_page_limit", self._DEFAULTS("db_page_limit"))

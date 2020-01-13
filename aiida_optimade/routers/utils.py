@@ -37,7 +37,6 @@ def handle_pagination(
     elif query["page_offset"] == 0 or abs(query["page_offset"]) < int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     ):
-        print("here now")
         prev_query = query.copy()
         prev_query.pop("page_offset")
         urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
