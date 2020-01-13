@@ -53,31 +53,33 @@ def setver(_, patch=False, new_ver=""):
 
 
 @task
-def set_optimade_ver(_, ver=""):
-    """Update the OPTiMaDe version throughout the package"""
+def optimade_req(_, ver=""):
+    """Update the optimade-python-tools minimum version requirement"""
 
     if not ver:
         raise Exception("Please specify --ver='Major.Minor.Patch'")
-    with open("aiida_optimade/config.json", "r") as handle:
+
+    with open("setup.py", "r") as handle:
+        lines = [
+            re.sub("optimade~=([^,]+)", f'optimade~={ver}"', l.rstrip()) for l in handle
+        ]
+    with open("setup.py", "w") as handle:
+        handle.write("\n".join(lines))
+        handle.write("\n")
+
+    with open("README.md", "r") as handle:
         lines = [
             re.sub(
-                '"api_version": ([^,]+),',
-                '"api_version": "{}",'.format(ver),
-                l.rstrip(),
+                "https://raw.githubusercontent.com/Materials-Consortia/"
+                "optimade-python-tools/v([^,]+)/.ci/",
+                "https://raw.githubusercontent.com/Materials-Consortia/"
+                f"optimade-python-tools/v{ver}/.ci/",
+                l.rstrip("\n"),
             )
             for l in handle
         ]
-    with open("aiida_optimade/config.json", "w") as handle:
+    with open("README.md", "w") as handle:
         handle.write("\n".join(lines))
         handle.write("\n")
 
-    with open(".ci/optimade-version.json", "r") as handle:
-        lines = [
-            re.sub('"message": .+', '"message": "v{}",'.format(ver), l.rstrip())
-            for l in handle
-        ]
-    with open(".ci/optimade-version.json", "w") as handle:
-        handle.write("\n".join(lines))
-        handle.write("\n")
-
-    print("Bumped OPTiMaDe version to {}".format(ver))
+    print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))

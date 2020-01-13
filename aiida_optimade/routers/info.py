@@ -6,6 +6,8 @@ from fastapi import APIRouter
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
+from optimade import __api_version__
+
 from optimade.models import (
     ErrorResponse,
     InfoResponse,
@@ -36,11 +38,11 @@ def get_info(request: Request):
         meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
-                api_version=f"v{CONFIG.version}",
+                api_version=f"v{__api_version__}",
                 available_api_versions=[
                     {
                         "url": f"{parse_result.scheme}://{parse_result.netloc}",
-                        "version": CONFIG.version,
+                        "version": __api_version__,
                     }
                 ],
                 entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},

@@ -12,10 +12,6 @@ from starlette.testclient import TestClient
 from aiida_optimade.config import CONFIG
 from optimade.validator import ImplementationValidator
 
-# this must be changed before APP is imported
-# some tests currently depend on this value remaining at 5
-CONFIG.page_limit = 5  # noqa: E402
-
 # Use specific AiiDA profile
 if os.getenv("AIIDA_PROFILE", None) is None:
     os.environ["AIIDA_PROFILE"] = "optimade_v1_aiida_sqla"
@@ -151,20 +147,28 @@ class TestStructuresEndpointTests(BaseTestCases.EndpointTests):
         assert self.json_response["meta"]["more_data_available"]
 
     def test_get_next_responses(self):
-        cursor = self.json_response["data"].copy()
+        total_data = self.json_response["meta"]["data_available"]
+        page_limit = 5
+
+        response = self.client.get(self.request_str + f"?page_limit={page_limit}")
+        json_response = response.json()
+        assert response.status_code == 200, f"Request failed: {response.json()}"
+
+        cursor = json_response["data"].copy()
+        assert json_response["meta"]["more_data_available"]
         more_data_available = True
-        next_request = self.json_response["links"]["next"]
+        next_request = json_response["links"]["next"]
 
         id_ = len(cursor)
-        while more_data_available and id_ < CONFIG.page_limit * 3:
+        while more_data_available and id_ < page_limit * 3:
             next_response = self.client.get(next_request).json()
             next_request = next_response["links"]["next"]
             cursor.extend(next_response["data"])
             more_data_available = next_response["meta"]["more_data_available"]
             if more_data_available:
-                assert len(next_response["data"]) == CONFIG.page_limit
+                assert len(next_response["data"]) == page_limit
             else:
-                assert len(next_response["data"]) == 1089 % CONFIG.page_limit
+                assert len(next_response["data"]) == total_data % page_limit
             id_ += len(next_response["data"])
 
         assert len(cursor) == id_

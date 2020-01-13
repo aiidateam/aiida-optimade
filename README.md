@@ -2,7 +2,7 @@
 
 | Latest release | Build status | Activity |
 |:--------------:|:------------:|:--------:|
-| [![PyPI](https://img.shields.io/pypi/v/aiida-optimade)](https://pypi.org/project/aiida-optimade/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/aiida-optimade)](https://pypi.org/project/aiida-optimade/) [![OPTiMaDe](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/aiidateam/aiida-optimade/master/.ci/optimade-version.json)](https://github.com/Materials-Consortia/OPTiMaDe/) | [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/aiidateam/aiida-optimade/aiida-optimade)](https://github.com/aiidateam/aiida-optimade/actions/) [![Codecov](https://img.shields.io/codecov/c/gh/aiidateam/aiida-optimade)](https://codecov.io/gh/aiidateam/aiida-optimade) | [![GitHub last commit](https://img.shields.io/github/last-commit/aiidateam/aiida-optimade)](https://github.com/aiidateam/aiida-optimade) |
+| [![PyPI](https://img.shields.io/pypi/v/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![OPTiMaDe](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools/v0.2.0/.ci/optimade-version.json)](https://github.com/Materials-Consortia/OPTiMaDe/) | [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/aiidateam/aiida-optimade/aiida-optimade)](https://github.com/aiidateam/aiida-optimade/actions/)<br>[![Codecov](https://img.shields.io/codecov/c/gh/aiidateam/aiida-optimade)](https://codecov.io/gh/aiidateam/aiida-optimade) | [![GitHub last commit](https://img.shields.io/github/last-commit/aiidateam/aiida-optimade)](https://github.com/aiidateam/aiida-optimade) |
 
 This is a RESTful API server created with [FastAPI](https://fastapi.tiangolo.com/) that exposes an AiiDA database according to the [OPTiMaDe specification](https://github.com/Materials-Consortia/OPTiMaDe/blob/develop/optimade.rst).
 
@@ -35,10 +35,10 @@ pip install -e aiida-optimade/
 ```shell
 # specify AiiDA profile (will use default otherwise)
 export AIIDA_PROFILE=optimade
-sh run.sh
+./aiida-optimade/run.sh
 ```
 
-Navigate to `http://127.0.0.1:5000/optimade/info`
+Navigate to `http://localhost:5000/optimade/info`
 
 ## Running via docker
 
@@ -48,7 +48,7 @@ Adapt `profiles/quicksetup.json` and `profiles/docker-compose.yml` appropriately
 docker-compose -f profiles/docker-compose.yml up --build
 ```
 
-Navigate to `http://127.0.0.1:3253/optimade/info`
+Navigate to `http://localhost:3253/optimade/info`
 
 Stop by using
 
