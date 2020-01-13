@@ -1,6 +1,6 @@
 {
   "api_version": "0.10.0",
-  "page_limit": 20,
+  "page_limit": 100,
   "db_page_limit": 500,
   "index_base_url": null,
   "provider": {
