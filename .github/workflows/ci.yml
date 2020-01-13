@@ -129,51 +129,48 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: harmon758/postgresql-action@v1
-      with:
-        postgresql version: '11'
-        postgresql db: test_django
-        postgresql user: 'postgres'
-        postgresql password: ''
+    # - uses: harmon758/postgresql-action@v1
+    #   with:
+    #     postgresql version: '11'
+    #     postgresql db: test_django
+    #     postgresql user: 'postgres'
+    #     postgresql password: ''
 
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
+    # - name: Set up Python 3.7
+    #   uses: actions/setup-python@v1
+    #   with:
+    #     python-version: 3.7
 
-    - name: Install system dependencies
-      run: |
-        wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
-        echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        sudo apt update
-        sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
-        sudo systemctl status rabbitmq-server.service
+    # - name: Install system dependencies
+    #   run: |
+    #     wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
+    #     echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
+    #     echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
+    #     sudo apt update
+    #     sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
+    #     sudo systemctl status rabbitmq-server.service
 
-    - name: Install python dependencies
-      run: |
-        # Install optimade-python-tools from github
-        cd ${GITHUB_WORKSPACE}/..
-        git clone https://github.com/Materials-Consortia/optimade-python-tools
-        pip install -e optimade-python-tools
-        cd ${GITHUB_WORKSPACE}
-        pip install -e .
-        reentry scan
+    # # Install optimade-python-tools from github
+    # - name: Install python dependencies
+    #   run: |
+    #     cd ${GITHUB_WORKSPACE}/..
+    #     git clone https://github.com/Materials-Consortia/optimade-python-tools
+    #     pip install -e optimade-python-tools
+    #     cd ${GITHUB_WORKSPACE}
+    #     pip install -e .
+    #     reentry scan
 
-    - name: Setup up environment for AiiDA
-      env:
-        AIIDA_TEST_BACKEND: django
-      run: |
-        .github/workflows/setup_aiida.sh
+    # - name: Setup up environment for AiiDA
+    #   env:
+    #     AIIDA_TEST_BACKEND: django
+    #   run: .github/workflows/setup_aiida.sh
 
-    - name: Load test data
-      run: |
-        verdi import --migration --non-interactive .github/aiida/optimade.aiida
+    # - name: Load test data
+    #   run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Build the Docker image
-      run: |
-        docker-compose -f profiles/docker-compose.yml up --build
-        .github/workflows/wait_for_it.sh localhost:3253 -t 120
-        sleep 15
-        curl http://localhost:3253/optimade/info > info.json
-        grep -F "www.aiida.net" info.json || exit 1
+      run: docker-compose -f profiles/docker-compose.yml build
+        # .github/workflows/wait_for_it.sh localhost:3253 -t 120
+        # sleep 15
+        # curl http://localhost:3253/optimade/info > info.json
+        # grep -F "www.aiida.net" info.json || exit 1
