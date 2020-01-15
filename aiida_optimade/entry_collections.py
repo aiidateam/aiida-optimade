@@ -11,7 +11,7 @@ from aiida_optimade.common import CausationError
 from aiida_optimade.config import CONFIG
 from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.mappers import ResourceMapper
-from aiida_optimade.transformers import AiidaTransformerV0_10_0
+from aiida_optimade.transformers import AiidaTransformer
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
@@ -37,12 +37,12 @@ class AiidaCollection:
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
 
-        self.transformer = AiidaTransformerV0_10_0()
+        self.transformer = AiidaTransformer()
         self.provider = CONFIG.provider["prefix"]
         self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
         self.page_limit = CONFIG.page_limit
         self.db_page_limit = CONFIG.db_page_limit
-        self.parser = LarkParser(version=(0, 10, 0))
+        self.parser = LarkParser(version=(0, 10, 1))
 
         # "Cache"
         self._data_available: int = None

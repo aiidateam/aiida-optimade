@@ -2,11 +2,7 @@
 from lark import Transformer, v_args, Token
 
 
-class TransformerError(Exception):
-    """Error in transforming filter expression"""
-
-
-__all__ = ("AiidaTransformerV0_10_0",)
+__all__ = ("AiidaTransformer",)
 
 # Conversion map from the OPTiMaDe operators to the QueryBuilder operators
 OPERATOR_CONVERSION = {"=": "==", "!=": "!==", "in": "contains"}
@@ -17,25 +13,7 @@ def op_conv_map(operator):
     return OPERATOR_CONVERSION.get(operator, operator)
 
 
-def conjoin_args(args):
-    """Conjoin from left to right.
-
-    CONJUNCTION: AND | OR
-
-    :param args: [<expression/term> CONJUNCTION] <term/atom>
-    :type args: list
-
-    :return: AiiDA QueryBuilder filter
-    :rtype: dict
-    """
-    if len(args) == 1:  # Only <term>
-        return args[0]
-
-    conjunction = args[1].value.lower()
-    return {conjunction: [args[0], args[2]]}
-
-
-class AiidaTransformerV0_10_0(Transformer):  # pylint: disable=invalid-name
+class AiidaTransformer(Transformer):
     """Transform OPTiMaDe query to AiiDA QueryBuilder queryhelp query"""
 
     reversed_operator_map = {
@@ -66,6 +44,22 @@ class AiidaTransformerV0_10_0(Transformer):  # pylint: disable=invalid-name
         """value: string | number | property"""
         # NOTE: Do nothing!
         return value
+
+    @v_args(inline=True)
+    def non_string_value(self, value):
+        """ non_string_value: number | property """
+        # Note: Do nothing!
+        return value
+
+    @v_args(inline=True)
+    def not_implemented_string(self, value):
+        """ not_implemented_string: value
+
+        Raise NotImplementedError.
+        For further information, see Materials-Consortia/OPTiMaDe issue 157:
+        https://github.com/Materials-Consortia/OPTiMaDe/issues/157
+        """
+        raise NotImplementedError("Comparing strings is not yet implemented.")
 
     def value_list(self, args):
         """value_list: [ OPERATOR ] value ( "," [ OPERATOR ] value )*"""
@@ -110,9 +104,7 @@ class AiidaTransformerV0_10_0(Transformer):  # pylint: disable=invalid-name
 
     def expression_phrase(self, arg):
         """
-        expression_phrase: [ NOT ] ( comparison |
-                                     predicate_comparison |
-                                     "(" expression ")" )
+        expression_phrase: [ NOT ] ( comparison | "(" expression ")" )
         """
         if len(arg) == 1:
             # without NOT
@@ -135,19 +127,17 @@ class AiidaTransformerV0_10_0(Transformer):  # pylint: disable=invalid-name
                                               known_op_rhs |
                                               fuzzy_string_op_rhs |
                                               set_op_rhs |
-                                              set_zip_op_rhs )
+                                              set_zip_op_rhs |
+                                              length_op_rhs )
         """
         return {arg[0]: arg[1]}
 
     def constant_first_comparison(self, arg):
         """
-        constant_first_comparison: constant value_op_rhs
+        constant_first_comparison: constant OPERATOR ( non_string_value |
+                                                       not_implemented_string )
         """
-        # TODO: Probably the value_op_rhs rule is not the best for implementing this.
-        return {
-            prop: {self.reversed_operator_map[oper]: arg[0]}
-            for oper, prop in arg[1].items()
-        }
+        return {arg[2]: {self.reversed_operator_map[arg[1]]: arg[0]}}
 
     @v_args(inline=True)
     def value_op_rhs(self, operator, value):
@@ -220,25 +210,29 @@ class AiidaTransformerV0_10_0(Transformer):  # pylint: disable=invalid-name
         """
         raise NotImplementedError
 
-    def predicate_comparison(self, arg):
+    def length_op_rhs(self, arg):
         """
-        predicate_comparison: LENGTH property OPERATOR value
+        length_op_rhs: LENGTH [ OPERATOR ] value
         """
-        operator = arg[2].value
+        if len(arg) == 3:
+            operator = arg[1].value
+        else:
+            operator = "="
+
         if operator in self.list_operator_map:
-            return {arg[1]: {self.list_operator_map[operator]: arg[3]}}
+            return {self.list_operator_map[operator]: arg[-1]}
+
         if operator in {">=", "<="}:
             return {
-                arg[1]: {
-                    "or": [
-                        {self.list_operator_map[operator[0]]: arg[3]},
-                        {self.list_operator_map[operator[1]]: arg[3]},
-                    ]
-                }
+                "or": [
+                    {self.list_operator_map[operator[0]]: arg[-1]},
+                    {self.list_operator_map[operator[1]]: arg[-1]},
+                ]
             }
 
-        raise TransformerError(
-            f"length_comparison has failed with {arg}. Unknown operator."
+        raise NotImplementedError(
+            f"length_comparison has failed with {arg}. "
+            "Unknown not-implemented operator."
         )
 
     def property_zip_addon(self, arg):

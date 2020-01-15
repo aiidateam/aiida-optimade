@@ -238,6 +238,19 @@ class TestFilterTests(unittest.TestCase):
         expected_ids = []
         self._check_response(request, expected_ids)
 
+    def test_rhs_statements(self):
+        request = "/structures?filter=18<nelements"
+        expected_ids = []
+        self._check_response(request, expected_ids)
+
+        request = "/structures?filter=7=id"
+        expected_ids = ["7"]
+        self._check_response(request, expected_ids)
+
+        request = "/structures?filter=18<=nelements"
+        expected_ids = ["1048"]
+        self._check_response(request, expected_ids)
+
     def test_list_has(self):
         request = '/structures?filter=elements HAS "Ga"'
         expected_ids = ["574", "658"]
@@ -288,20 +301,20 @@ class TestFilterTests(unittest.TestCase):
         self._check_response(request, expected_ids)
 
     def test_list_length_basic(self):
-        request = "/structures?filter=LENGTH elements = 18"
+        request = "/structures?filter=elements LENGTH 18"
         expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_list_length(self):
-        request = "/structures?filter=LENGTH elements = 17"
+        request = "/structures?filter=elements LENGTH = 17"
         expected_ids = ["1047"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH elements >= 17"
+        request = "/structures?filter=elements LENGTH >= 17"
         expected_ids = ["1047", "1048"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH cartesian_site_positions > 5000"
+        request = "/structures?filter=cartesian_site_positions LENGTH > 5000"
         expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
