@@ -15,7 +15,6 @@ from optimade.models import (
     StructureResource,
 )
 
-from aiida_optimade.config import CONFIG
 import aiida_optimade.utils as u
 
 
