@@ -3,8 +3,7 @@ from fastapi import Query
 from pydantic import EmailStr  # pylint: disable=no-name-in-module,useless-suppression
 
 from optimade.models import NonnegativeInt
-
-from aiida_optimade.config import CONFIG
+from optimade.server.config import CONFIG
 
 
 class EntryListingQueryParams:

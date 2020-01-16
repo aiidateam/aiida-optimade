@@ -6,9 +6,9 @@ from aiida.orm import Entity, QueryBuilder
 
 from optimade.filterparser import LarkParser
 from optimade.models import NonnegativeInt, EntryResource
+from optimade.server.config import CONFIG
 
 from aiida_optimade.common import CausationError
-from aiida_optimade.config import CONFIG
 from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformer
@@ -248,7 +248,7 @@ class AiidaCollection:
                 limit = params.page_limit
             if limit > self.db_page_limit:
                 raise HTTPException(
-                    status_code=403,
+                    status_code=403,  # Forbidden
                     detail=f"Max allowed page_limit is {self.db_page_limit}, "
                     f"you requested {limit}",
                 )

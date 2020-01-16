@@ -77,10 +77,10 @@ while VERSION:
     VERSION.pop(-1)
 
 from aiida_optimade.routers import (  # pylint: disable=wrong-import-position
-    structures,
     info,
+    structures,
 )
 
 for prefix in VALID_PREFIXES:
-    APP.include_router(structures.ROUTER, prefix=prefix)
     APP.include_router(info.ROUTER, prefix=prefix)
+    APP.include_router(structures.ROUTER, prefix=prefix)
