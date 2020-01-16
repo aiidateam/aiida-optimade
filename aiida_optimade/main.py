@@ -1,6 +1,8 @@
 # pylint: disable=line-too-long
 import os
 
+from lark.exceptions import VisitError
+
 from pydantic import ValidationError
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -10,9 +12,9 @@ from starlette.requests import Request
 from aiida import load_profile
 
 from optimade import __api_version__
+import optimade.server.exception_handlers as exc_handlers
 
 from aiida_optimade.common.exceptions import AiidaError
-import aiida_optimade.exceptions as exc_handlers
 
 
 APP = FastAPI(
@@ -56,6 +58,7 @@ APP.add_exception_handler(
     RequestValidationError, exc_handlers.request_validation_exception_handler
 )
 APP.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
+APP.add_exception_handler(VisitError, exc_handlers.grammar_not_implemented_handler)
 APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
