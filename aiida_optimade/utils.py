@@ -1,7 +1,5 @@
 from typing import Tuple
 
-from starlette.requests import Request
-
 
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list

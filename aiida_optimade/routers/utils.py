@@ -1,3 +1,4 @@
+import functools
 import urllib
 from datetime import datetime
 
@@ -181,3 +182,26 @@ def get_single_entry(
             str(request.url), data_returned, data_available, more_data_available
         ),
     )
+
+
+def close_session(func):
+    """Close AiiDA SQLAlchemy session
+
+    Since the middleware creates multiple threads when awaiting responses, it cannot be
+    used. Instead, this decorator can be used for router endpoints to close the AiiDA
+    SQLAlchemy global scoped session after the response has been created. This is
+    needed, since AiiDA's QueryBuilder uses a SQLAlchemy global scoped session no
+    matter the backend.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            value = func(*args, **kwargs)
+        finally:
+            from aiida.manage.manager import get_manager
+
+            get_manager().get_backend().get_session().close()
+        return value
+
+    return wrapper

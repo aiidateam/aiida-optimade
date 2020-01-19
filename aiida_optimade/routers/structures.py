@@ -17,7 +17,7 @@ from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQuer
 from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.mappers import StructureMapper
 
-from .utils import get_entries, get_single_entry
+from .utils import get_entries, get_single_entry, close_session
 
 
 ROUTER = APIRouter()
@@ -31,6 +31,7 @@ STRUCTURES = AiidaCollection(StructureData, StructureResource, StructureMapper)
     response_model_exclude_unset=True,
     tags=["Structures"],
 )
+@close_session
 def get_structures(request: Request, params: EntryListingQueryParams = Depends()):
     return get_entries(
         collection=STRUCTURES,
@@ -46,6 +47,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     response_model_exclude_unset=True,
     tags=["Structures"],
 )
+@close_session
 def get_single_structure(
     request: Request, entry_id: int, params: SingleEntryQueryParams = Depends()
 ):
