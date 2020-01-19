@@ -19,8 +19,8 @@ services:
       MONGO_FILENAME: {{ mongo_filename }}
       AIIDA_OPTIMADE_LOG_LEVEL:
     volumes:
-     - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
-     - '{{ config_folder }}:/profiles'
-     - '{{ mongo_folder }}:/app/.mongo'
+      - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
+      - '{{ config_folder }}:/profiles'
+      - '{{ mongo_folder }}:/app/.mongo'
     ports:
       - '{{ port }}:80'
