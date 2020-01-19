@@ -15,7 +15,7 @@ services:
       OPTIMADE_CONFIG_FILE: /app/aiida_optimade/config.json
       FORCE_INIT: {{ force_init }}
     volumes:
-     - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
-     - '{{ config_folder }}:/profiles'
+      - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
+      - '{{ config_folder }}:/profiles'
     ports:
       - '{{ port }}:80'
