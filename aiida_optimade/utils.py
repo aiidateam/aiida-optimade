@@ -84,11 +84,6 @@ def general_exception(
     )
 
 
-def get_backend(request: Request):
-    """Return custom AiiDA backend"""
-    return request.state.backend
-
-
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list
 ) -> Tuple[dict, dict]:

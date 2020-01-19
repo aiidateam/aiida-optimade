@@ -30,39 +30,22 @@ APP = FastAPI(
 )
 
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
-PROFILE = load_profile(PROFILE_NAME)
+load_profile(PROFILE_NAME)
 
 
 @APP.middleware("http")
 async def backend_middleware(request: Request, call_next):
     """Use custom AiiDA backend for all requests"""
+    from aiida.manage.manager import get_manager
+    from aiida.backends.sqlalchemy import reset_session
+
     response = None
-    try:
-        if PROFILE.database_backend == "django":
-            from aiida_optimade.aiida_session import (
-                OptimadeDjangoBackend as OptimadeBackend,
-            )
 
-            from warnings import warn
+    # Reset global AiiDA session and engine
+    if get_manager().backend_loaded:
+        reset_session(get_manager().get_profile())
 
-            warn(
-                "The django backend does not support the special 1 AiiDA DB session per 1 HTTP request implemented in this package!"
-            )
-
-        elif PROFILE.database_backend == "sqlalchemy":
-            from aiida_optimade.aiida_session import (
-                OptimadeSqlaBackend as OptimadeBackend,
-            )
-        else:
-            raise AiidaError(
-                f'Unknown AiiDA backend "{PROFILE.database_backend}" for profile {PROFILE}'
-            )
-
-        request.state.backend = OptimadeBackend()
-        response = await call_next(request)
-    finally:
-        request.state.backend.close()
-
+    response = await call_next(request)
     if response:
         return response
     raise AiidaError("Failed to properly handle AiiDA backend middleware")

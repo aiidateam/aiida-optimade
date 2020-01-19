@@ -2,7 +2,7 @@ from typing import Tuple, List, Union, Any
 
 from fastapi import HTTPException
 
-from aiida import orm
+from aiida.orm import Entity, QueryBuilder
 
 from optimade.filterparser import LarkParser
 from optimade.models import NonnegativeInt, EntryResource
@@ -28,11 +28,11 @@ class AiidaCollection:
 
     def __init__(
         self,
-        collection: orm.entities.Collection,
+        entity: Entity,
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
     ):
-        self.collection = collection
+        self.entity = entity
         self.parser = LarkParser()
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
@@ -67,9 +67,7 @@ class AiidaCollection:
         return set(attributes["properties"].keys())
 
     @staticmethod
-    def _find(
-        backend: orm.implementation.Backend, entity_type: orm.Entity, **kwargs
-    ) -> orm.QueryBuilder:
+    def _find(entity_type: Entity, **kwargs) -> QueryBuilder:
         """Workhorse function to perform AiiDA QueryBuilder query"""
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
@@ -85,24 +83,22 @@ class AiidaCollection:
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
 
-        query = orm.QueryBuilder(backend=backend, limit=limit, offset=offset)
+        query = QueryBuilder(limit=limit, offset=offset)
         query.append(entity_type, project=project, filters=filters)
         query.order_by(order_by)
 
         return query
 
-    def _find_all(
-        self, backend: orm.implementation.Backend, **kwargs
-    ) -> orm.QueryBuilder:
+    def _find_all(self, **kwargs) -> list:
         """Helper function to instantiate an AiiDA QueryBuilder"""
-        query = self._find(backend, self.collection.entity_type, **kwargs)
+        query = self._find(self.entity, **kwargs)
         res = query.all()
         del query
         return res
 
-    def count(self, backend: orm.implementation.Backend, **kwargs):
+    def count(self, **kwargs) -> int:
         """Count amount of data returned for query"""
-        query = self._find(backend, self.collection.entity_type, **kwargs)
+        query = self._find(self.entity, **kwargs)
         res = query.count()
         del query
         return res
@@ -116,10 +112,10 @@ class AiidaCollection:
             )
         return self._data_available
 
-    def set_data_available(self, backend: orm.implementation.Backend):
+    def set_data_available(self):
         """Set _data_available if it has not yet been set"""
         if not self._data_available:
-            self._data_available = self.count(backend)
+            self._data_available = self.count()
 
     @property
     def data_returned(self) -> int:
@@ -130,7 +126,7 @@ class AiidaCollection:
             )
         return self._data_returned
 
-    def set_data_returned(self, backend: orm.implementation.Backend, **criteria):
+    def set_data_returned(self, **criteria):
         """Set _data_returned if it has not yet been set or new filter does not equal
         latest filter.
 
@@ -144,15 +140,13 @@ class AiidaCollection:
                 if key in list(criteria.keys()):
                     del criteria[key]
             self._latest_filter = criteria.get("filters", {})
-            self._data_returned = self.count(backend, **criteria)
+            self._data_returned = self.count(**criteria)
 
     def find(
-        self,
-        backend: orm.implementation.Backend,
-        params: Union[EntryListingQueryParams, SingleEntryQueryParams],
+        self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
     ) -> Tuple[List[EntryResource], NonnegativeInt, bool, NonnegativeInt, set]:
         """Find all requested AiiDA entities as OPTiMaDe JSON objects"""
-        self.set_data_available(backend)
+        self.set_data_available()
         criteria = self._parse_params(params)
 
         all_fields = criteria.pop("fields")
@@ -162,11 +156,11 @@ class AiidaCollection:
             fields = all_fields.copy()
 
         if criteria.get("filters", {}) and self._get_extras_filter_fields():
-            self._check_and_calculate_entities(backend)
+            self._check_and_calculate_entities()
 
-        self.set_data_returned(backend, **criteria)
+        self.set_data_returned(**criteria)
 
-        entities = self._find_all(backend, **criteria)
+        entities = self._find_all(**criteria)
         results = []
         for entity in entities:
             results.append(
@@ -180,9 +174,7 @@ class AiidaCollection:
         if isinstance(params, EntryListingQueryParams):
             criteria_no_limit = criteria.copy()
             criteria_no_limit.pop("limit", None)
-            more_data_available = len(results) < self.count(
-                backend, **criteria_no_limit
-            )
+            more_data_available = len(results) < self.count(**criteria_no_limit)
         else:
             more_data_available = False
             if len(results) > 1:
@@ -321,7 +313,7 @@ class AiidaCollection:
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
 
-    def _check_and_calculate_entities(self, backend: orm.implementation.Backend):
+    def _check_and_calculate_entities(self):
         """Check all entities have OPTiMaDe extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
@@ -333,8 +325,7 @@ class AiidaCollection:
         filter_fields = [
             {"!has_key": field for field in self._get_extras_filter_fields()}
         ]
-        necessary_entities_qb = orm.QueryBuilder().append(
-            self.collection.entity_type,
+        necessary_entities_qb = self._find_all(
             filters={
                 "or": [
                     {extras_keys[0]: {"!has_key": extras_keys[1]}},
@@ -344,10 +335,10 @@ class AiidaCollection:
             project="id",
         )
 
-        if necessary_entities_qb.count() > 0:
+        if necessary_entities_qb:
             # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe
             # fields.
-            necessary_entity_ids = [pk[0] for pk in necessary_entities_qb.iterall()]
+            necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
             # Create the missing OPTiMaDe fields:
             # All OPTiMaDe fields
@@ -358,7 +349,7 @@ class AiidaCollection:
             fields = list({self.resource_mapper.alias_for(f) for f in fields})
 
             entities = self._find_all(
-                backend, filters={"id": {"in": necessary_entity_ids}}, project=fields
+                filters={"id": {"in": necessary_entity_ids}}, project=fields
             )
             for entity in entities:
                 self.resource_cls(
