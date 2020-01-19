@@ -6,4 +6,4 @@ else
     export AIIDA_PROFILE="optimade_sqla"
 fi
 
-uvicorn aiida_optimade.main:app --reload --port 5000
+uvicorn aiida_optimade.main:APP --reload --port 5000

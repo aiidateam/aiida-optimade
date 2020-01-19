@@ -1,9 +1,12 @@
+# pylint: disable=missing-function-docstring
 import urllib
 from typing import Union
 
 from fastapi import APIRouter
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
+
+from optimade import __api_version__
 
 from optimade.models import (
     ErrorResponse,
@@ -12,19 +15,18 @@ from optimade.models import (
     StructureResource,
 )
 
-from aiida_optimade.config import CONFIG
 import aiida_optimade.utils as u
 
 
-router = APIRouter()
+ROUTER = APIRouter()
 
 ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 
 
-@router.get(
+@ROUTER.get(
     "/info",
     response_model=Union[InfoResponse, ErrorResponse],
-    response_model_skip_defaults=False,
+    response_model_exclude_unset=False,
     tags=["Info"],
 )
 def get_info(request: Request):
@@ -35,40 +37,41 @@ def get_info(request: Request):
         meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
-                api_version=CONFIG.version,
+                api_version=f"v{__api_version__}",
                 available_api_versions=[
                     {
                         "url": f"{parse_result.scheme}://{parse_result.netloc}",
-                        "version": f"{CONFIG.version[1:]}",
+                        "version": __api_version__,
                     }
                 ],
-                entry_types_by_format={"json": ["structures"]},
+                entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},
                 available_endpoints=[
                     "info",
-                    "structures",
                     "extensions/docs",
                     "extensions/redoc",
                     "extensions/openapi.json",
-                ],
+                ]
+                + list(ENTRY_INFO_SCHEMAS.keys()),
             )
         ),
     )
 
 
-@router.get(
+@ROUTER.get(
     "/info/{entry}",
     response_model=Union[EntryInfoResponse, ErrorResponse],
-    response_model_skip_defaults=True,
-    tags=["Info", "Structure"],
+    response_model_exclude_unset=True,
+    tags=["Info"],
 )
 def get_info_entry(request: Request, entry: str):
     from optimade.models import EntryInfoResource
 
-    valid_entry_info_endpoints = {"structures"}
+    valid_entry_info_endpoints = ENTRY_INFO_SCHEMAS.keys()
     if entry not in valid_entry_info_endpoints:
         raise StarletteHTTPException(
             status_code=404,
-            detail=f"Entry info not found for {entry}, valid entry info endpoints are: {valid_entry_info_endpoints}",
+            detail=f"Entry info not found for {entry}, valid entry info endpoints are:"
+            f" {valid_entry_info_endpoints}",
         )
 
     schema = ENTRY_INFO_SCHEMAS[entry]()

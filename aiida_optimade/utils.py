@@ -7,10 +7,13 @@ from fastapi.encoders import jsonable_encoder
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from optimade import __api_version__
+
 from optimade.models import (
     ResponseMeta,
     ResponseMetaQuery,
     Provider,
+    Implementation,
     Error,
     ErrorResponse,
 )
@@ -29,12 +32,13 @@ def meta_values(
         query=ResponseMetaQuery(
             representation=f"{parse_result.path}?{parse_result.query}"
         ),
-        api_version=CONFIG.version,
+        api_version=f"v{__api_version__}",
         time_stamp=datetime.utcnow(),
         data_returned=data_returned,
         more_data_available=more_data_available,
         provider=Provider(**provider),
         data_available=data_available,
+        implementation=Implementation(**CONFIG.implementation),
         **kwargs,
     )
 
@@ -42,10 +46,11 @@ def meta_values(
 def general_exception(
     request: Request, exc: Exception, **kwargs: Dict[str, Any]
 ) -> JSONResponse:
-    tb = "".join(
+    """Helper to return Python exceptions as OPTiMaDe errors in JSON format"""
+    trace = "".join(
         traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)
     )
-    print(tb)
+    print(trace)
 
     try:
         status_code = exc.status_code
@@ -65,27 +70,24 @@ def general_exception(
         content=jsonable_encoder(
             ErrorResponse(
                 meta=meta_values(
-                    # TODO: Add debug and print only tb if debug = True
+                    # TODO: Add debug and print only trace if debug = True
                     str(request.url),
                     0,
                     0,
                     False,
-                    **{CONFIG.provider["prefix"] + "traceback": tb},
+                    **{CONFIG.provider["prefix"] + "traceback": trace},
                 ),
                 errors=errors,
             ),
-            skip_defaults=True,
+            exclude_unset=True,
         ),
     )
-
-
-def get_backend(request: Request):
-    return request.state.backend
 
 
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list
 ) -> Tuple[dict, dict]:
+    """Get all queryable properties from an OPTiMaDe schema"""
     properties = {}
     all_properties = {}
 

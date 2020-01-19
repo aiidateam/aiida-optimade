@@ -1,4 +1,7 @@
-# pylint: disable=no-member,wrong-import-position
+# pylint: disable=wrong-import-position,ungrouped-imports,useless-suppression
+# pylint: disable=missing-class-docstring,no-self-use,missing-function-docstring
+# pylint: disable=too-few-public-methods,too-many-public-methods
+
 import os
 
 import unittest
@@ -8,10 +11,6 @@ from starlette.testclient import TestClient
 
 from aiida_optimade.config import CONFIG
 from optimade.validator import ImplementationValidator
-
-# this must be changed before app is imported
-# some tests currently depend on this value remaining at 5
-CONFIG.page_limit = 5  # noqa: E402
 
 # Use specific AiiDA profile
 if os.getenv("AIIDA_PROFILE", None) is None:
@@ -29,14 +28,14 @@ from optimade.models import (
     EntryInfoResource,
 )
 
-from aiida_optimade.main import app
+from aiida_optimade.main import APP
 from aiida_optimade.routers import structures, info
 
 # need to explicitly set base_url, as the default "http://testserver"
-# does not validate as pydantic UrlStr model
-app.include_router(structures.router)
-app.include_router(info.router)
-CLIENT = TestClient(app, base_url="http://localhost:5000/optimade")
+# does not validate as pydantic AnyUrl model
+APP.include_router(structures.ROUTER)
+APP.include_router(info.ROUTER)
+CLIENT = TestClient(APP, base_url="http://localhost:5000/optimade")
 
 
 @pytest.mark.skip("References has not yet been implemented.")
@@ -148,20 +147,28 @@ class TestStructuresEndpointTests(BaseTestCases.EndpointTests):
         assert self.json_response["meta"]["more_data_available"]
 
     def test_get_next_responses(self):
-        cursor = self.json_response["data"].copy()
+        total_data = self.json_response["meta"]["data_available"]
+        page_limit = 5
+
+        response = self.client.get(self.request_str + f"?page_limit={page_limit}")
+        json_response = response.json()
+        assert response.status_code == 200, f"Request failed: {response.json()}"
+
+        cursor = json_response["data"].copy()
+        assert json_response["meta"]["more_data_available"]
         more_data_available = True
-        next_request = self.json_response["links"]["next"]
+        next_request = json_response["links"]["next"]
 
         id_ = len(cursor)
-        while more_data_available and id_ < CONFIG.page_limit * 5:
+        while more_data_available and id_ < page_limit * 3:
             next_response = self.client.get(next_request).json()
             next_request = next_response["links"]["next"]
             cursor.extend(next_response["data"])
             more_data_available = next_response["meta"]["more_data_available"]
             if more_data_available:
-                assert len(next_response["data"]) == CONFIG.page_limit
+                assert len(next_response["data"]) == page_limit
             else:
-                assert len(next_response["data"]) == 1089 % CONFIG.page_limit
+                assert len(next_response["data"]) == total_data % page_limit
             id_ += len(next_response["data"])
 
         assert len(cursor) == id_
@@ -203,7 +210,11 @@ class TestFilterTests(unittest.TestCase):
         "Un-skip when a fix for optimade-python-tools issue #102 is in place."
     )
     def test_custom_field(self):
-        request = f'/structures?filter={CONFIG.provider["prefix"]}{CONFIG.provider_fields["structures"][0]}="2019-11-19T18:42:25.844780+01:00"'
+        request = (
+            f'/structures?filter={CONFIG.provider["prefix"]}'
+            f'{CONFIG.provider_fields["structures"][0]}'
+            '="2019-11-19T18:42:25.844780+01:00"'
+        )
         expected_ids = ["1"]
         self._check_response(request, expected_ids)
 
@@ -225,6 +236,19 @@ class TestFilterTests(unittest.TestCase):
     def test_gt_none(self):
         request = "/structures?filter=nelements>18"
         expected_ids = []
+        self._check_response(request, expected_ids)
+
+    def test_rhs_statements(self):
+        request = "/structures?filter=18<nelements"
+        expected_ids = []
+        self._check_response(request, expected_ids)
+
+        request = "/structures?filter=7=id"
+        expected_ids = ["7"]
+        self._check_response(request, expected_ids)
+
+        request = "/structures?filter=18<=nelements"
+        expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_list_has(self):
@@ -277,20 +301,20 @@ class TestFilterTests(unittest.TestCase):
         self._check_response(request, expected_ids)
 
     def test_list_length_basic(self):
-        request = "/structures?filter=LENGTH elements = 18"
+        request = "/structures?filter=elements LENGTH 18"
         expected_ids = ["1048"]
         self._check_response(request, expected_ids)
 
     def test_list_length(self):
-        request = "/structures?filter=LENGTH elements = 17"
+        request = "/structures?filter=elements LENGTH = 17"
         expected_ids = ["1047"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH elements >= 17"
+        request = "/structures?filter=elements LENGTH >= 17"
         expected_ids = ["1047", "1048"]
         self._check_response(request, expected_ids)
 
-        request = "/structures?filter=LENGTH cartesian_site_positions > 5000"
+        request = "/structures?filter=cartesian_site_positions LENGTH > 5000"
         expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
@@ -316,7 +340,10 @@ class TestFilterTests(unittest.TestCase):
         self._check_response(request, expected_ids)
 
     def test_node_columns_is_known(self):
-        request = f"/structures?filter={CONFIG.provider['prefix']}{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
+        request = (
+            f"/structures?filter={CONFIG.provider['prefix']}"
+            f"{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
+        )
         expected_ids = ["302", "683"]
         self._check_response(request, expected_ids)
 
@@ -382,7 +409,10 @@ class TestFilterTests(unittest.TestCase):
         expected_ids = ["382", "574", "658", "1055"]
         self._check_response(request, expected_ids)
 
-        request = '/structures?filter=(elements HAS "Ga" AND nelements=7) OR (elements HAS "Ga" AND nsites=464)'
+        request = (
+            '/structures?filter=(elements HAS "Ga" AND nelements=7) OR '
+            '(elements HAS "Ga" AND nsites=464)'
+        )
         expected_ids = ["574", "658"]
         self._check_response(request, expected_ids)
 

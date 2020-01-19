@@ -7,14 +7,17 @@ from aiida_optimade.utils import general_exception
 
 
 def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTPException"""
     return general_exception(request, exc)
 
 
 def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle RequestValidationError"""
     return general_exception(request, exc)
 
 
 def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle ValidationError, usually multiple"""
     from optimade.models import Error, ErrorSource
 
     status = 500
@@ -32,4 +35,5 @@ def validation_exception_handler(request: Request, exc: ValidationError):
 
 
 def general_exception_handler(request: Request, exc: Exception):
+    """A catch 'em all to handle any other form of Python Exception"""
     return general_exception(request, exc)

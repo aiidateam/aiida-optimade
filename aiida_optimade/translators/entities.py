@@ -8,7 +8,7 @@ from aiida_optimade.common import AiidaEntityNotFound, AiidaError
 __all__ = ("AiidaEntityTranslator",)
 
 
-class AiidaEntityTranslator:
+class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
     """Create OPTiMaDe entry attributes from an AiiDA Entity Node - Base class
 
     For speed and reusability, save attributes in the Node's extras.
@@ -30,7 +30,9 @@ class AiidaEntityTranslator:
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        return query.first()[0]
+        res = query.first()[0]
+        del query
+        return res
 
     @property
     def _node(self) -> Node:
@@ -48,7 +50,7 @@ class AiidaEntityTranslator:
         return bool(self.__node)
 
     def _get_optimade_extras(self) -> Union[None, dict]:
-        if self._node_loaded:
+        if self._node_loaded:  # pylint: disable=using-constant-test
             return self._node.extras.get(self.EXTRAS_KEY, None)
         return self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")
 
@@ -82,10 +84,11 @@ class AiidaEntityTranslator:
                     )
             else:
                 raise AiidaError(
-                    f'Unknown AiiDA backend "{profile.database_backend}" for profile {profile}'
+                    f'Unknown AiiDA backend "{profile.database_backend}" for profile'
+                    f"{profile}"
                 )
 
-            # For posterity, this is how to the same, going through AiiDA's API:
+            # For posterity, this is how to do the same, going through AiiDA's API:
             # self._node.set_extra(self.EXTRAS_KEY, optimade)
 
         # Lastly, reset NODE in an attempt to remove it from memory

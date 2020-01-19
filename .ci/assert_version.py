@@ -1,24 +1,26 @@
+# pylint: disable=line-too-long
 import os
 import json
+import sys
 from pathlib import Path
 
 SETUP_JSON = Path(__file__).resolve().parent.parent.joinpath("setup.json")
 
 with open(SETUP_JSON, "r") as fp:
-    setup = json.load(fp)
+    SETUP = json.load(fp)
 
-package_version = "v" + setup["version"]
+PACKAGE_VERSION = "v" + SETUP["version"]
 
-tag_version = os.getenv("TAG_VERSION")
-tag_version = tag_version[len("refs/tags/") :]
+TAG_VERSION = os.getenv("TAG_VERSION")
+TAG_VERSION = TAG_VERSION[len("refs/tags/") :]
 
-if tag_version == package_version:
-    print(f"The versions match: tag:'{tag_version}' == package:'{package_version}'")
-    exit(0)
+if TAG_VERSION == PACKAGE_VERSION:
+    print(f"The versions match: tag:'{TAG_VERSION}' == package:'{PACKAGE_VERSION}'")
+    sys.exit(0)
 
 print(
-    f"""The current package version '{package_version}' does not equal the tag version '{tag_version}'.
+    f"""The current package version '{PACKAGE_VERSION}' does not equal the tag version '{TAG_VERSION}'.
 Update setup.json with new version.
 Please remove the tag from both GitHub and your local repository!"""
 )
-exit(1)
+sys.exit(1)

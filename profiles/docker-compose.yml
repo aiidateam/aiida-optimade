@@ -9,9 +9,8 @@ services:
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: quicksetup
-      # BOKEH_PREFIX: /curated-cofs
     volumes:
-     - '/Users/leopold/Personal/Postdoc-MARVEL/aiida_folders/aiida_rmq/.aiida/repository-quicksetup:/app/.aiida/repository-quicksetup'
-     - '/Users/leopold/Personal/Postdoc-MARVEL/repos/aiida/aiida-optimade/profiles:/profiles'
+     - '/tmp:/app/.aiida/repository-quicksetup'
+     - '.:/profiles'
     ports:
       - '3253:80'
