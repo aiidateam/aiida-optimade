@@ -35,6 +35,7 @@ load_profile(PROFILE_NAME)
 
 @APP.middleware("http")
 async def backend_middleware(request: Request, call_next):
+    """Use custom AiiDA backend for all requests"""
     from aiida.manage.manager import get_manager
     from aiida.backends.sqlalchemy import reset_session
 
