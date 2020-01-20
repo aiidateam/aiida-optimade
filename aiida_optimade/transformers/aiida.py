@@ -193,12 +193,12 @@ class AiidaTransformer(Transformer):
             return {"or": [{"contains": [value]} for value in arg[2]]}
         if arg[1] == "ONLY":
             raise NotImplementedError(
-                '"set_op_rhs: HAS ONLY value_list" has not been implemented.'
+                "'set_op_rhs: HAS ONLY value_list' has not been implemented."
             )
 
         # value with OPERATOR
         raise NotImplementedError(
-            '"set_op_rhs: HAS OPERATOR value" has not been implemented.'
+            "'set_op_rhs: HAS OPERATOR value' has not been implemented."
         )
 
     def set_zip_op_rhs(self, arg):

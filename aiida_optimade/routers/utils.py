@@ -1,30 +1,61 @@
 import urllib
+from datetime import datetime
+
 from typing import Union, List
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
+from optimade import __api_version__
 from optimade.models import (
-    ToplevelLinks,
-    EntryResource,
     EntryResponseMany,
     EntryResponseOne,
+    EntryResource,
+    Implementation,
+    Provider,
+    ResponseMeta,
+    ResponseMetaQuery,
+    ToplevelLinks,
 )
+from optimade.server.config import CONFIG
 
-from aiida_optimade.config import CONFIG
 from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.entry_collections import AiidaCollection
-from aiida_optimade.utils import meta_values
+
+
+def meta_values(
+    url, data_returned, data_available, more_data_available=False, **kwargs
+):
+    """Helper to initialize the meta values"""
+    parse_result = urllib.parse.urlparse(url)
+    provider = CONFIG.provider.copy()
+    provider["prefix"] = provider["prefix"][1:-1]  # Remove surrounding `_`
+    return ResponseMeta(
+        query=ResponseMetaQuery(
+            representation=f"{parse_result.path}?{parse_result.query}"
+        ),
+        api_version=f"v{__api_version__}",
+        time_stamp=datetime.utcnow(),
+        data_returned=data_returned,
+        more_data_available=more_data_available,
+        provider=Provider(**provider),
+        data_available=data_available,
+        implementation=Implementation(**CONFIG.implementation),
+        **kwargs,
+    )
 
 
 def handle_pagination(
     request: Request, more_data_available: bool, nresults: int
 ) -> dict:
     """Handle pagination for request with number of results equal nresults"""
+    from optimade.server.routers.utils import get_base_url
+
     pagination = {}
 
     # "prev"
     parse_result = urllib.parse.urlparse(str(request.url))
+    base_url = get_base_url(parse_result)
     query = urllib.parse.parse_qs(parse_result.query)
     query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
         query.get("page_limit", [CONFIG.page_limit])[0]
@@ -39,9 +70,7 @@ def handle_pagination(
         prev_query.pop("page_offset")
         urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
     if urlencoded_prev:
-        pagination[
-            "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        pagination["prev"] = f"{base_url}{parse_result.path}"
         pagination["prev"] += f"?{urlencoded_prev}"
 
     # "next"
@@ -52,9 +81,7 @@ def handle_pagination(
             + int(query.get("page_limit", [CONFIG.page_limit])[0])
         )
         urlencoded_next = urllib.parse.urlencode(query, doseq=True)
-        pagination[
-            "next"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        pagination["next"] = f"{base_url}{parse_result.path}"
         if urlencoded_next:
             pagination["next"] += f"?{urlencoded_next}"
     else:

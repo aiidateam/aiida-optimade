@@ -15,7 +15,9 @@ from optimade.models import (
     StructureResource,
 )
 
-import aiida_optimade.utils as u
+from aiida_optimade.utils import retrieve_queryable_properties
+
+from .utils import meta_values
 
 
 ROUTER = APIRouter()
@@ -31,16 +33,19 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 )
 def get_info(request: Request):
     from optimade.models import BaseInfoResource, BaseInfoAttributes
+    from optimade.server.routers.utils import get_base_url
 
     parse_result = urllib.parse.urlparse(str(request.url))
+    base_url = get_base_url(parse_result)
+
     return InfoResponse(
-        meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
+        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
             attributes=BaseInfoAttributes(
                 api_version=f"v{__api_version__}",
                 available_api_versions=[
                     {
-                        "url": f"{parse_result.scheme}://{parse_result.netloc}",
+                        "url": f"{base_url}/optimade/v{__api_version__}",
                         "version": __api_version__,
                     }
                 ],
@@ -76,12 +81,12 @@ def get_info_entry(request: Request, entry: str):
 
     schema = ENTRY_INFO_SCHEMAS[entry]()
     queryable_properties = {"id", "type", "attributes"}
-    properties, _ = u.retrieve_queryable_properties(schema, queryable_properties)
+    properties, _ = retrieve_queryable_properties(schema, queryable_properties)
 
     output_fields_by_format = {"json": list(properties.keys())}
 
     return EntryInfoResponse(
-        meta=u.meta_values(str(request.url), 1, 1, more_data_available=False),
+        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=EntryInfoResource(
             formats=list(output_fields_by_format.keys()),
             description=schema.get(

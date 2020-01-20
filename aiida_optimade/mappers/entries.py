@@ -1,7 +1,8 @@
 import abc
 from typing import Tuple
 
-from aiida_optimade.config import CONFIG
+from optimade.server.config import CONFIG
+
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 
 

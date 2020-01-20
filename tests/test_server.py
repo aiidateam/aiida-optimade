@@ -9,7 +9,7 @@ import pytest
 
 from starlette.testclient import TestClient
 
-from aiida_optimade.config import CONFIG
+from optimade.server.config import CONFIG
 from optimade.validator import ImplementationValidator
 
 # Use specific AiiDA profile
