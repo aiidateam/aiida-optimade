@@ -8,9 +8,9 @@ services:
       dockerfile: Dockerfile
     environment:
       AIIDA_PATH: /app
-      AIIDA_PROFILE: quicksetup
+      AIIDA_PROFILE: test_django
     volumes:
-     - '/tmp:/app/.aiida/repository-quicksetup'
+     - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
     ports:
       - '3253:80'

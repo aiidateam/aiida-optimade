@@ -1,0 +1,20 @@
+{
+    "CONFIG_VERSION": {
+        "CURRENT": 3,
+        "OLDEST_COMPATIBLE": 3
+    },
+    "default_profile": "test_django",
+    "profiles": {
+        "test_django": {
+            "AIIDADB_ENGINE": "postgresql_psycopg2",
+            "AIIDADB_PASS": "",
+            "AIIDADB_NAME": "test_django",
+            "AIIDADB_HOST": "localhost",
+            "AIIDADB_USER": "postgres",
+            "AIIDADB_PORT": "5432",
+            "AIIDADB_BACKEND": "django",
+            "default_user_email": "aiida@localhost",
+            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup"
+        }
+    }
+}
