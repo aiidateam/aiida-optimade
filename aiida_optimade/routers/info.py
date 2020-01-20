@@ -33,8 +33,11 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 )
 def get_info(request: Request):
     from optimade.models import BaseInfoResource, BaseInfoAttributes
+    from optimade.server.routers.utils import get_base_url
 
     parse_result = urllib.parse.urlparse(str(request.url))
+    base_url = get_base_url(parse_result)
+
     return InfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
@@ -42,7 +45,7 @@ def get_info(request: Request):
                 api_version=f"v{__api_version__}",
                 available_api_versions=[
                     {
-                        "url": f"{parse_result.scheme}://{parse_result.netloc}",
+                        "url": f"{base_url}/optimade/v{__api_version__}",
                         "version": __api_version__,
                     }
                 ],

@@ -40,8 +40,6 @@ class AiidaCollection:
         self.transformer = AiidaTransformer()
         self.provider = CONFIG.provider["prefix"]
         self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
-        self.page_limit = CONFIG.page_limit
-        self.db_page_limit = CONFIG.db_page_limit
         self.parser = LarkParser(version=(0, 10, 1))
 
         # "Cache"
@@ -243,18 +241,16 @@ class AiidaCollection:
 
         # page_limit
         if getattr(params, "page_limit", False):
-            limit = self.page_limit
-            if params.page_limit != self.page_limit:
-                limit = params.page_limit
-            if limit > self.db_page_limit:
+            limit = params.page_limit
+            if limit > CONFIG.page_limit_max:
                 raise HTTPException(
                     status_code=403,  # Forbidden
-                    detail=f"Max allowed page_limit is {self.db_page_limit}, "
+                    detail=f"Max allowed page_limit is {CONFIG.page_limit_max}, "
                     f"you requested {limit}",
                 )
-            if limit == 0:
-                limit = self.page_limit
             cursor_kwargs["limit"] = limit
+        else:
+            cursor_kwargs["limit"] = CONFIG.page_limit
 
         # response_fields
         # All OPTiMaDe fields

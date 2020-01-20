@@ -49,10 +49,13 @@ def handle_pagination(
     request: Request, more_data_available: bool, nresults: int
 ) -> dict:
     """Handle pagination for request with number of results equal nresults"""
+    from optimade.server.routers.utils import get_base_url
+
     pagination = {}
 
     # "prev"
     parse_result = urllib.parse.urlparse(str(request.url))
+    base_url = get_base_url(parse_result)
     query = urllib.parse.parse_qs(parse_result.query)
     query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
         query.get("page_limit", [CONFIG.page_limit])[0]
@@ -67,9 +70,7 @@ def handle_pagination(
         prev_query.pop("page_offset")
         urlencoded_prev = urllib.parse.urlencode(prev_query, doseq=True)
     if urlencoded_prev:
-        pagination[
-            "prev"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        pagination["prev"] = f"{base_url}{parse_result.path}"
         pagination["prev"] += f"?{urlencoded_prev}"
 
     # "next"
@@ -80,9 +81,7 @@ def handle_pagination(
             + int(query.get("page_limit", [CONFIG.page_limit])[0])
         )
         urlencoded_next = urllib.parse.urlencode(query, doseq=True)
-        pagination[
-            "next"
-        ] = f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}"
+        pagination["next"] = f"{base_url}{parse_result.path}"
         if urlencoded_next:
             pagination["next"] += f"?{urlencoded_next}"
     else:
