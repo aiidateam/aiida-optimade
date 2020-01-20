@@ -16,6 +16,9 @@ RUN pip install -U pip setuptools wheel \
     && reentry scan \
     && pip install -e .
 
+# Copy AiiDA configuration
+COPY mcloud ./mcloud
+COPY mcloud/server_template.cfg ./server.cfg
 COPY .docker/run.sh ./
 
 EXPOSE 80

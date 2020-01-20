@@ -186,6 +186,9 @@ jobs:
       if: matrix.database == 'mongo'
       run: docker-compose -f profiles/docker-compose.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
 
+    - name: Copy server_template.cfg file to mcloud folder
+      run: cp -n ./.docker/server_template.cfg ./mcloud/server_template.cfg
+
     - name: Start the Docker image
       env:
         AIIDA_OPTIMADE_LOG_LEVEL: DEBUG
