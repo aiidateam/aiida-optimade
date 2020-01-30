@@ -70,3 +70,14 @@ def optimade_req(_, ver=""):
         )
 
     print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))
+
+
+@task
+def aiida_req(_, ver=""):
+    """Update the aiida-core minimum version requirement"""
+
+    if not ver:
+        raise Exception("Please specify --ver='Major.Minor.Patch'")
+
+    update_file("setup.py", ("aiida-core~=([^,]+)", f'aiida-core~={ver}"'))
+    update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
