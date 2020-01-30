@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        OPTIMADE_TOOLS_VERSION: 0.3.2
+        OPTIMADE_TOOLS_VERSION: 0.3.3
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django
