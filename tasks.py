@@ -82,4 +82,31 @@ def optimade_req(_, ver=""):
         handle.write("\n".join(lines))
         handle.write("\n")
 
+    with open("Dockerfile", "r") as handle:
+        lines = [
+            re.sub(
+                "OPTIMADE_TOOLS_VERSION=.*", f"OPTIMADE_TOOLS_VERSION={ver}", l.rstrip()
+            )
+            for l in handle
+        ]
+
+    with open("Dockerfile", "w") as handle:
+        handle.write("\n".join(lines))
+        handle.write("\n")
+
+    for file_format in ("j2", "yml"):
+        with open(f"profiles/docker-compose.{file_format}", "r") as handle:
+            lines = [
+                re.sub(
+                    "OPTIMADE_TOOLS_VERSION: .*",
+                    f"OPTIMADE_TOOLS_VERSION: {ver}",
+                    l.rstrip(),
+                )
+                for l in handle
+            ]
+
+        with open(f"profiles/docker-compose.{file_format}", "w") as handle:
+            handle.write("\n".join(lines))
+            handle.write("\n")
+
     print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))
