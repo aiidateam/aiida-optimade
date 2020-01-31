@@ -7,7 +7,7 @@ MODULE_DIR = Path(__file__).resolve().parent
 with open(MODULE_DIR.joinpath("setup.json")) as handle:
     SETUP_JSON = json.load(handle)
 
-TESTING = ["pytest~=3.6", "pytest-cov", "codecov"]
+TESTING = ["pytest>=3.6", "pytest-cov", "codecov"]
 DEV = ["pylint", "black", "pre-commit", "invoke"] + TESTING
 
 setup(
@@ -18,9 +18,9 @@ setup(
     install_requires=[
         "aiida-core~=1.0",
         "fastapi~=0.47",
-        "lark-parser~=0.7.8",
+        "lark-parser~=0.8.1",
         "optimade[mongo]~=0.3.3",
-        "pydantic~=1.3",
+        "pydantic~=1.4",
         "uvicorn",
     ],
     extras_require={"dev": DEV, "testing": TESTING},
