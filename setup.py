@@ -16,8 +16,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        "aiida-core @ git+https://github.com/aiidateam/aiida-core@develop"
-        "#egg=aiida-core",
+        "aiida-core~=1.1.0",
         "fastapi~=0.47",
         "lark-parser~=0.8.1",
         "optimade[mongo]~=0.3.3",
