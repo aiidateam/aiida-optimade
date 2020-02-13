@@ -26,7 +26,7 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 @ROUTER.get(
     "/info",
     response_model=Union[InfoResponse, ErrorResponse],
-    response_model_exclude_unset=False,
+    response_model_exclude_unset=True,
     tags=["Info"],
 )
 def get_info(request: Request):
@@ -39,14 +39,17 @@ def get_info(request: Request):
     return InfoResponse(
         meta=meta_values(str(request.url), 1, 1, more_data_available=False),
         data=BaseInfoResource(
+            id=BaseInfoResource.schema()["properties"]["id"]["const"],
+            type=BaseInfoResource.schema()["properties"]["type"]["const"],
             attributes=BaseInfoAttributes(
                 api_version=f"v{__api_version__}",
                 available_api_versions=[
                     {
-                        "url": f"{base_url}/optimade/v{__api_version__}",
+                        "url": f"{base_url}/optimade/v{__api_version__.split('.')[0]}",
                         "version": __api_version__,
                     }
                 ],
+                formats=["json"],
                 entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},
                 available_endpoints=[
                     "info",
@@ -55,7 +58,8 @@ def get_info(request: Request):
                     "extensions/openapi.json",
                 ]
                 + list(ENTRY_INFO_SCHEMAS.keys()),
-            )
+                is_index=False,
+            ),
         ),
     )
 
