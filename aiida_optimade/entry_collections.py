@@ -5,11 +5,11 @@ from fastapi import HTTPException
 from aiida.orm import Entity, QueryBuilder
 
 from optimade.filterparser import LarkParser
-from optimade.models import NonnegativeInt, EntryResource
+from optimade.models import EntryResource
 from optimade.server.config import CONFIG
+from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
 
 from aiida_optimade.common import CausationError
-from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformer
 from aiida_optimade.utils import retrieve_queryable_properties
@@ -142,7 +142,7 @@ class AiidaCollection:
 
     def find(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
-    ) -> Tuple[List[EntryResource], NonnegativeInt, bool, NonnegativeInt, set]:
+    ) -> Tuple[List[EntryResource], int, bool, int, set]:
         """Find all requested AiiDA entities as OPTiMaDe JSON objects"""
         self.set_data_available()
         criteria = self._parse_params(params)
