@@ -11,6 +11,7 @@ from aiida import load_profile
 
 from optimade import __api_version__
 import optimade.server.exception_handlers as exc_handlers
+from optimade.server.middleware import RedirectSlashedURLs
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 
 from aiida_optimade.routers import (
@@ -39,6 +40,10 @@ APP = FastAPI(
     redoc_url=f"{BASE_URL_PREFIXES['major']}/extensions/redoc",
     openapi_url=f"{BASE_URL_PREFIXES['major']}/extensions/openapi.json",
 )
+
+
+# Add various middleware
+APP.add_middleware(RedirectSlashedURLs)
 
 
 # Add various exception handlers
