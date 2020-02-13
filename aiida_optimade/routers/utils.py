@@ -1,49 +1,22 @@
 import functools
 import urllib
-from datetime import datetime
 
 from typing import Union, List
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
-from optimade import __api_version__
 from optimade.models import (
     EntryResponseMany,
     EntryResponseOne,
     EntryResource,
-    Implementation,
-    Provider,
-    ResponseMeta,
-    ResponseMetaQuery,
     ToplevelLinks,
 )
 from optimade.server.config import CONFIG
+from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
+from optimade.server.routers.utils import meta_values
 
-from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.entry_collections import AiidaCollection
-
-
-def meta_values(
-    url, data_returned, data_available, more_data_available=False, **kwargs
-):
-    """Helper to initialize the meta values"""
-    parse_result = urllib.parse.urlparse(url)
-    provider = CONFIG.provider.copy()
-    provider["prefix"] = provider["prefix"][1:-1]  # Remove surrounding `_`
-    return ResponseMeta(
-        query=ResponseMetaQuery(
-            representation=f"{parse_result.path}?{parse_result.query}"
-        ),
-        api_version=f"v{__api_version__}",
-        time_stamp=datetime.utcnow(),
-        data_returned=data_returned,
-        more_data_available=more_data_available,
-        provider=Provider(**provider),
-        data_available=data_available,
-        implementation=Implementation(**CONFIG.implementation),
-        **kwargs,
-    )
 
 
 def handle_pagination(

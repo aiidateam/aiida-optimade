@@ -12,8 +12,8 @@ from optimade.models import (
     StructureResponseMany,
     StructureResponseOne,
 )
+from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
 
-from aiida_optimade.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.mappers import StructureMapper
 
