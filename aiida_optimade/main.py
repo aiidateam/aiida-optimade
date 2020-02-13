@@ -11,6 +11,17 @@ from aiida import load_profile
 
 from optimade import __api_version__
 import optimade.server.exception_handlers as exc_handlers
+from optimade.server.routers.utils import BASE_URL_PREFIXES
+
+from aiida_optimade.routers import (
+    info,
+    structures,
+)
+
+
+# Load AiiDA profile
+PROFILE_NAME = os.getenv("AIIDA_PROFILE")
+load_profile(PROFILE_NAME)
 
 
 APP = FastAPI(
@@ -24,14 +35,13 @@ APP = FastAPI(
         "reproducible."
     ),
     version=__api_version__,
-    docs_url="/optimade/extensions/docs",
-    redoc_url="/optimade/extensions/redoc",
-    openapi_url="/optimade/extensions/openapi.json",
+    docs_url=f"{BASE_URL_PREFIXES['major']}/extensions/docs",
+    redoc_url=f"{BASE_URL_PREFIXES['major']}/extensions/redoc",
+    openapi_url=f"{BASE_URL_PREFIXES['major']}/extensions/openapi.json",
 )
 
-PROFILE_NAME = os.getenv("AIIDA_PROFILE")
-load_profile(PROFILE_NAME)
 
+# Add various exception handlers
 APP.add_exception_handler(StarletteHTTPException, exc_handlers.http_exception_handler)
 APP.add_exception_handler(
     RequestValidationError, exc_handlers.request_validation_exception_handler
@@ -41,25 +51,10 @@ APP.add_exception_handler(VisitError, exc_handlers.grammar_not_implemented_handl
 APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
-# Create the following prefixes:
-#   /optimade
-#   /optimade/vMajor (but only if Major >= 1)
+# Add various endpoints to:
+#   /optimade/vMajor
 #   /optimade/vMajor.Minor
 #   /optimade/vMajor.Minor.Patch
-VALID_PREFIXES = ["/optimade"]
-VERSION = [int(_) for _ in __api_version__.split(".")]
-while VERSION:
-    if VERSION[0] or len(VERSION) >= 2:
-        VALID_PREFIXES.append(
-            "/optimade/v{}".format(".".join([str(_) for _ in VERSION]))
-        )
-    VERSION.pop(-1)
-
-from aiida_optimade.routers import (  # pylint: disable=wrong-import-position
-    info,
-    structures,
-)
-
-for prefix in VALID_PREFIXES:
-    APP.include_router(info.ROUTER, prefix=prefix)
-    APP.include_router(structures.ROUTER, prefix=prefix)
+for version in ("major", "minor", "patch"):
+    APP.include_router(info.ROUTER, prefix=BASE_URL_PREFIXES[version])
+    APP.include_router(structures.ROUTER, prefix=BASE_URL_PREFIXES[version])

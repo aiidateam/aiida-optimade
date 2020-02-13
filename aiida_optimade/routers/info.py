@@ -7,17 +7,15 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
 from optimade import __api_version__
-
 from optimade.models import (
     ErrorResponse,
     InfoResponse,
     EntryInfoResponse,
     StructureResource,
 )
+from optimade.server.routers.utils import meta_values
 
 from aiida_optimade.utils import retrieve_queryable_properties
-
-from .utils import meta_values
 
 
 ROUTER = APIRouter()
