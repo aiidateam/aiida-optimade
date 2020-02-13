@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
       args:
         OPTIMADE_TOOLS_VERSION: 0.5.0
+        AIIDA_VERSION: 1.1.0
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django
@@ -16,3 +17,6 @@ services:
      - '.:/profiles'
     ports:
       - '3253:80'
+    # Extra field ONLY for use with GitHub Actions CI
+    extra_hosts:
+      - "host.docker.internal:$DOCKER_HOST_IP"

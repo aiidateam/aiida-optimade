@@ -8,6 +8,10 @@ WORKDIR /app
 ARG OPTIMADE_TOOLS_VERSION=0.5.0
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
+# Install specific aiida-core version
+ARG AIIDA_VERSION=1.1.0
+RUN pip install aiida-core==${AIIDA_VERSION}
+
 # Copy repo contents
 COPY setup.py setup.json README.md ./
 COPY aiida_optimade ./aiida_optimade
