@@ -12,13 +12,6 @@ class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTiMaDe to AiiDA"""
 
     ENDPOINT = "structures"
-    ALIASES = (
-        ("immutable_id", "uuid"),
-        ("last_modified", "mtime"),
-        ("type", "attributes.something.non.existing"),
-        ("relationships", "attributes.something.non.existing"),
-        ("links", "attributes.something.non.existing"),
-    )
     TRANSLATOR = StructureDataTranslator
     ALL_ATTRIBUTES = list(StructureResourceAttributes.schema().get("properties").keys())
     REQUIRED_ATTRIBUTES = StructureResourceAttributes.schema().get("required")

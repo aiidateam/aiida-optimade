@@ -19,5 +19,14 @@
     "structures": [
       "ctime"
     ]
+  },
+  "aliases": {
+    "structures": {
+      "immutable_id": "uuid",
+      "last_modified": "mtime",
+      "type": "attributes.something.non.existing",
+      "relationships": "attributes.something.non.existing",
+      "links": "attributes.something.non.existing"
+    }
   }
 }

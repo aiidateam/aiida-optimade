@@ -15,7 +15,6 @@ class ResourceMapper(metaclass=abc.ABCMeta):
     PROJECT_PREFIX: str = "extras.optimade."
 
     ENDPOINT: str = ""
-    ALIASES: Tuple[Tuple[str, str]] = ()
     TOP_LEVEL_NON_ATTRIBUTES_FIELDS: set = {"id", "type", "relationships", "links"}
     TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
     ALL_ATTRIBUTES: list = []
@@ -23,14 +22,11 @@ class ResourceMapper(metaclass=abc.ABCMeta):
 
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:
-        """Get all ALIASES as a tuple"""
-        res = (
-            tuple(
-                (CONFIG.provider["prefix"] + field, field)
-                for field in CONFIG.provider_fields.get(cls.ENDPOINT, {})
-            )
-            + cls.ALIASES
-        )
+        """Get all aliases as a tuple"""
+        res = tuple(
+            (CONFIG.provider["prefix"] + field, field)
+            for field in CONFIG.provider_fields.get(cls.ENDPOINT, {})
+        ) + CONFIG.aliases.get(cls.ENDPOINT, ())
         return res + tuple(
             (field, f"{cls.PROJECT_PREFIX}{field}")
             for field in cls.ALL_ATTRIBUTES
@@ -41,7 +37,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
     def alias_for(cls, field):
         """Return aliased field name
 
-        :return: Aliased field as found in cls.ALIASES
+        :return: Aliased fields
         :rtype: str
         """
         return dict(cls.all_aliases()).get(field, field)
