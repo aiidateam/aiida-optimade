@@ -189,7 +189,7 @@ jobs:
     - name: Copy server_template.cfg file to mcloud folder
       run: cp -n ./.docker/server_template.cfg ./mcloud/server_template.cfg
 
-    - name: Start the Docker image
+    - name: Build and start the Docker image
       env:
         AIIDA_OPTIMADE_LOG_LEVEL: DEBUG
       run: |
