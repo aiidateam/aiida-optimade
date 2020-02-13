@@ -157,7 +157,7 @@ jobs:
     - name: Copy server_template.cfg file to mcloud folder
       run: cp -n ./.docker/server_template.cfg ./mcloud/server_template.cfg
 
-    - name: Build the Docker image
+    - name: Build and start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose.yml up &
