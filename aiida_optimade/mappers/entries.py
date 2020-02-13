@@ -1,7 +1,7 @@
-import abc
+# pylint: disable=arguments-differ
 from typing import Tuple
 
-from optimade.server.config import CONFIG
+from optimade.server.mappers import ResourceMapper as OptimadeResourceMapper
 
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 
@@ -9,13 +9,11 @@ from aiida_optimade.translators.entities import AiidaEntityTranslator
 __all__ = ("ResourceMapper",)
 
 
-class ResourceMapper(metaclass=abc.ABCMeta):
+class ResourceMapper(OptimadeResourceMapper):
     """Generic Resource Mapper"""
 
     PROJECT_PREFIX: str = "extras.optimade."
 
-    ENDPOINT: str = ""
-    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: set = {"id", "type", "relationships", "links"}
     TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
     ALL_ATTRIBUTES: list = []
     REQUIRED_ATTRIBUTES: list = []
@@ -23,10 +21,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:
         """Get all aliases as a tuple"""
-        res = tuple(
-            (CONFIG.provider["prefix"] + field, field)
-            for field in CONFIG.provider_fields.get(cls.ENDPOINT, {})
-        ) + CONFIG.aliases.get(cls.ENDPOINT, ())
+        res = super(ResourceMapper, cls).all_aliases()
         return res + tuple(
             (field, f"{cls.PROJECT_PREFIX}{field}")
             for field in cls.ALL_ATTRIBUTES
@@ -34,15 +29,6 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         )
 
     @classmethod
-    def alias_for(cls, field):
-        """Return aliased field name
-
-        :return: Aliased fields
-        :rtype: str
-        """
-        return dict(cls.all_aliases()).get(field, field)
-
-    @abc.abstractclassmethod
     def map_back(cls, entity_properties: dict) -> dict:
         """Map properties from AiiDA to OPTiMaDe
 
@@ -53,7 +39,7 @@ class ResourceMapper(metaclass=abc.ABCMeta):
         :rtype: dict
         """
 
-    @abc.abstractclassmethod
+    @classmethod
     def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
         """Build attributes dictionary for OPTiMaDe structure resource
 
