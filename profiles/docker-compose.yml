@@ -19,4 +19,4 @@ services:
       - '3253:80'
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
-      - "host.docker.internal:$DOCKER_HOST_IP"
+      - "docker.host.internal:$DOCKER_HOST_IP"
