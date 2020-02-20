@@ -64,7 +64,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: harmon758/postgresql-action@v1
+    - uses: CasperWA/postgresql-action@v1.1
       with:
         postgresql version: '11'
         postgresql db: test_${{ matrix.backend }}
@@ -82,7 +82,7 @@ jobs:
         echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         sudo apt update
-        sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
+        sudo apt install rabbitmq-server graphviz
         sudo systemctl status rabbitmq-server.service
 
     - name: Install python dependencies
@@ -123,7 +123,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: harmon758/postgresql-action@v1
+    - uses: CasperWA/postgresql-action@v1.1
       with:
         postgresql version: '11'
         postgresql db: test_django
@@ -141,7 +141,7 @@ jobs:
         echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         sudo apt update
-        sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
+        sudo apt install rabbitmq-server graphviz
         sudo systemctl status rabbitmq-server.service
 
     - name: Install python dependencies
