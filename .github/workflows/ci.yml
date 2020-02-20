@@ -127,8 +127,8 @@ jobs:
       with:
         postgresql version: '11'
         postgresql db: test_django
-        postgresql user: 'postgres'
-        postgresql password: ''
+        postgresql user: postgres
+        postgresql password: test
 
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
