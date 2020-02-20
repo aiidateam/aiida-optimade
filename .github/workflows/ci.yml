@@ -68,8 +68,8 @@ jobs:
       with:
         postgresql version: '11'
         postgresql db: test_${{ matrix.backend }}
-        postgresql user: 'postgres'
-        postgresql password: 'test'
+        postgresql user: postgres
+        postgresql password: test
 
     - name: Set up Python ${{ matrix.python-version}}
       uses: actions/setup-python@v1
