@@ -64,9 +64,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: CasperWA/postgresql-action@v1.1
+    - uses: CasperWA/postgresql-action@v1.2
       with:
-        postgresql version: '11'
+        postgresql version: '10'
         postgresql db: test_${{ matrix.backend }}
         postgresql user: postgres
         postgresql password: test
@@ -123,9 +123,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: CasperWA/postgresql-action@v1.1
+    - uses: CasperWA/postgresql-action@v1.2
       with:
-        postgresql version: '11'
+        postgresql version: '10'
         postgresql db: test_django
         postgresql user: postgres
         postgresql password: test
