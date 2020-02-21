@@ -7,7 +7,7 @@
     "profiles": {
         "test_django": {
             "AIIDADB_ENGINE": "postgresql_psycopg2",
-            "AIIDADB_PASS": "",
+            "AIIDADB_PASS": "test",
             "AIIDADB_NAME": "test_django",
             "AIIDADB_HOST": "docker.host.internal",
             "AIIDADB_USER": "postgres",
