@@ -171,9 +171,9 @@ jobs:
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
         curl http://localhost:3253/optimade/v0/info > info.json
-        grep -F '"data"' info.json || cat info.json; exit 1
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/optimade/v0/structures/1 > structure.json
-        grep -F '"dimension_types"' structure.json || cat structure.json; exit 1
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
     - name: Test base URL - vMAJOR.MINOR
       run: |
@@ -182,9 +182,9 @@ jobs:
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
         curl http://localhost:3253/optimade/v0.10/info > info.json
-        grep -F '"data"' info.json || cat info.json; exit 1
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/optimade/v0.10/structures/1 > structure.json
-        grep -F '"dimension_types"' structure.json || cat structure.json; exit 1
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
     - name: Test base URL - vMAJOR.MINOR.PATCH
       run: |
@@ -193,6 +193,6 @@ jobs:
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
         curl http://localhost:3253/optimade/v0.10.1/info > info.json
-        grep -F '"data"' info.json || cat info.json; exit 1
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/optimade/v0.10.1/structures/1 > structure.json
-        grep -F '"dimension_types"' structure.json || cat structure.json; exit 1
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
