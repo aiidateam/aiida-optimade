@@ -63,12 +63,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - uses: harmon758/postgresql-action@v1
+
+    - uses: CasperWA/postgresql-action@v1.2
       with:
-        postgresql version: '11'
+        postgresql version: '10'
         postgresql db: test_${{ matrix.backend }}
-        postgresql user: 'postgres'
-        postgresql password: ''
+        postgresql user: postgres
+        postgresql password: test
 
     - name: Set up Python ${{ matrix.python-version}}
       uses: actions/setup-python@v1
@@ -81,7 +82,7 @@ jobs:
         echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         sudo apt update
-        sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
+        sudo apt install rabbitmq-server graphviz
         sudo systemctl status rabbitmq-server.service
 
     - name: Install python dependencies
@@ -122,12 +123,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: harmon758/postgresql-action@v1
+    - uses: CasperWA/postgresql-action@v1.2
       with:
-        postgresql version: '11'
+        postgresql version: '10'
         postgresql db: test_django
-        postgresql user: 'postgres'
-        postgresql password: ''
+        postgresql user: postgres
+        postgresql password: test
 
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -140,7 +141,7 @@ jobs:
         echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
         sudo apt update
-        sudo apt install postgresql postgresql-server-dev-all postgresql-client rabbitmq-server graphviz
+        sudo apt install rabbitmq-server graphviz
         sudo systemctl status rabbitmq-server.service
 
     - name: Install python dependencies
