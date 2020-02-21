@@ -159,10 +159,30 @@ jobs:
     - name: Load test data
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
-    - name: Build the Docker image
+    - name: Build and start the Docker image
       run: |
+        export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
-        curl http://localhost:3253/optimade/info > info.json
-        grep -F "http://www.aiida.net" info.json || exit 1
+
+    - name: Test base URL - vMAJOR
+      run: |
+        curl http://localhost:3253/optimade/v0/info > info.json
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        curl http://localhost:3253/optimade/v0/structures/1 > structure.json
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
+
+    - name: Test base URL - vMAJOR.MINOR
+      run: |
+        curl http://localhost:3253/optimade/v0.10/info > info.json
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        curl http://localhost:3253/optimade/v0.10/structures/1 > structure.json
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
+
+    - name: Test base URL - vMAJOR.MINOR.PATCH
+      run: |
+        curl http://localhost:3253/optimade/v0.10.1/info > info.json
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        curl http://localhost:3253/optimade/v0.10.1/structures/1 > structure.json
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )

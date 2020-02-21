@@ -1,5 +1,6 @@
 import re
 from typing import Tuple
+import requests
 
 from invoke import task
 
@@ -48,6 +49,20 @@ def optimade_req(_, ver=""):
 
     if not ver:
         raise Exception("Please specify --ver='Major.Minor.Patch'")
+    if not re.match("[0-9]+.[0-9]+.[0-9]+", ver):
+        raise Exception("ver MUST be specified as 'Major.Minor.Patch'")
+
+    optimade_init = requests.get(
+        "https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools"
+        f"/v{ver}/optimade/__init__.py"
+    )
+    if optimade_init.status_code != 200:
+        raise Exception(f"{ver} does not seem to be published on GitHub")
+
+    api_version = re.findall(
+        "[0-9]+.[0-9]+.[0-9]+",
+        re.findall('__api_version__ = "[0-9]+.[0-9]+.[0-9]+"', optimade_init.text)[0],
+    )[0]
 
     update_file("setup.py", (r"optimade\[mongo\]~=([^,]+)", f'optimade[mongo]~={ver}"'))
     update_file(
@@ -68,6 +83,14 @@ def optimade_req(_, ver=""):
             f"profiles/docker-compose.{file_format}",
             ("OPTIMADE_TOOLS_VERSION: .*", f"OPTIMADE_TOOLS_VERSION: {ver}"),
         )
+    for regex, version in (
+        ("[0-9]+", api_version.split(".")[0]),
+        ("[0-9]+.[0-9]+", ".".join(api_version.split(".")[:2])),
+        ("[0-9]+.[0-9]+.[0-9]+", api_version),
+    ):
+        update_file(
+            ".github/workflows/ci.yml", (f"/optimade/v{regex}", f"/optimade/v{version}")
+        )
 
     print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))
 
@@ -81,3 +104,11 @@ def aiida_req(_, ver=""):
 
     update_file("setup.py", ("aiida-core~=([^,]+)", f'aiida-core~={ver}"'))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
+    update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
+    for file_format in ("j2", "yml"):
+        update_file(
+            f"profiles/docker-compose.{file_format}",
+            ("AIIDA_VERSION: .*", f"AIIDA_VERSION: {ver}"),
+        )
+
+    print("Bumped AiiDA Core version requirement to {}".format(ver))
