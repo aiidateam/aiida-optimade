@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from aiida import load_profile
 
 from optimade import __api_version__
+from optimade.server.config import CONFIG
 import optimade.server.exception_handlers as exc_handlers
 from optimade.server.middleware import EnsureQueryParamIntegrity
 from optimade.server.routers.utils import BASE_URL_PREFIXES
@@ -21,10 +22,15 @@ from aiida_optimade.routers import (
 )
 
 
+if CONFIG.debug:  # pragma: no cover
+    print("DEBUG MODE")
+
+
 # Load AiiDA profile
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
 load_profile(PROFILE_NAME)
-
+if CONFIG.debug:  # pragma: no cover
+    print(f"AiiDA Profile: {PROFILE_NAME}")
 
 APP = FastAPI(
     title="OPTiMaDe API for AiiDA",
