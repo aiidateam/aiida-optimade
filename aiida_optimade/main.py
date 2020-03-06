@@ -5,6 +5,7 @@ from lark.exceptions import VisitError
 from pydantic import ValidationError
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from aiida import load_profile
@@ -43,6 +44,7 @@ APP = FastAPI(
 
 
 # Add various middleware
+APP.add_middleware(CORSMiddleware, allow_origins=["*"])
 APP.add_middleware(EnsureQueryParamIntegrity)
 
 
