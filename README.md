@@ -36,7 +36,7 @@ export AIIDA_PROFILE=optimade
 ./aiida-optimade/run.sh
 ```
 
-Navigate to `http://localhost:5000/optimade/info`
+Navigate to `http://localhost:5000/v0/info`
 
 ## Running via docker
 
@@ -46,7 +46,7 @@ Adapt `profiles/quicksetup.json` and `profiles/docker-compose.yml` appropriately
 docker-compose -f profiles/docker-compose.yml up --build
 ```
 
-Navigate to `http://localhost:3253/optimade/info`
+Navigate to `http://localhost:3253/v0/info`
 
 Stop by using
 

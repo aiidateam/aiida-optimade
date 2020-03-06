@@ -35,7 +35,7 @@ from aiida_optimade.routers import structures, info
 # does not validate as pydantic AnyUrl model
 APP.include_router(structures.ROUTER)
 APP.include_router(info.ROUTER)
-CLIENT = TestClient(APP, base_url="http://localhost:5000/optimade/v0")
+CLIENT = TestClient(APP, base_url="http://localhost:5000/v0")
 
 
 @pytest.mark.skip("References has not yet been implemented.")

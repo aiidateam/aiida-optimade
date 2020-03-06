@@ -57,9 +57,9 @@ APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
 # Add various endpoints to:
-#   /optimade/vMajor
-#   /optimade/vMajor.Minor
-#   /optimade/vMajor.Minor.Patch
+#   /vMajor
+#   /vMajor.Minor
+#   /vMajor.Minor.Patch
 for version in ("major", "minor", "patch"):
     APP.include_router(info.ROUTER, prefix=BASE_URL_PREFIXES[version])
     APP.include_router(structures.ROUTER, prefix=BASE_URL_PREFIXES[version])
