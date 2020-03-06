@@ -7,7 +7,7 @@ import os
 import unittest
 import pytest
 
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 
 from optimade.server.config import CONFIG
 from optimade.validator import ImplementationValidator

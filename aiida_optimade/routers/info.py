@@ -2,9 +2,7 @@
 import urllib
 from typing import Union
 
-from fastapi import APIRouter
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.requests import Request
+from fastapi import APIRouter, HTTPException, Request
 
 from optimade import __api_version__
 from optimade.models import (
@@ -18,7 +16,7 @@ from optimade.server.routers.utils import meta_values
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
-ROUTER = APIRouter()
+ROUTER = APIRouter(redirect_slashes=True)
 
 ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
 
@@ -75,7 +73,7 @@ def get_info_entry(request: Request, entry: str):
 
     valid_entry_info_endpoints = ENTRY_INFO_SCHEMAS.keys()
     if entry not in valid_entry_info_endpoints:
-        raise StarletteHTTPException(
+        raise HTTPException(
             status_code=404,
             detail=f"Entry info not found for {entry}, valid entry info endpoints are:"
             f" {valid_entry_info_endpoints}",

@@ -11,7 +11,7 @@ from aiida import load_profile
 
 from optimade import __api_version__
 import optimade.server.exception_handlers as exc_handlers
-from optimade.server.middleware import RedirectSlashedURLs
+from optimade.server.middleware import EnsureQueryParamIntegrity
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 
 from aiida_optimade.routers import (
@@ -43,7 +43,7 @@ APP = FastAPI(
 
 
 # Add various middleware
-APP.add_middleware(RedirectSlashedURLs)
+APP.add_middleware(EnsureQueryParamIntegrity)
 
 
 # Add various exception handlers
