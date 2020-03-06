@@ -3,8 +3,7 @@ import urllib
 
 from typing import Union, List
 
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.requests import Request
+from fastapi import HTTPException, Request
 
 from optimade.models import (
     EntryResponseMany,
@@ -137,7 +136,7 @@ def get_single_entry(
     ) = collection.find(params)
 
     if more_data_available:
-        raise StarletteHTTPException(
+        raise HTTPException(
             status_code=500,
             detail="more_data_available MUST be False for single entry response, "
             f"however it is {more_data_available}",

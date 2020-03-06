@@ -88,9 +88,7 @@ def optimade_req(_, ver=""):
         ("[0-9]+.[0-9]+", ".".join(api_version.split(".")[:2])),
         ("[0-9]+.[0-9]+.[0-9]+", api_version),
     ):
-        update_file(
-            ".github/workflows/ci.yml", (f"/optimade/v{regex}", f"/optimade/v{version}")
-        )
+        update_file(".github/workflows/ci.yml", (f"/v{regex}", f"/v{version}"))
 
     print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))
 

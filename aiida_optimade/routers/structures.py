@@ -1,8 +1,7 @@
 # pylint: disable=missing-function-docstring
 from typing import Union
 
-from fastapi import APIRouter, Depends
-from starlette.requests import Request
+from fastapi import APIRouter, Depends, Request
 
 from aiida.orm import StructureData
 
@@ -20,7 +19,7 @@ from aiida_optimade.mappers import StructureMapper
 from .utils import get_entries, get_single_entry, close_session
 
 
-ROUTER = APIRouter()
+ROUTER = APIRouter(redirect_slashes=True)
 
 STRUCTURES = AiidaCollection(StructureData, StructureResource, StructureMapper)
 

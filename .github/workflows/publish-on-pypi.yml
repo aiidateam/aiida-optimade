@@ -22,7 +22,7 @@ jobs:
         python -m pip install --upgrade setuptools
 
     - name: Checkout repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: Assert package version
       env:

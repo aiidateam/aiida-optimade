@@ -5,13 +5,15 @@ from lark.exceptions import VisitError
 from pydantic import ValidationError
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from aiida import load_profile
 
 from optimade import __api_version__
+from optimade.server.config import CONFIG
 import optimade.server.exception_handlers as exc_handlers
-from optimade.server.middleware import RedirectSlashedURLs
+from optimade.server.middleware import EnsureQueryParamIntegrity
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 
 from aiida_optimade.routers import (
@@ -20,10 +22,15 @@ from aiida_optimade.routers import (
 )
 
 
+if CONFIG.debug:  # pragma: no cover
+    print("DEBUG MODE")
+
+
 # Load AiiDA profile
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
 load_profile(PROFILE_NAME)
-
+if CONFIG.debug:  # pragma: no cover
+    print(f"AiiDA Profile: {PROFILE_NAME}")
 
 APP = FastAPI(
     title="OPTiMaDe API for AiiDA",
@@ -43,7 +50,8 @@ APP = FastAPI(
 
 
 # Add various middleware
-APP.add_middleware(RedirectSlashedURLs)
+APP.add_middleware(CORSMiddleware, allow_origins=["*"])
+APP.add_middleware(EnsureQueryParamIntegrity)
 
 
 # Add various exception handlers
@@ -57,9 +65,9 @@ APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 
 # Add various endpoints to:
-#   /optimade/vMajor
-#   /optimade/vMajor.Minor
-#   /optimade/vMajor.Minor.Patch
+#   /vMajor
+#   /vMajor.Minor
+#   /vMajor.Minor.Patch
 for version in ("major", "minor", "patch"):
     APP.include_router(info.ROUTER, prefix=BASE_URL_PREFIXES[version])
     APP.include_router(structures.ROUTER, prefix=BASE_URL_PREFIXES[version])
