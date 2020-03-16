@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        OPTIMADE_TOOLS_VERSION: 0.6.0
+        OPTIMADE_TOOLS_VERSION: 0.7.0
         AIIDA_VERSION: 1.1.1
     environment:
       AIIDA_PATH: /app

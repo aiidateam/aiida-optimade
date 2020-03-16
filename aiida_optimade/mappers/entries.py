@@ -1,7 +1,7 @@
 # pylint: disable=arguments-differ
 from typing import Tuple
 
-from optimade.server.mappers import ResourceMapper as OptimadeResourceMapper
+from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 
