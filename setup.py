@@ -18,10 +18,10 @@ setup(
     install_requires=[
         "aiida-core~=1.1.1",
         "fastapi~=0.52",
-        "lark-parser~=0.8.1",
+        "lark-parser~=0.8.2",
         "optimade[mongo]~=0.7.0",
         "pydantic~=1.4",
-        "uvicorn",
+        "uvicorn~=0.11.3",
     ],
     extras_require={"dev": DEV, "testing": TESTING},
     **SETUP_JSON
