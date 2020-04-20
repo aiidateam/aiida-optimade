@@ -90,7 +90,7 @@ def optimade_req(_, ver=""):
     ):
         update_file(".github/workflows/ci.yml", (f"/v{regex}", f"/v{version}"))
 
-    print("Bumped OPTiMaDe Python Tools version requirement to {}".format(ver))
+    print("Bumped OPTIMADE Python Tools version requirement to {}".format(ver))
 
 
 @task

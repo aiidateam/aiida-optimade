@@ -4,7 +4,7 @@ from typing import Tuple
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list
 ) -> Tuple[dict, dict]:
-    """Get all queryable properties from an OPTiMaDe schema"""
+    """Get all queryable properties from an OPTIMADE schema"""
     properties = {}
     all_properties = {}
 

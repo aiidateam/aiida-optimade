@@ -4,7 +4,7 @@ from lark import Transformer, v_args, Token
 
 __all__ = ("AiidaTransformer",)
 
-# Conversion map from the OPTiMaDe operators to the QueryBuilder operators
+# Conversion map from the OPTIMADE operators to the QueryBuilder operators
 OPERATOR_CONVERSION = {"=": "==", "!=": "!==", "in": "contains"}
 
 
@@ -14,7 +14,7 @@ def op_conv_map(operator):
 
 
 class AiidaTransformer(Transformer):
-    """Transform OPTiMaDe query to AiiDA QueryBuilder queryhelp query"""
+    """Transform OPTIMADE query to AiiDA QueryBuilder queryhelp query"""
 
     reversed_operator_map = {
         "<": ">",
@@ -56,8 +56,8 @@ class AiidaTransformer(Transformer):
         """ not_implemented_string: value
 
         Raise NotImplementedError.
-        For further information, see Materials-Consortia/OPTiMaDe issue 157:
-        https://github.com/Materials-Consortia/OPTiMaDe/issues/157
+        For further information, see Materials-Consortia/OPTIMADE issue 157:
+        https://github.com/Materials-Consortia/OPTIMADE/issues/157
         """
         raise NotImplementedError("Comparing strings is not yet implemented.")
 

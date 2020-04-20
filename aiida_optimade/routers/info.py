@@ -91,7 +91,7 @@ def get_info_entry(request: Request, entry: str):
             formats=list(output_fields_by_format.keys()),
             description=schema.get(
                 "description",
-                "Endpoint to represent AiiDA Nodes in the OPTiMaDe format",
+                "Endpoint to represent AiiDA Nodes in the OPTIMADE format",
             ),
             properties=properties,
             output_fields_by_format=output_fields_by_format,

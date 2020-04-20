@@ -49,7 +49,7 @@ class AiidaCollection:
         self._latest_filter: dict = None
 
     def get_attribute_fields(self) -> set:
-        """Get all attribute properties/fields for OPTiMaDe entity"""
+        """Get all attribute properties/fields for OPTIMADE entity"""
         schema = self.resource_cls.schema()
         attributes = schema["properties"]["attributes"]
         if "allOf" in attributes:
@@ -143,7 +143,7 @@ class AiidaCollection:
     def find(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
     ) -> Tuple[List[EntryResource], int, bool, int, set]:
-        """Find all requested AiiDA entities as OPTiMaDe JSON objects"""
+        """Find all requested AiiDA entities as OPTIMADE JSON objects"""
         self.set_data_available()
         criteria = self._parse_params(params)
 
@@ -197,7 +197,7 @@ class AiidaCollection:
     def _alias_filter(self, filters: Any) -> Union[dict, list]:
         """Get aliased field names in nested filter query.
 
-        I.e. turn OPTiMaDe field names into AiiDA field names
+        I.e. turn OPTIMADE field names into AiiDA field names
         """
         if isinstance(filters, dict):
             res = {}
@@ -254,7 +254,7 @@ class AiidaCollection:
             cursor_kwargs["limit"] = CONFIG.page_limit
 
         # response_fields
-        # All OPTiMaDe fields
+        # All OPTIMADE fields
         fields = self.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
         fields |= self.get_attribute_fields()
         # All provider-specific fields
@@ -311,7 +311,7 @@ class AiidaCollection:
         }
 
     def _check_and_calculate_entities(self):
-        """Check all entities have OPTiMaDe extras, else calculate them
+        """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
         been queried for using "filter".
@@ -333,12 +333,12 @@ class AiidaCollection:
         )
 
         if necessary_entities_qb:
-            # Necessary entities for the OPTiMaDe query exist with unknown OPTiMaDe
+            # Necessary entities for the OPTIMADE query exist with unknown OPTIMADE
             # fields.
             necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
-            # Create the missing OPTiMaDe fields:
-            # All OPTiMaDe fields
+            # Create the missing OPTIMADE fields:
+            # All OPTIMADE fields
             fields = {"id", "type"}
             fields |= self.get_attribute_fields()
             # All provider-specific fields

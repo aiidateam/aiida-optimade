@@ -92,7 +92,7 @@ jobs:
         pip install -e .[dev]
         reentry scan
 
-    - name: Setup server.cfg for AiiDA OPTiMaDe server
+    - name: Setup server.cfg for AiiDA OPTIMADE server
       run: cp .ci/server_template.cfg ./server.cfg
 
     - name: Setup up environment for AiiDA

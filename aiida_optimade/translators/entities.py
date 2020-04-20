@@ -9,10 +9,10 @@ __all__ = ("AiidaEntityTranslator",)
 
 
 class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
-    """Create OPTiMaDe entry attributes from an AiiDA Entity Node - Base class
+    """Create OPTIMADE entry attributes from an AiiDA Entity Node - Base class
 
     For speed and reusability, save attributes in the Node's extras.
-    Each OPTiMaDe attribute should be a method in subclasses of this class.
+    Each OPTIMADE attribute should be a method in subclasses of this class.
     """
 
     EXTRAS_KEY = "optimade"

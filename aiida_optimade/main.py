@@ -33,9 +33,9 @@ if CONFIG.debug:  # pragma: no cover
     print(f"AiiDA Profile: {PROFILE_NAME}")
 
 APP = FastAPI(
-    title="OPTiMaDe API for AiiDA",
+    title="OPTIMADE API for AiiDA",
     description=(
-        "The [Open Databases Integration for Materials Design (OPTiMaDe) consortium]"
+        "The [Open Databases Integration for Materials Design (OPTIMADE) consortium]"
         "(http://www.optimade.org/) aims to make materials databases inter-operational "
         "by developing a common REST API.\n\n[Automated Interactive Infrastructure "
         "and Database for Computational Science (AiiDA)](http://www.aiida.net) aims to "

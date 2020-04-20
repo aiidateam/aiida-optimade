@@ -13,9 +13,9 @@ __all__ = ("StructureDataTranslator",)
 
 
 class StructureDataTranslator(AiidaEntityTranslator):
-    """Create OPTiMaDe "structures" attributes from an AiiDA StructureData Node
+    """Create OPTIMADE "structures" attributes from an AiiDA StructureData Node
 
-    Each OPTiMaDe field is a method in this class.
+    Each OPTIMADE field is a method in this class.
 
     NOTE: This class succeeds in *never* loading the actual AiiDA Node for optimization purposes.
     """
@@ -41,7 +41,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
             self.__sites = self._get_unique_node_property("attributes.sites")
         return self.__sites
 
-    # Helper methods to calculate OPTiMaDe fields
+    # Helper methods to calculate OPTIMADE fields
     def get_symbols_set(self):
         """Copy of aiida.orm.StructureData:get_symbols_set()"""
         return set(
@@ -142,7 +142,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if "X" in res:
             res.remove("X")
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -156,7 +156,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = len(self.elements())
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -173,7 +173,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         total_weight = sum(ratios.values())
         res = [ratios[symbol] / total_weight for symbol in self.elements()]
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = str(res)
         return res
 
@@ -187,7 +187,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = self.get_formula()
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -226,7 +226,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
                     occupation[symbol] = rounded_weight
         res = "".join([f"{symbol}{occupation[symbol]}" for symbol in self.elements()])
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -252,7 +252,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         else:
             res = self.get_formula(mode="hill")
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -297,7 +297,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
             [f"{map_anonymous[symbol]}{occupation[symbol]}" for symbol in elements]
         )
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -323,7 +323,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
             )
         ]
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -339,7 +339,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
             self._get_unique_node_property("attributes.cell")
         )
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -358,7 +358,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         sites = [list(site["position"]) for site in self._sites]
         res = self.check_floating_round_errors(sites)
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -372,7 +372,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = len(self.cartesian_site_positions())
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -390,7 +390,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = [site["kind_name"] for site in self._sites]
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -441,7 +441,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
             res.append(species)
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -455,7 +455,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     #     res = []
 
-    #     # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+    #     # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
     #     self.new_attributes[attribute] = res
     #     return res
 
@@ -505,6 +505,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         # if self.assemblies():
         #     res.append("assemblies")
 
-        # Finally, save OPTiMaDe attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
         return res

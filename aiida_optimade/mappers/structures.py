@@ -9,7 +9,7 @@ __all__ = ("StructureMapper",)
 
 
 class StructureMapper(ResourceMapper):
-    """Map 'structure' resources from OPTiMaDe to AiiDA"""
+    """Map 'structure' resources from OPTIMADE to AiiDA"""
 
     ENDPOINT = "structures"
 
@@ -19,12 +19,12 @@ class StructureMapper(ResourceMapper):
 
     @classmethod
     def map_back(cls, entity_properties: dict) -> dict:
-        """Map properties from AiiDA to OPTiMaDe
+        """Map properties from AiiDA to OPTIMADE
 
         :param entity_properties: Found AiiDA properties through QueryBuilder query
         :type entity_properties: dict
 
-        :return: A resource object in OPTiMaDe format
+        :return: A resource object in OPTIMADE format
         :rtype: dict
         """
         mapping = ((real, alias) for alias, real in cls.all_aliases())
@@ -60,7 +60,7 @@ class StructureMapper(ResourceMapper):
 
     @classmethod
     def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
-        """Build attributes dictionary for OPTiMaDe structure resource
+        """Build attributes dictionary for OPTIMADE structure resource
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
         :type retrieved_attributes: dict
