@@ -175,6 +175,7 @@ jobs:
       run: |
         curl http://localhost:3253/v0/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
@@ -182,6 +183,7 @@ jobs:
       run: |
         curl http://localhost:3253/v0.10/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0.10/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
@@ -189,5 +191,6 @@ jobs:
       run: |
         curl http://localhost:3253/v0.10.1/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0.10.1/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
