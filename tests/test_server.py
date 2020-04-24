@@ -186,7 +186,7 @@ class TestSingleStructureEndpointTests(BaseTestCases.EndpointTests):
         assert self.json_response["data"]["type"] == "structures"
         assert "attributes" in self.json_response["data"]
         assert (
-            f"{CONFIG.provider.prefix}{CONFIG.provider_fields['structures'][0]}"
+            f"_{CONFIG.provider.prefix}_{CONFIG.provider_fields['structures'][0]}"
             in self.json_response["data"]["attributes"]
         )
 
@@ -211,7 +211,7 @@ class TestFilterTests(unittest.TestCase):
     )
     def test_custom_field(self):
         request = (
-            f"/structures?filter={CONFIG.provider.prefix}"
+            f"/structures?filter=_{CONFIG.provider.prefix}_"
             f'{CONFIG.provider_fields["structures"][0]}'
             '="2019-11-19T18:42:25.844780+01:00"'
         )
@@ -341,7 +341,7 @@ class TestFilterTests(unittest.TestCase):
 
     def test_node_columns_is_known(self):
         request = (
-            f"/structures?filter={CONFIG.provider.prefix}"
+            f"/structures?filter=_{CONFIG.provider.prefix}_"
             f"{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
         )
         expected_ids = ["302", "683"]
