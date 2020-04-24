@@ -3,7 +3,7 @@
   "page_limit_max": 500,
   "base_url": null,
   "provider": {
-    "prefix": "_aiida_",
+    "prefix": "aiida",
     "name": "AiiDA",
     "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
     "homepage": "http://www.aiida.net",

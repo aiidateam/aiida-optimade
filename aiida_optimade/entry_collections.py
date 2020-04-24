@@ -38,7 +38,7 @@ class AiidaCollection:
         self.resource_mapper = resource_mapper
 
         self.transformer = AiidaTransformer()
-        self.provider = CONFIG.provider["prefix"]
+        self.provider = CONFIG.provider.prefix
         self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
         self.parser = LarkParser(version=(0, 10, 1))
 
@@ -258,7 +258,7 @@ class AiidaCollection:
         fields = self.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
         fields |= self.get_attribute_fields()
         # All provider-specific fields
-        fields |= {self.provider + _ for _ in self.provider_fields}
+        fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
         cursor_kwargs["fields"] = fields
         cursor_kwargs["project"] = list(
             {self.resource_mapper.alias_for(f) for f in fields}
@@ -342,7 +342,7 @@ class AiidaCollection:
             fields = {"id", "type"}
             fields |= self.get_attribute_fields()
             # All provider-specific fields
-            fields |= {self.provider + _ for _ in self.provider_fields}
+            fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
             fields = list({self.resource_mapper.alias_for(f) for f in fields})
 
             entities = self._find_all(

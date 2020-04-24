@@ -94,9 +94,6 @@ jobs:
         pip install -e .[testing]
         reentry scan
 
-    - name: Setup server.cfg for AiiDA OPTIMADE server
-      run: cp .ci/server_template.cfg ./server.cfg
-
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
@@ -108,6 +105,7 @@ jobs:
     - name: Test with pytest
       env:
         AIIDA_PROFILE: test_${{ matrix.backend }}
+        OPTIMADE_CONFIG_FILE: ./aiida_optimade/config.json
       run: pytest --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
@@ -177,6 +175,7 @@ jobs:
       run: |
         curl http://localhost:3253/v0/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
@@ -184,6 +183,7 @@ jobs:
       run: |
         curl http://localhost:3253/v0.10/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0.10/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
@@ -191,5 +191,6 @@ jobs:
       run: |
         curl http://localhost:3253/v0.10.1/info > info.json
         grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
         curl http://localhost:3253/v0.10.1/structures/1 > structure.json
         grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )

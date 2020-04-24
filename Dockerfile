@@ -5,7 +5,7 @@ ENV AIIDA_PATH /app
 WORKDIR /app
 
 # Install specific optimade version
-ARG OPTIMADE_TOOLS_VERSION=0.7.0
+ARG OPTIMADE_TOOLS_VERSION=0.8.0
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
 # Install specific aiida-core version
@@ -18,8 +18,6 @@ COPY setup.py setup.json README.md ./
 COPY aiida_optimade ./aiida_optimade
 RUN pip install -e .
 
-# Copy AiiDA configuration
-COPY .docker/server_template.cfg ./server.cfg
 COPY .docker/run.sh ./
 
 EXPOSE 80

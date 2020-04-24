@@ -7,11 +7,12 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        OPTIMADE_TOOLS_VERSION: 0.7.0
+        OPTIMADE_TOOLS_VERSION: 0.8.0
         AIIDA_VERSION: 1.2.1
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django
+      OPTIMADE_CONFIG_FILE: /app/aiida_optimade/config.json
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
