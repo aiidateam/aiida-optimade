@@ -94,9 +94,6 @@ jobs:
         pip install -e .[testing]
         reentry scan
 
-    - name: Setup server.cfg for AiiDA OPTIMADE server
-      run: cp .ci/server_template.cfg ./server.cfg
-
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
@@ -108,6 +105,7 @@ jobs:
     - name: Test with pytest
       env:
         AIIDA_PROFILE: test_${{ matrix.backend }}
+        OPTIMADE_CONFIG_FILE: ./aiida_optimade/config.json
       run: pytest --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
