@@ -3,7 +3,7 @@ profile: PLACEHOLDER_PROFILE
 email: aiida@localhost
 first_name: AiiDA
 last_name: OPTIMADE
-institution: Materials-Consortia
+institution: EPFL
 db_backend: PLACEHOLDER_BACKEND
 db_engine: postgresql_psycopg2
 db_host: localhost

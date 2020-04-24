@@ -11,6 +11,7 @@ RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 # Install specific aiida-core version
 ARG AIIDA_VERSION=1.2.1
 RUN pip install aiida-core==${AIIDA_VERSION}
+RUN reentry scan
 
 # Copy repo contents
 COPY setup.py setup.json README.md ./
