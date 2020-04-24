@@ -39,6 +39,9 @@ def setver(_, patch=False, new_ver=""):
         "aiida_optimade/config.json",
         ('"version": ([^,]+),', f'"version": "{new_ver}",'),
     )
+    update_file(
+        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",'),
+    )
 
     print("Bumped version to {}".format(new_ver))
 

@@ -65,6 +65,14 @@ class AiidaTransformer(Transformer):
         """value_list: [ OPERATOR ] value ( "," [ OPERATOR ] value )*"""
         values = []
         for value in args:
+            if value in self.reversed_operator_map:
+                # value is OPERATOR
+                # This is currently not supported
+                raise NotImplementedError(
+                    f"OPERATOR {value} inside value_list {args} has not been "
+                    "implemented."
+                )
+
             try:
                 value = float(value)
             except ValueError:
