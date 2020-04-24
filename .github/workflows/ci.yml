@@ -61,35 +61,37 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
         backend: ['django', 'sqlalchemy']
 
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_DB: test_${{ matrix.backend }}
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+
     steps:
     - uses: actions/checkout@v2
-
-    - uses: CasperWA/postgresql-action@v1.2
-      with:
-        postgresql version: '10'
-        postgresql db: test_${{ matrix.backend }}
-        postgresql user: postgres
-        postgresql password: test
 
     - name: Set up Python ${{ matrix.python-version}}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version}}
 
-    - name: Install system dependencies
-      run: |
-        wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
-        echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        sudo apt update
-        sudo apt install rabbitmq-server graphviz
-        sudo systemctl status rabbitmq-server.service
-
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -U setuptools
-        pip install -e .[dev]
+        pip install -e .[testing]
         reentry scan
 
     - name: Setup server.cfg for AiiDA OPTIMADE server
@@ -120,29 +122,34 @@ jobs:
   docker-image:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_DB: test_django
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+
     steps:
     - uses: actions/checkout@v2
-
-    - uses: CasperWA/postgresql-action@v1.2
-      with:
-        postgresql version: '10'
-        postgresql db: test_django
-        postgresql user: postgres
-        postgresql password: test
 
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
-
-    - name: Install system dependencies
-      run: |
-        wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
-        echo 'deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        echo 'deb https://dl.bintray.com/rabbitmq/debian bionic main' | sudo tee -a /etc/apt/sources.list.d/bintray.rabbitmq.list
-        sudo apt update
-        sudo apt install rabbitmq-server graphviz
-        sudo systemctl status rabbitmq-server.service
 
     - name: Install python dependencies
       run: |
