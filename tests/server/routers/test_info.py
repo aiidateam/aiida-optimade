@@ -1,12 +1,16 @@
-# pylint: disable=relative-beyond-top-level
-import unittest
+import pytest
 
-from optimade.models import InfoResponse, EntryInfoResponse
+from optimade.models import (
+    InfoResponse,
+    EntryInfoResponse,
+    BaseInfoAttributes,
+    EntryInfoResource,
+)
 
-from ..utils import EndpointTestsMixin
+from ..utils import EndpointTests
 
 
-class InfoEndpointTests(EndpointTestsMixin, unittest.TestCase):
+class TestInfoEndpoint(EndpointTests):
     """Tests for /info"""
 
     request_str = "/info"
@@ -14,21 +18,15 @@ class InfoEndpointTests(EndpointTestsMixin, unittest.TestCase):
 
     def test_info_endpoint_attributes(self):
         """Check known properties/attributes for successful response"""
-        self.assertTrue("data" in self.json_response)
-        self.assertEqual(self.json_response["data"]["type"], "info")
-        self.assertEqual(self.json_response["data"]["id"], "/")
-        self.assertTrue("attributes" in self.json_response["data"])
-        attributes = [
-            "api_version",
-            "available_api_versions",
-            "formats",
-            "entry_types_by_format",
-            "available_endpoints",
-        ]
+        assert "data" in self.json_response
+        assert self.json_response["data"]["type"] == "info"
+        assert self.json_response["data"]["id"] == "/"
+        assert "attributes" in self.json_response["data"]
+        attributes = list(BaseInfoAttributes.schema()["properties"].keys())
         self.check_keys(attributes, self.json_response["data"]["attributes"])
 
 
-class InfoStructuresEndpointTests(EndpointTestsMixin, unittest.TestCase):
+class TestInfoStructuresEndpoint(EndpointTests):
     """Tests for /info/structures"""
 
     request_str = "/info/structures"
@@ -36,13 +34,20 @@ class InfoStructuresEndpointTests(EndpointTestsMixin, unittest.TestCase):
 
     def test_info_structures_endpoint_data(self):
         """Check known properties/attributes for successful response"""
-        self.assertTrue("data" in self.json_response)
-        data_keys = ["description", "properties", "formats", "output_fields_by_format"]
-        self.check_keys(data_keys, self.json_response["data"])
+        assert "data" in self.json_response
+        data = EntryInfoResource.schema()["required"]
+        self.check_keys(data, self.json_response["data"])
 
 
-class InfoReferencesEndpointTests(EndpointTestsMixin, unittest.TestCase):
+@pytest.mark.skip("References has not yet been implemented")
+class TestInfoReferencesEndpoint(EndpointTests):
     """Tests for /info/references"""
 
     request_str = "/info/references"
     response_cls = EntryInfoResponse
+
+    def test_info_references_endpoint_data(self):
+        """Check known properties/attributes for successful response"""
+        assert "data" in self.json_response
+        data = EntryInfoResource.schema()["required"]
+        self.check_keys(data, self.json_response["data"])

@@ -1,21 +1,20 @@
-import unittest
 import pytest
 
 from optimade.models import ReferenceResponseMany, ReferenceResponseOne
 
-from ..utils import EndpointTestsMixin
+from ..utils import EndpointTests
 
 pytestmark = pytest.mark.skip("References has not yet been implemented")
 
 
-class ReferencesEndpointTests(EndpointTestsMixin, unittest.TestCase):
+class TestReferencesEndpoint(EndpointTests):
     """Tests for /references"""
 
     request_str = "/references"
     response_cls = ReferenceResponseMany
 
 
-class SingleReferenceEndpointTests(EndpointTestsMixin, unittest.TestCase):
+class TestSingleReferenceEndpoint(EndpointTests):
     """Tests for /references/<entry_id>"""
 
     test_id = "dijkstra1968"
@@ -23,7 +22,7 @@ class SingleReferenceEndpointTests(EndpointTestsMixin, unittest.TestCase):
     response_cls = ReferenceResponseOne
 
 
-class SingleReferenceEndpointTestsDifficult(EndpointTestsMixin, unittest.TestCase):
+class TestSingleReferenceEndpointDifficult(EndpointTests):
     """Tests for /references/<entry_id>,
     where <entry_id> contains difficult characters"""
 
@@ -32,7 +31,7 @@ class SingleReferenceEndpointTestsDifficult(EndpointTestsMixin, unittest.TestCas
     response_cls = ReferenceResponseOne
 
 
-class MissingSingleReferenceEndpointTests(EndpointTestsMixin, unittest.TestCase):
+class TestMissingSingleReferenceEndpoint(EndpointTests):
     """Tests for /references/<entry_id> for unknown <entry_id>"""
 
     test_id = "random_string_that_is_not_in_test_data"
@@ -41,8 +40,8 @@ class MissingSingleReferenceEndpointTests(EndpointTestsMixin, unittest.TestCase)
 
     def test_references_endpoint_data(self):
         """Check known properties/attributes for successful response"""
-        self.assertTrue("data" in self.json_response)
-        self.assertTrue("meta" in self.json_response)
-        self.assertEqual(self.json_response["data"], None)
-        self.assertEqual(self.json_response["meta"]["data_returned"], 0)
-        self.assertEqual(self.json_response["meta"]["more_data_available"], False)
+        assert "data" in self.json_response
+        assert "meta" in self.json_response
+        assert self.json_response["data"] is None
+        assert self.json_response["meta"]["data_returned"] == 0
+        assert not self.json_response["meta"]["more_data_available"]

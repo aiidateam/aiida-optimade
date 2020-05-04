@@ -1,11 +1,12 @@
-import unittest
+import pytest
 
 from optimade.models import LinksResponse
 
-from ..utils import EndpointTestsMixin
+from ..utils import EndpointTests
 
 
-class LinksEndpointTests(EndpointTestsMixin, unittest.TestCase):
+@pytest.mark.skip("Links has not yet been implemented")
+class TestLinksEndpoint(EndpointTests):
     """Tests for /links"""
 
     request_str = "/links"
