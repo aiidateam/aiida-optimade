@@ -16,15 +16,16 @@ import optimade.server.exception_handlers as exc_handlers
 from optimade.server.middleware import EnsureQueryParamIntegrity
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 
+from aiida_optimade.middleware import RedirectOpenApiDocs
 from aiida_optimade.routers import (
     info,
     structures,
 )
+from aiida_optimade.utils import get_custom_base_url_path
 
 
 if CONFIG.debug:  # pragma: no cover
     print("DEBUG MODE")
-
 
 # Load AiiDA profile
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
@@ -32,6 +33,7 @@ load_profile(PROFILE_NAME)
 if CONFIG.debug:  # pragma: no cover
     print(f"AiiDA Profile: {PROFILE_NAME}")
 
+DOCS_ENDPOINT_PREFIX = f"{get_custom_base_url_path()}{BASE_URL_PREFIXES['major']}"
 APP = FastAPI(
     title="OPTIMADE API for AiiDA",
     description=(
@@ -43,15 +45,16 @@ APP = FastAPI(
         "reproducible."
     ),
     version=__api_version__,
-    docs_url=f"{BASE_URL_PREFIXES['major']}/extensions/docs",
-    redoc_url=f"{BASE_URL_PREFIXES['major']}/extensions/redoc",
-    openapi_url=f"{BASE_URL_PREFIXES['major']}/extensions/openapi.json",
+    docs_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/docs",
+    redoc_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/redoc",
+    openapi_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/openapi.json",
 )
 
 
 # Add various middleware
 APP.add_middleware(CORSMiddleware, allow_origins=["*"])
 APP.add_middleware(EnsureQueryParamIntegrity)
+APP.add_middleware(RedirectOpenApiDocs)
 
 
 # Add various exception handlers
