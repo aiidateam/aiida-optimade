@@ -21,7 +21,7 @@ from aiida_optimade.routers import (
     info,
     structures,
 )
-from aiida_optimade.utils import get_custom_base_url_path
+from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
 if CONFIG.debug:  # pragma: no cover
@@ -45,9 +45,9 @@ APP = FastAPI(
         "reproducible."
     ),
     version=__api_version__,
-    docs_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/docs",
-    redoc_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/redoc",
-    openapi_url=f"{DOCS_ENDPOINT_PREFIX}/extensions/openapi.json",
+    docs_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['docs']}",
+    redoc_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['redoc']}",
+    openapi_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['openapi']}",
 )
 
 

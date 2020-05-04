@@ -6,6 +6,8 @@ from starlette.responses import RedirectResponse
 
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 
+from aiida_optimade.utils import OPEN_API_ENDPOINTS
+
 
 class RedirectOpenApiDocs(BaseHTTPMiddleware):
     """Redirect URLs from non-major version prefix URLs to major-version prefix URLs
@@ -13,15 +15,9 @@ class RedirectOpenApiDocs(BaseHTTPMiddleware):
     This is relevant for the OpenAPI JSON, Docs, and ReDocs URLs.
     """
 
-    SPECIAL_ENDPOINTS = {
-        "docs_url": "/extensions/docs",
-        "redoc_url": "/extensions/redoc",
-        "openapi_url": "/extensions/openapi.json",
-    }
-
     async def dispatch(self, request: Request, call_next):
         parsed_url = urllib.parse.urlsplit(str(request.url))
-        for endpoint in self.SPECIAL_ENDPOINTS.values():
+        for endpoint in OPEN_API_ENDPOINTS.values():
             # Important to start with the longest (or full) URL prefix first.
             for version_prefix in [
                 BASE_URL_PREFIXES["patch"],

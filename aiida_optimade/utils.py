@@ -4,6 +4,13 @@ import urllib.parse
 from optimade.server.config import CONFIG
 
 
+OPEN_API_ENDPOINTS = {
+    "docs": "/extensions/docs",
+    "redoc": "/extensions/redoc",
+    "openapi": "/extensions/openapi.json",
+}
+
+
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list
 ) -> Tuple[dict, dict]:
