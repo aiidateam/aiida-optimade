@@ -14,7 +14,7 @@ from optimade.validator import ImplementationValidator
 
 # Use specific AiiDA profile
 if os.getenv("AIIDA_PROFILE", None) is None:
-    os.environ["AIIDA_PROFILE"] = "optimade_v1_aiida_sqla"
+    os.environ["AIIDA_PROFILE"] = "optimade_sqla"
 
 from optimade.models import (
     ResponseMeta,
