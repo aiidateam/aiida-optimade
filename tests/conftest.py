@@ -3,6 +3,9 @@ import os
 from pathlib import Path
 
 
+AIIDA_TEST_PROFILE = "optimade_sqla"
+
+
 def pytest_configure(config):
     """Method that runs before pytest collects tests so no modules are imported"""
     set_config_file()
@@ -18,4 +21,4 @@ def set_config_file():
 def load_aiida_profile():
     """Load AiiDA profile"""
     if os.getenv("AIIDA_PROFILE", None) is None:
-        os.environ["AIIDA_PROFILE"] = "optimade_sqla"
+        os.environ["AIIDA_PROFILE"] = AIIDA_TEST_PROFILE

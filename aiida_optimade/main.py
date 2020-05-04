@@ -64,6 +64,7 @@ APP.add_exception_handler(
 )
 APP.add_exception_handler(ValidationError, exc_handlers.validation_exception_handler)
 APP.add_exception_handler(VisitError, exc_handlers.grammar_not_implemented_handler)
+APP.add_exception_handler(NotImplementedError, exc_handlers.not_implemented_handler)
 APP.add_exception_handler(Exception, exc_handlers.general_exception_handler)
 
 

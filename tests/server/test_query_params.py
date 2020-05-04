@@ -115,7 +115,7 @@ def test_list_length_basic(check_response):
     check_response(request, expected_ids)
 
 
-def test_list_length(check_response):
+def test_list_length_operators(check_response):
     request = "/structures?filter=elements LENGTH = 17"
     expected_ids = ["1047"]
     check_response(request, expected_ids)
@@ -129,18 +129,38 @@ def test_list_length(check_response):
     check_response(request, expected_ids)
 
 
-@pytest.mark.skip("HAS ONLY is not implemented.")
-def test_list_has_only(check_response):
+def test_list_length_bad_operators(check_error_response):
+    """Check NonImplementedError is raised when using a valid,
+    but not-supported operator"""
+    bad_valid_operator = "!="
+    request = f"/structures?filter=elements LENGTH {bad_valid_operator} 2"
+    check_error_response(
+        request,
+        expected_status=501,
+        expected_title="NotImplementedError",
+        expected_detail=(
+            f"Operator {bad_valid_operator} has not been implemented for the LENGTH filter."
+        ),
+    )
+
+
+def test_list_has_only(check_error_response):
+    # HAS ONLY is not yet implemented
     request = '/structures?filter=elements HAS ONLY "Ac"'
-    expected_ids = [""]
-    check_response(request, expected_ids)
+    check_error_response(
+        request,
+        expected_status=501,
+        expected_title="NotImplementedError",
+        expected_detail="`set_op_rhs HAS ONLY value_list` has not been implemented.",
+    )
 
 
-@pytest.mark.skip("Zips are not implemented.")
-def test_list_correlated(check_response):
+def test_list_correlated(check_error_response):
+    # Zipped lists are not yet implemented
     request = '/structures?filter=elements:elements_ratios HAS "Ag":"0.2"'
-    expected_ids = [""]
-    check_response(request, expected_ids)
+    check_error_response(
+        request, expected_status=501, expected_title="NotImplementedError"
+    )
 
 
 def test_saved_extras_is_known(check_response):

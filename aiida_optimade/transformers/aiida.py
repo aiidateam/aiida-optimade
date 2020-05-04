@@ -1,5 +1,5 @@
 # pylint: disable=no-self-use,too-many-public-methods
-from lark import Transformer, v_args, Token
+from lark import Transformer, v_args
 
 
 __all__ = ("AiidaTransformer",)
@@ -48,7 +48,7 @@ class AiidaTransformer(Transformer):
     @v_args(inline=True)
     def non_string_value(self, value):
         """ non_string_value: number | property """
-        # Note: Do nothing!
+        # NOTE: Do nothing!
         return value
 
     @v_args(inline=True)
@@ -63,9 +63,8 @@ class AiidaTransformer(Transformer):
 
     def value_list(self, args):
         """value_list: [ OPERATOR ] value ( "," [ OPERATOR ] value )*"""
-        values = []
         for value in args:
-            if value in self.reversed_operator_map:
+            if str(value) in self.reversed_operator_map:
                 # value is OPERATOR
                 # This is currently not supported
                 raise NotImplementedError(
@@ -73,16 +72,7 @@ class AiidaTransformer(Transformer):
                     "implemented."
                 )
 
-            try:
-                value = float(value)
-            except ValueError:
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1]
-            else:
-                if value.is_integer():
-                    value = int(value)
-            values.append(value)
-        return values
+        return args
 
     def value_zip(self, arg):
         """
@@ -170,18 +160,15 @@ class AiidaTransformer(Transformer):
                              STARTS [ WITH ] string |
                              ENDS [ WITH ] string
         """
-        # The WITH keyword may be omitted.
-        if isinstance(arg[1], Token) and arg[1].type == "WITH":
-            pattern = arg[2]
-        else:
-            pattern = arg[1]
-
+        # Since the string pattern will always be the last argument,
+        # and there is always another keyword before the OPTIONAL "WITH",
+        # there is no need to test for the existence of "WITH"
         if arg[0] == "CONTAINS":
-            like = f"%{pattern}%"
+            like = f"%{arg[-1]}%"
         elif arg[0] == "STARTS":
-            like = f"{pattern}%"
+            like = f"{arg[-1]}%"
         elif arg[0] == "ENDS":
-            like = f"%{pattern}"
+            like = f"%{arg[-1]}"
         return {"like": like}
 
     def set_op_rhs(self, arg):
@@ -201,12 +188,12 @@ class AiidaTransformer(Transformer):
             return {"or": [{"contains": [value]} for value in arg[2]]}
         if arg[1] == "ONLY":
             raise NotImplementedError(
-                "'set_op_rhs: HAS ONLY value_list' has not been implemented."
+                "`set_op_rhs HAS ONLY value_list` has not been implemented."
             )
 
         # value with OPERATOR
         raise NotImplementedError(
-            "'set_op_rhs: HAS OPERATOR value' has not been implemented."
+            f"set_op_rhs has not been implemented for use with OPERATOR. Given: {arg}"
         )
 
     def set_zip_op_rhs(self, arg):
@@ -239,8 +226,7 @@ class AiidaTransformer(Transformer):
             }
 
         raise NotImplementedError(
-            f"length_comparison has failed with {arg}. "
-            "Unknown not-implemented operator."
+            f"Operator {operator} has not been implemented for the LENGTH filter."
         )
 
     def property_zip_addon(self, arg):
@@ -280,7 +266,7 @@ class AiidaTransformer(Transformer):
             type_ = float
         return type_(number)
 
-    def __default__(self, data, children, meta):
+    def __default__(self, data, children, meta):  # pragma: no cover
         raise NotImplementedError(
             "Calling __default__, i.e., unknown grammar concept. "
             f"data: {data}, children: {children}, meta: {meta}"
