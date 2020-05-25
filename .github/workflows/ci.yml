@@ -31,9 +31,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-
     steps:
     - uses: actions/checkout@v2
 
@@ -119,9 +116,6 @@ jobs:
 
   docker-image:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
 
     services:
       postgres:
