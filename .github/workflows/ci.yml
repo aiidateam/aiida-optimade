@@ -154,9 +154,6 @@ jobs:
     - name: Load test data
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
-    - name: Copy server_template.cfg file to mcloud folder
-      run: cp -n ./.docker/server_template.cfg ./mcloud/server_template.cfg
-
     - name: Build and start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
