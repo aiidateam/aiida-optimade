@@ -5,7 +5,7 @@ ENV AIIDA_PATH /app
 WORKDIR /app
 
 # Install specific optimade version
-ARG OPTIMADE_TOOLS_VERSION=0.8.0
+ARG OPTIMADE_TOOLS_VERSION=0.8.1
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
 # Install specific aiida-core version
