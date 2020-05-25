@@ -16,15 +16,15 @@ RUN pip install -U pip setuptools wheel \
     && reentry scan \
     && pip install -e .
 
-# Copy AiiDA configuration
+# Copy Materials Cloud configuration
 COPY mcloud ./mcloud
-COPY mcloud/server_template.cfg ./server.cfg
-COPY .docker/run.sh ./
 
 EXPOSE 80
 
 ARG CONFIG_FILE=aiida_optimade/config.json
 COPY ${CONFIG_FILE} ./config.json
 ENV OPTIMADE_CONFIG_FILE /app/config.json
+
+COPY .docker/run.sh ./
 
 CMD ["/app/run.sh"]

@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
 
@@ -19,11 +19,11 @@ services:
       MONGO_FILENAME:
       AIIDA_OPTIMADE_LOG_LEVEL:
     volumes:
-      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
-      - '.:/profiles'
-      - '../.github/mongo:/app/.mongo'
+      - "/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup"
+      - ".:/profiles"
+      - "../.github/mongo:/app/.mongo"
     ports:
-      - '3253:80'
+      - "3253:80"
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
       - "docker.host.internal:${DOCKER_HOST_IP}"
