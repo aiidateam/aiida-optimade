@@ -17,7 +17,8 @@ services:
       FORCE_INIT: {{ force_init }}
       USE_MONGO: {{ use_mongo }}
       MONGO_FILENAME: {{ mongo_filename }}
-      AIIDA_OPTIMADE_LOG_LEVEL:
+      AIIDA_OPTIMADE_LOG_LEVEL: {{ log_level }}
+      OPTIMADE_LOGGING_LEVEL: {{ log_level }}
     volumes:
       - "{{ repo_folder }}:/app/.aiida/repository-quicksetup"
       - "{{ config_folder }}:/profiles"
