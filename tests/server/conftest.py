@@ -7,17 +7,9 @@ from optimade.server.config import CONFIG
 @pytest.fixture(scope="session")
 def client():
     """Return TestClient for OPTIMADE server"""
-    from fastapi.testclient import TestClient
+    from .utils import client_factory
 
-    from aiida_optimade.main import APP
-    from aiida_optimade.routers import info, structures
-
-    # We need to remove the version prefixes in order to have the tests run correctly.
-    APP.include_router(info.ROUTER)
-    APP.include_router(structures.ROUTER)
-    # need to explicitly set base_url, as the default "http://testserver"
-    # does not validate as pydantic AnyUrl model
-    return TestClient(APP, base_url="http://example.org/v0")
+    return client_factory()()
 
 
 @pytest.fixture
