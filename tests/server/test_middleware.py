@@ -1,94 +1,31 @@
-# pylint: disable=missing-function-docstring,invalid-name
 import pytest
 
-from optimade.server.exceptions import BadRequest
-from optimade.server.middleware import EnsureQueryParamIntegrity
-from optimade.server.query_params import EntryListingQueryParams
-
-pytestmark = pytest.mark.skip("Not relevant for this package")
+from optimade import __api_version__
 
 
-# CORS Middleware tests
+@pytest.mark.parametrize(
+    "version",
+    [
+        f"v{__api_version__.split('.')[0]}",  # major
+        f"v{'.'.join(__api_version__.split('.')[:2])}",  # major.minor
+        f"v{__api_version__}",  # major.minor.patch
+    ],
+)
+def test_redirect_docs(version: str):
+    """Check Open API endpoints redirection
 
-
-def test_regular_CORS_request(client):
-    response = client.get("/info", headers={"Origin": "http://example.org"})
-    assert ("access-control-allow-origin", "*") in tuple(response.headers.items()), (
-        "Access-Control-Allow-Origin header not found in response headers: "
-        f"{response.headers}",
-    )
-
-
-def test_preflight_CORS_request(client):
-    headers = {
-        "Origin": "http://example.org",
-        "Access-Control-Request-Method": "GET",
-    }
-    response = client.options("/info", headers=headers)
-    for response_header in (
-        "Access-Control-Allow-Origin",
-        "Access-Control-Allow-Methods",
-    ):
-        assert response_header.lower() in list(response.headers.keys()), (
-            f"{response_header} header not found in response headers: "
-            f"{response.headers}"
-        )
-
-
-# EnsureQueryParamIntegrity Middleware tests
-
-
-def test_wrong_html_form(check_error_response):
-    """Using a parameter without equality sign `=` or values should result in a
-    `400 Bad Request` response"""
-    for valid_query_parameter in EntryListingQueryParams().__dict__:
-        request = f"/structures?{valid_query_parameter}"
-        with pytest.raises(BadRequest):
-            check_error_response(
-                request,
-                expected_status=400,
-                expected_title="Bad Request",
-                expected_detail=(
-                    "A query parameter without an equal sign (=) is not supported "
-                    "by this server"
-                ),
-            )
-
-
-def test_wrong_html_form_one_wrong(check_error_response):
-    """Using a parameter without equality sign `=` or values should result in a
-    `400 Bad Request` response
-
-    This should hold true, no matter the chosen (valid) parameter separator
-    (either & or ;).
+    Open API docs endpoints from vMAJOR.MINOR.PATCH and vMAJOR.MINOR base URLs should
+    be redirected to vMAJOR urls.
     """
-    request = "/structures?filter&include=;response_format=json"
-    with pytest.raises(BadRequest):
-        check_error_response(
-            request,
-            expected_status=400,
-            expected_title="Bad Request",
-            expected_detail=(
-                "A query parameter without an equal sign (=) is not supported by "
-                "this server"
-            ),
-        )
+    from urllib.parse import urljoin
+    from aiida_optimade.utils import OPEN_API_ENDPOINTS
 
+    from .utils import client_factory
 
-def test_parameter_separation(client):
-    """No matter the chosen (valid) parameter separator (either & or ;)
-    the parameters should be split correctly"""
-    query_part = 'filter=id="mpf_1"&include=;response_format=json'
-    expected_result = {'filter=id="mpf_1"', "include=", "response_format=json"}
+    client = client_factory()(version)
 
-    parsed_set_of_queries = EnsureQueryParamIntegrity(client.app).check_url(query_part)
-    assert expected_result == parsed_set_of_queries
-
-
-def test_empy_parameters(client):
-    """If parameter separators are present, the middleware should still succeed"""
-    query_part = ";;&&;&"
-    expected_result = {""}
-
-    parsed_set_of_queries = EnsureQueryParamIntegrity(client.app).check_url(query_part)
-    assert expected_result == parsed_set_of_queries
+    for name, endpoint in OPEN_API_ENDPOINTS.items():
+        response = client.get(endpoint)
+        assert response.url == urljoin(
+            client.base_url, f"v{__api_version__.split('.')[0]}{endpoint}"
+        ), f"Failed for endpoint '{name}''"
