@@ -111,7 +111,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         xml: ./coverage.xml
-        flags: unittests
+        flags: pytest
         yml: ./.codecov.yml
 
   docker-image:
