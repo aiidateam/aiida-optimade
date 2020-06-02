@@ -4,7 +4,6 @@ import pytest
 from optimade.server.config import CONFIG
 
 
-# Filter
 @pytest.mark.skip(
     "Un-skip when a fix for optimade-python-tools issue #102 is in place."
 )
