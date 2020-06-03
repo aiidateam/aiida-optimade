@@ -38,6 +38,49 @@ class TestInfoStructuresEndpoint(EndpointTests):
         data = EntryInfoResource.schema()["required"]
         self.check_keys(data, self.json_response["data"])
 
+    def test_info_structures_sortable(self):
+        """Check the sortable key is present for all properties"""
+        for info_keys in (
+            self.json_response.get("data", {}).get("properties", {}).values()
+        ):
+            assert "sortable" in info_keys
+
+    def test_sortable_values(self):
+        """Make sure certain properties are and are not sortable"""
+        sortable = ["id", "nelements", "nsites"]
+        non_sortable = ["species", "lattice_vectors", "dimension_types"]
+
+        for field in sortable:
+            sortable_info_value = (
+                self.json_response.get("data", {})
+                .get("properties", {})
+                .get(field, {})
+                .get("sortable", None)
+            )
+            assert sortable_info_value is not None
+            assert sortable_info_value is True
+
+        for field in non_sortable:
+            sortable_info_value = (
+                self.json_response.get("data", {})
+                .get("properties", {})
+                .get(field, {})
+                .get("sortable", None)
+            )
+            assert sortable_info_value is not None
+            assert sortable_info_value is False
+
+    def test_info_structures_unit(self):
+        """Check the unit key is present for certain properties"""
+        unit_fields = ["lattice_vectors", "cartesian_site_positions"]
+        for field, info_keys in (
+            self.json_response.get("data", {}).get("properties", {}).items()
+        ):
+            if field in unit_fields:
+                assert "unit" in info_keys
+            else:
+                assert "unit" not in info_keys
+
 
 @pytest.mark.skip("References has not yet been implemented")
 class TestInfoReferencesEndpoint(EndpointTests):
