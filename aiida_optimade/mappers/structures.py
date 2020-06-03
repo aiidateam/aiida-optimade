@@ -1,5 +1,4 @@
-from optimade.models import StructureResourceAttributes
-
+from aiida_optimade.models import StructureResourceAttributes
 from aiida_optimade.translators import StructureDataTranslator
 
 from .entries import ResourceMapper

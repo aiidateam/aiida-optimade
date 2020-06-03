@@ -77,9 +77,32 @@ class TestInfoStructuresEndpoint(EndpointTests):
             self.json_response.get("data", {}).get("properties", {}).items()
         ):
             if field in unit_fields:
-                assert "unit" in info_keys
+                assert "unit" in info_keys, f"Field: {field}"
             else:
-                assert "unit" not in info_keys
+                assert "unit" not in info_keys, f"Field: {field}"
+
+    def test_provider_fields(self):
+        """Check the presence of AiiDA-specific fields"""
+        from optimade.server.config import CONFIG
+
+        provider_fields = CONFIG.provider_fields.get("structures", [])
+
+        if not provider_fields:
+            import warnings
+
+            warnings.warn("No provider-specific fields found for 'structures'!")
+            return
+
+        for field in provider_fields:
+            updated_field_name = f"_{CONFIG.provider.prefix}_{field}"
+            assert updated_field_name in self.json_response.get("data", {}).get(
+                "properties", {}
+            )
+
+            for static_key in ["description", "sortable"]:
+                assert static_key in self.json_response.get("data", {}).get(
+                    "properties", {}
+                ).get(updated_field_name, {})
 
 
 @pytest.mark.skip("References has not yet been implemented")
