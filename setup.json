@@ -3,7 +3,7 @@
   "version": "0.8.0",
   "url": "https://github.com/aiidateam/aiida-optimade",
   "license": "MIT License",
-  "author": "The AiiDA team",
+  "author": "Casper Welzel Andersen",
   "author_email": "developers@aiida.net",
   "description": "Expose an AiiDA database according to the [OPTIMADE API specification](https://www.optimade.org).",
   "keywords": "optimade aiida materials",
