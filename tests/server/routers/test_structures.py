@@ -7,6 +7,8 @@ from optimade.models import (
 )
 from optimade.server.config import CONFIG
 
+from aiida.orm import QueryBuilder, StructureData
+
 from ..utils import EndpointTests
 
 
@@ -53,6 +55,7 @@ class TestStructuresEndpoint(EndpointTests):
         assert len(cursor) == id_
 
 
+@pytest.mark.skip("Move to functions, where fixtures can be used to set variables.")
 class TestSingleStructureEndpoint(EndpointTests):
     """Tests for /structures/<entry_id>"""
 

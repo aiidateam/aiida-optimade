@@ -1,4 +1,6 @@
 # pylint: disable=redefined-outer-name
+from typing import List
+
 import pytest
 
 from optimade.server.config import CONFIG
@@ -35,15 +37,35 @@ def get_good_response(client):
 def check_response(get_good_response):
     """Fixture to check response using client fixture"""
 
-    def inner(request, expected_id, page_limit=CONFIG.page_limit):
+    def inner(
+        request: str,
+        expected_uuid: List[str],
+        page_limit: int = CONFIG.page_limit,
+        expect_id: bool = False,
+        expected_as_is: bool = False,
+    ):
+        # Sort by immutable_id
+        if "sort=" not in request:
+            request += "&sort=immutable_id"
+
         response = get_good_response(request=request)
 
-        response_ids = [struct["id"] for struct in response["data"]]
-        assert response["meta"]["data_returned"] == len(expected_id)
-        if len(expected_id) > page_limit:
-            assert expected_id[:page_limit] == response_ids
+        if expect_id:
+            response_uuids = [struct["id"] for struct in response["data"]]
         else:
-            assert expected_id == response_ids
+            # Expect UUIDs (immutable_id)
+            response_uuids = [
+                struct["attributes"]["immutable_id"] for struct in response["data"]
+            ]
+        assert response["meta"]["data_returned"] == len(expected_uuid)
+
+        if not expected_as_is:
+            expected_uuid = sorted(expected_uuid)
+
+        if len(expected_uuid) > page_limit:
+            assert expected_uuid[:page_limit] == response_uuids
+        else:
+            assert expected_uuid == response_uuids
 
     return inner
 

@@ -15,8 +15,6 @@ from starlette import testclient
 from optimade import __api_version__
 from optimade.models import ResponseMeta
 
-from aiida_optimade.main import APP
-
 
 class OptimadeTestClient(TestClient):
     """Special OPTIMADE edition of FastAPI's (Starlette's) TestClient
@@ -150,6 +148,7 @@ class EndpointTests:
 
 def client_factory():
     """Return TestClient for OPTIMADE server"""
+    from aiida_optimade.main import APP
 
     def inner(version: str = None):
         if version:

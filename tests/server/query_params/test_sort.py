@@ -65,8 +65,14 @@ def test_str_asc(check_response):
         .append(orm.StructureData, project="id")
         .order_by({orm.StructureData: [{"uuid": {"order": "asc", "cast": "t"}}]})
     )
-    expected_ids = [str(id_) for id_, in builder.all()]
-    check_response(request=request, expected_id=expected_ids, page_limit=5)
+    expected_ids = [str(_[0]) for _ in builder.all()]
+    check_response(
+        request,
+        expected_uuid=expected_ids,
+        expect_id=True,
+        expected_as_is=True,
+        page_limit=5,
+    )
 
 
 def test_str_desc(check_response):
@@ -77,8 +83,14 @@ def test_str_desc(check_response):
         .append(orm.StructureData, project="id")
         .order_by({orm.StructureData: [{"uuid": {"order": "desc", "cast": "t"}}]})
     )
-    expected_ids = [str(id_) for id_, in builder.all()]
-    check_response(request=request, expected_id=expected_ids, page_limit=5)
+    expected_ids = [str(_[0]) for _ in builder.all()]
+    check_response(
+        request,
+        expected_uuid=expected_ids,
+        expect_id=True,
+        expected_as_is=True,
+        page_limit=5,
+    )
 
 
 def test_datetime_asc(get_good_response):

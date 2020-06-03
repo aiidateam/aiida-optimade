@@ -12,8 +12,6 @@ But it may be freely implemented by any to fulfill a similar purpose.
 The server is based on the test server "template" used in the [`optimade-python-tools`](https://github.com/Materials-Consortia/optimade-python-tools) package.
 Indeed, the filter grammar and parser and [`pydantic`](https://pydantic-docs.helpmanual.io/) models from [`optimade-python-tools`](https://github.com/Materials-Consortia/optimade-python-tools) are used directly here.
 
-Lastly, the server utilizes the FastAPI concept of [routers](https://fastapi.tiangolo.com/tutorial/bigger-applications/#apirouter), which means each endpoint can be "setup" several times, allowing multiple base URLs and more flexibility.
-
 ## Prerequisites
 
 Environment where AiiDA is installed.  
@@ -21,37 +19,104 @@ AiiDA database containing `StructureData` nodes, since these are the _only_ AiiD
 
 ## Installation
 
-Git clone the repository and pip install:
+The package is relased on PyPI, hence you can install it by:
 
 ```shell
-git clone https://github.com/aiidateam/aiida-optimade
-pip install -e aiida-optimade/
+$ pip install aiida-optimade
 ```
 
-Or install it directly from the PyPI library:
+Otherwise, you can also `git clone` the repository from GitHub:
 
 ```shell
-pip install aiida-optimade
+$ git clone https://github.com/aiidateam/aiida-optimade /path/to/aiida-optimade/parent/dir
+$ pip install -e /path/to/aiida-optimade
 ```
 
-## Running the server locally
+### Development
+
+For developers, there is a special setuptools extra `dev`, which can be installed by:
 
 ```shell
-# specify AiiDA profile (will use default otherwise)
-export AIIDA_PROFILE=optimade
-./aiida-optimade/run.sh
+$ pip install aiida-optimade[dev]
+```
+
+or
+
+```shell
+$ pip install -e /path/to/aiida-optimade[dev]
+```
+
+This package uses [Black](https://black.readthedocs.io/en/stable/) for formatting.
+If you wish to contribute, please install the git pre-commit hook:
+
+```shell
+/path/to/aiida-optimade$ pre-commit install
+```
+
+This will automatically update the formatting when running `git commit`, as well as check the validity of various repository JSON and YAML files.
+
+## Initialization
+
+You should first initialize your AiiDA profile.
+
+This can be done by using the `aiida-optimade` CLI:
+
+```shell
+$ aiida-optimade -p <PROFILE> init
+```
+
+Where `<PROFILE>` is the AiiDA profile.
+
+> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> This will be changed in the future to use the default AiiDA profile.
+
+Initialization goes through your profile's `StructureData` nodes, adding an `optimade` extra, wherein all OPTIMADE-specific fields that do not have an equivalent AiiDA property are stored.
+
+If in the future, more `StructureData` nodes are added to your profile's database, these will be automatically updated for the first query, filtering on any of these OPTIMADE-specific fields.
+However, if you do not wish a significant lag for the user or risking several GET requests coming in at the same time, trying to update your profile's database, you should re-run `aiida-optimade init` for your profile (in between shutting the server down and restarting it again).
+
+## Running the server
+
+### Locally
+
+Using the `aiida-optimade` CLI, you can do the following:
+
+```shell
+$ aiida-optimade -p <PROFILE> run
+```
+
+Where `<PROFILE>` is the AiiDA profile you wish to serve.
+
+> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> This will be changed in the future to use the default AiiDA profile.
+
+You also have the opportunity to specify the AiiDA profile via the environment variable `AIIDA_PROFILE`.
+Note, however, that if a profile name is passed to the CLI, it will overrule _and replace_ the current `AIIDA_PROFILE` environment variable.
+
+```shell
+# Specifying AiiDA profile as an environment variable
+$ export AIIDA_PROFILE=optimade
+$ aiida-optimade run
 ```
 
 Navigate to `http://localhost:5000/v1/info`
 
 > **Tip**: To see the default AiiDA profile, type `verdi profile list` to find the colored profile name marked with an asterisk (`*`), or type `verdi profile show`, which will show you more detailed information about the default profile.
 
-## Running via docker
+> **Note**: The `aiida-optimade run` command has more options to configure your server, run
+>
+> ```shell
+> $ aiida-optimade run --help
+> ```
+>
+> for more information.
 
-Adapt `profiles/quicksetup.json` and `profiles/docker-compose.yml` appropriately.
+### With Docker
+
+Adapt `profiles/test_django.json` and `profiles/docker-compose.yml` appropriately.
 
 ```shell
-docker-compose -f profiles/docker-compose.yml up --build
+$ docker-compose -f profiles/docker-compose.yml up --build
 ```
 
 Navigate to `http://localhost:3253/v1/info`
@@ -59,8 +124,18 @@ Navigate to `http://localhost:3253/v1/info`
 Stop by using
 
 ```shell
-docker-compose -f profiles/docker-compose.yml down
+$ docker-compose -f profiles/docker-compose.yml down
 ```
+
+#### Jinja templates
+
+If you are familiar with [Jinja](https://palletsprojects.com/p/jinja/), there are two templates to create the JSON and YAML files: `profiles/config.j2` and `profiles/docker-compose.j2`, respectively.
+
+## Configure the server
+
+You can configure the server with the `aiida_optimade/config.json` file or set certain environment variables.
+
+To learn more about this, see the [`optimade-python-tools`](https://github.com/Materials-Consortia/optimade-python-tools) repository.
 
 ## Design choices
 

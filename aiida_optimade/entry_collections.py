@@ -310,7 +310,7 @@ class AiidaCollection:
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
 
-    def _check_and_calculate_entities(self):
+    def _check_and_calculate_entities(self) -> List[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
@@ -352,3 +352,6 @@ class AiidaCollection:
                 self.resource_cls(
                     **self.resource_mapper.map_back(dict(zip(fields, entity)))
                 )
+            return necessary_entity_ids
+
+        return []
