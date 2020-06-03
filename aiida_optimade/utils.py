@@ -38,6 +38,12 @@ def retrieve_queryable_properties(
                 for extra_key in ["unit"]:
                     if extra_key in value:
                         properties[name][extra_key] = value[extra_key]
+                # AiiDA's QueryBuilder can sort everything that isn't a list (array)
+                # or dict (object)
+                properties[name]["sortable"] = value.get("type", "") not in [
+                    "array",
+                    "object",
+                ]
 
     return properties, all_properties
 

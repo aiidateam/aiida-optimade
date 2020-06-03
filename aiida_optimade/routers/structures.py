@@ -7,7 +7,6 @@ from aiida.orm import StructureData
 
 from optimade.models import (
     ErrorResponse,
-    StructureResource,
     StructureResponseMany,
     StructureResponseOne,
 )
@@ -15,6 +14,7 @@ from optimade.server.query_params import EntryListingQueryParams, SingleEntryQue
 
 from aiida_optimade.entry_collections import AiidaCollection
 from aiida_optimade.mappers import StructureMapper
+from aiida_optimade.models import StructureResource
 
 from .utils import get_entries, get_single_entry, close_session
 

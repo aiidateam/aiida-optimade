@@ -9,10 +9,10 @@ from optimade.models import (
     ErrorResponse,
     InfoResponse,
     EntryInfoResponse,
-    StructureResource,
 )
 from optimade.server.routers.utils import meta_values
 
+from aiida_optimade.models import StructureResource
 from aiida_optimade.utils import retrieve_queryable_properties
 
 
