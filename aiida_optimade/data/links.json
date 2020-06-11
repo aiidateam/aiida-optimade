@@ -1,0 +1,11 @@
+[
+  {
+    "id": "index",
+    "type": "links",
+    "name": "Index Meta-Database",
+    "description": "Index for AiiDA databases exposing OPTIMADE APIs",
+    "base_url": null,
+    "homepage": "http://www.aiida.net/",
+    "link_type": "root"
+  }
+]
