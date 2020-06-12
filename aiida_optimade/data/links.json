@@ -3,9 +3,18 @@
     "id": "index",
     "type": "links",
     "name": "Index Meta-Database",
-    "description": "Index for AiiDA databases exposing OPTIMADE APIs",
-    "base_url": null,
-    "homepage": "http://www.aiida.net/",
+    "description": "Index for Materials Cloud databases exposing an OPTIMADE API.",
+    "base_url": "https://materialscloud.org/optimade",
+    "homepage": "https://materialscloud.org",
     "link_type": "root"
+  },
+  {
+    "id": "optimade",
+    "type": "links",
+    "name": "Materials-Consortia's list of providers",
+    "description": "List of OPTIMADE API providers by Materials-Consortia, pointing to materials database providers.",
+    "base_url": "https://providers.optimade.org",
+    "homepage": "https://www.optimade.org",
+    "link_type": "providers"
   }
 ]
