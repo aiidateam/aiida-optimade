@@ -1,11 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from aiida import orm
 
 
 def fmt_datetime(object_: datetime) -> str:
     """Parse datetime into pydantic's JSON encoded datetime string"""
-    as_string = object_.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-    return f"{as_string[:-2]}:{as_string[-2:]}"
+    return object_.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def test_int_asc(get_good_response):
