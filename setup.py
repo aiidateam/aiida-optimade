@@ -17,9 +17,9 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "aiida-core~=1.2.1",
-        "fastapi~=0.58.0",
+        "fastapi~=0.58.1",
         "lark-parser~=0.8.9",
-        "optimade[mongo]~=0.9.1",
+        "optimade[mongo]~=0.9.7",
         "pydantic~=1.5",
         "uvicorn~=0.11.5",
     ],
