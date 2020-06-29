@@ -40,10 +40,10 @@ def get_info(request: Request):
             id=BaseInfoResource.schema()["properties"]["id"]["const"],
             type=BaseInfoResource.schema()["properties"]["type"]["const"],
             attributes=BaseInfoAttributes(
-                api_version=f"v{__api_version__}",
+                api_version=__api_version__,
                 available_api_versions=[
                     {
-                        "url": f"{base_url}/v{__api_version__.split('.')[0]}",
+                        "url": f"{base_url}/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
                         "version": __api_version__,
                     }
                 ],
@@ -51,6 +51,7 @@ def get_info(request: Request):
                 entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},
                 available_endpoints=[
                     "info",
+                    "links",
                     "extensions/docs",
                     "extensions/redoc",
                     "extensions/openapi.json",

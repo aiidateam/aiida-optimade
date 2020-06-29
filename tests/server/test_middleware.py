@@ -3,12 +3,13 @@ import pytest
 from optimade import __api_version__
 
 
+# major, major.minor, major.minor.patch
 @pytest.mark.parametrize(
     "version",
     [
-        f"v{__api_version__.split('.')[0]}",  # major
-        f"v{'.'.join(__api_version__.split('.')[:2])}",  # major.minor
-        f"v{__api_version__}",  # major.minor.patch
+        f"v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
+        f"v{'.'.join(__api_version__.split('-')[0].split('+')[0].split('.')[:2])}",
+        f"v{__api_version__.split('-')[0].split('+')[0]}",
     ],
 )
 def test_redirect_docs(version: str):

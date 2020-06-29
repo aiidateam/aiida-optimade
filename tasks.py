@@ -62,10 +62,21 @@ def optimade_req(_, ver=""):
     if optimade_init.status_code != 200:
         raise Exception(f"{ver} does not seem to be published on GitHub")
 
-    api_version = re.findall(
-        "[0-9]+.[0-9]+.[0-9]+",
-        re.findall('__api_version__ = "[0-9]+.[0-9]+.[0-9]+"', optimade_init.text)[0],
+    semver_regex = (
+        r"(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)"
+        r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\."
+        r"(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+        r"(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
+    )
+
+    api_version_tuple = re.findall(
+        semver_regex, re.findall('__api_version__ = ".*"', optimade_init.text)[0],
     )[0]
+    api_version = ".".join(api_version_tuple[:3])
+    if api_version_tuple[3]:
+        api_version += f"-{api_version[3]}"
+    if api_version_tuple[4]:
+        api_version += f"+{api_version[4]}"
 
     update_file("setup.py", (r"optimade\[mongo\]~=([^,]+)", f'optimade[mongo]~={ver}"'))
     update_file(
@@ -87,11 +98,15 @@ def optimade_req(_, ver=""):
             ("OPTIMADE_TOOLS_VERSION: .*", f"OPTIMADE_TOOLS_VERSION: {ver}"),
         )
     for regex, version in (
-        ("[0-9]+", api_version.split(".")[0]),
-        ("[0-9]+.[0-9]+", ".".join(api_version.split(".")[:2])),
-        ("[0-9]+.[0-9]+.[0-9]+", api_version),
+        (r"[0-9]+", api_version.split("-")[0].split("+")[0].split(".")[0]),
+        (
+            r"[0-9]+\.[0-9]+",
+            ".".join(api_version.split("-")[0].split("+")[0].split(".")[:2]),
+        ),
+        (r"[0-9]+\.[0-9]+\.[0-9]+", api_version.split("-")[0].split("+")[0]),
     ):
         update_file(".github/workflows/ci.yml", (f"/v{regex}", f"/v{version}"))
+        update_file("README.md", (f"/v{regex}/info", f"/v{version}/info"), strip="\n")
 
     print("Bumped OPTIMADE Python Tools version requirement to {}".format(ver))
 
