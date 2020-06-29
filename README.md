@@ -1,4 +1,4 @@
-# Optimade API implementation for AiiDA
+# OPTIMADE API implementation for AiiDA
 
 | Latest release | Build status | Activity |
 |:--------------:|:------------:|:--------:|
