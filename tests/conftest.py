@@ -1,24 +1,75 @@
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,redefined-outer-name
 import os
 from pathlib import Path
 
+import pytest
 
-AIIDA_TEST_PROFILE = "optimade_sqla"
+from aiida.manage.tests import TestManager
 
 
-def pytest_configure(config):
+@pytest.fixture(scope="session")
+def top_dir() -> Path:
+    """Return Path instance for the repository's top (root) directory"""
+    return Path(__file__).parent.parent.resolve()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_config(top_dir):
     """Method that runs before pytest collects tests so no modules are imported"""
-    set_config_file()
-    load_aiida_profile()
+    filename = top_dir.joinpath("tests/static/test_config.json")
+
+    original_env_var = os.getenv("OPTIMADE_CONFIG_FILE")
+    try:
+        os.environ["OPTIMADE_CONFIG_FILE"] = str(filename)
+        yield
+    finally:
+        if original_env_var is not None:
+            os.environ["OPTIMADE_CONFIG_FILE"] = original_env_var
+        else:
+            del os.environ["OPTIMADE_CONFIG_FILE"]
 
 
-def set_config_file():
-    """Set config file environment variable pointing to `/tests/test_config.json`"""
-    cwd = Path(__file__).parent.resolve()
-    os.environ["OPTIMADE_CONFIG_FILE"] = str(cwd.joinpath("test_config.json"))
+@pytest.fixture(scope="session", autouse=True)
+def aiida_profile(top_dir) -> TestManager:
+    """Load test data for AiiDA test profile
+
+    It is necessary to remove `AIIDA_PROFILE`, since it clashes with the test profile
+    """
+    from aiida import load_profile
+    from aiida.manage.tests import (
+        get_test_backend_name,
+        get_test_profile_name,
+        test_manager,
+    )
+    from aiida.tools.importexport import import_data
+
+    org_env_var = os.getenv("AIIDA_PROFILE")
+
+    try:
+        if "AIIDA_PROFILE" in os.environ:
+            del os.environ["AIIDA_PROFILE"]
+        # Setup profile
+        with test_manager(
+            backend=get_test_backend_name(), profile_name=get_test_profile_name()
+        ) as manager:
+            manager.reset_db()
+
+            profile = load_profile().name
+            assert profile == "test_profile"
+
+            filename = top_dir.joinpath("tests/static/test_structuredata.aiida")
+            import_data(filename, silent=True)
+
+            yield manager
+    finally:
+        if org_env_var is not None:
+            os.environ["AIIDA_PROFILE"] = org_env_var
 
 
-def load_aiida_profile():
-    """Load AiiDA profile"""
-    if os.getenv("AIIDA_PROFILE", None) is None:
-        os.environ["AIIDA_PROFILE"] = AIIDA_TEST_PROFILE
+@pytest.fixture
+def get_valid_id() -> str:
+    """Get a currently valid ID/PK from a StructureData Node"""
+    from aiida.orm import QueryBuilder, StructureData
+
+    builder = QueryBuilder().append(StructureData, project="id")
+    return builder.first()[0]

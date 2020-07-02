@@ -1,7 +1,7 @@
-import bson.json_util
 import json
 import os
 from pathlib import Path
+import bson.json_util
 
 from lark.exceptions import VisitError
 
