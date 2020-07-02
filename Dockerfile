@@ -9,7 +9,7 @@ ARG OPTIMADE_TOOLS_VERSION=0.9.7
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
 # Install specific aiida-core version
-ARG AIIDA_VERSION=1.2.1
+ARG AIIDA_VERSION=1.3.0
 RUN pip install aiida-core==${AIIDA_VERSION}
 RUN reentry scan
 
