@@ -214,15 +214,11 @@ def test_operators():
     }
 
     assert transform("NOT (a>1 AND b>1 OR c>1)") == {
-        "!and": [
-            {"or": [{"and": [{"a": {">": 1}}, {"b": {">": 1}}]}, {"c": {">": 1}},]}
-        ]
+        "!and": [{"or": [{"and": [{"a": {">": 1}}, {"b": {">": 1}}]}, {"c": {">": 1}}]}]
     }
 
     assert transform("NOT (a>1 AND ( b>1 OR c>1 ))") == {
-        "!and": [
-            {"and": [{"a": {">": 1}}, {"or": [{"b": {">": 1}}, {"c": {">": 1}}]},]}
-        ]
+        "!and": [{"and": [{"a": {">": 1}}, {"or": [{"b": {">": 1}}, {"c": {">": 1}}]}]}]
     }
 
     assert transform("NOT (a>1 AND ( b>1 OR (c>1 AND d>1 ) ))") == {
@@ -588,7 +584,7 @@ def test_special_cases():
     assert transform('spacegroup="P2"') == {"spacegroup": {"==": "P2"}}
     assert transform("_cod_cell_volume<100.0") == {"_cod_cell_volume": {"<": 100.0}}
     assert transform("_mp_bandgap > 5.0 AND _cod_molecular_weight < 350") == (
-        {"and": [{"_mp_bandgap": {">": 5.0}}, {"_cod_molecular_weight": {"<": 350}},]}
+        {"and": [{"_mp_bandgap": {">": 5.0}}, {"_cod_molecular_weight": {"<": 350}}]}
     )
     assert transform('_cod_melting_point<300 AND nelements=4 AND elements="Si,O2"') == {
         "and": [

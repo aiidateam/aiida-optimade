@@ -305,7 +305,7 @@ class AiidaCollection:
 
     def _get_extras_filter_fields(self) -> set:
         return {
-            field[len(self.resource_mapper.PROJECT_PREFIX) :]
+            field[len(self.resource_mapper.PROJECT_PREFIX) :]  # noqa: E203
             for field in self._filter_fields
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
