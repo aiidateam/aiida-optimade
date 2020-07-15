@@ -1,6 +1,7 @@
 from typing import Tuple
 import urllib.parse
 
+from optimade.models import DataType
 from optimade.server.config import CONFIG
 
 
@@ -44,6 +45,11 @@ def retrieve_queryable_properties(
                     "array",
                     "object",
                 ]
+                # Try to get OpenAPI-specific "format" if possible,
+                # else get "type"; a mandatory OpenAPI key.
+                properties[name]["type"] = DataType.from_json_type(
+                    value.get("format", value["type"])
+                )
 
     return properties, all_properties
 
