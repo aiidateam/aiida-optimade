@@ -7,8 +7,6 @@ from optimade.models import (
 )
 from optimade.server.config import CONFIG
 
-from aiida.orm import QueryBuilder, StructureData
-
 from ..utils import EndpointTests
 
 

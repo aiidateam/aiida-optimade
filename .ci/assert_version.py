@@ -12,7 +12,7 @@ with open(SETUP_JSON, "r") as fp:
 PACKAGE_VERSION = "v" + SETUP["version"]
 
 TAG_VERSION = os.getenv("TAG_VERSION")
-TAG_VERSION = TAG_VERSION[len("refs/tags/") :]
+TAG_VERSION = TAG_VERSION[len("refs/tags/") :]  # noqa: E203
 
 if TAG_VERSION == PACKAGE_VERSION:
     print(f"The versions match: tag:'{TAG_VERSION}' == package:'{PACKAGE_VERSION}'")

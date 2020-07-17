@@ -130,7 +130,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
     # Start creating fields
     def elements(self) -> List[str]:
         """Names of elements found in the structure as a list of strings, in alphabetical order."""
-
         attribute = "elements"
 
         if attribute in self.new_attributes:
@@ -148,7 +147,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def nelements(self) -> int:
         """Number of different elements in the structure as an integer."""
-
         attribute = "nelements"
 
         if attribute in self.new_attributes:
@@ -162,7 +160,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def elements_ratios(self) -> List[float]:
         """Relative proportions of different elements in the structure."""
-
         attribute = "elements_ratios"
 
         if attribute in self.new_attributes:
@@ -179,7 +176,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def chemical_formula_descriptive(self) -> str:
         """The chemical formula for a structure as a string in a form chosen by the API implementation."""
-
         attribute = "chemical_formula_descriptive"
 
         if attribute in self.new_attributes:
@@ -201,7 +197,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         that within reasonable approximation indicate the correct chemical proportions.
         The precise details of how to perform the rounding is chosen by the API implementation.
         """
-
         attribute = "chemical_formula_reduced"
 
         if attribute in self.new_attributes:
@@ -241,7 +236,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         NOTE: This will always be equal to chemical_formula_descriptive if it should not be handled as unset.
         """
-
         attribute = "chemical_formula_hill"
 
         if attribute in self.new_attributes:
@@ -309,7 +303,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         or non-periodic (value 0). Note: the elements in this list each refer to the direction
         of the corresponding entry in property lattice_vectors and not the Cartesian x, y, z directions.
         """
-
         attribute = "dimension_types"
 
         if attribute in self.new_attributes:
@@ -327,9 +320,29 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
+    def nperiodic_dimensions(self) -> int:
+        """Number of periodic dimensions."""
+        attribute = "nperiodic_dimensions"
+
+        if attribute in self.new_attributes:
+            return self.new_attributes[attribute]
+
+        res = sum(
+            [
+                int(value)
+                for value in (
+                    self._get_unique_node_property(f"attributes.pbc{i + 1}")
+                    for i in range(3)
+                )
+            ]
+        )
+
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        self.new_attributes[attribute] = res
+        return res
+
     def lattice_vectors(self) -> List[List[float]]:
         """The three lattice vectors in Cartesian coordinates, in ångström (Å)."""
-
         attribute = "lattice_vectors"
 
         if attribute in self.new_attributes:
@@ -349,7 +362,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         A site is an atom, a site potentially occupied by an atom,
         or a placeholder for a virtual mixture of atoms (e.g., in a virtual crystal approximation).
         """
-
         attribute = "cartesian_site_positions"
 
         if attribute in self.new_attributes:
@@ -364,7 +376,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def nsites(self) -> int:
         """An integer specifying the length of the cartesian_site_positions property."""
-
         attribute = "nsites"
 
         if attribute in self.new_attributes:
@@ -382,7 +393,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         (Where values for sites are specified with the same order of the property
         cartesian_site_positions). The properties of the species are found in the property species.
         """
-
         attribute = "species_at_sites"
 
         if attribute in self.new_attributes:
@@ -447,7 +457,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     # def assemblies(self) -> List[dict]:
     #     """A description of groups of sites that are statistically correlated."""
-
     #     attribute = "assemblies"
 
     #     if attribute in self.new_attributes:
@@ -464,7 +473,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         SHOULD be absent if there are no partial occupancies
         """
-
         attribute = "structure_features"
 
         if attribute in self.new_attributes:
