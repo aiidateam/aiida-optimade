@@ -15,8 +15,8 @@ class ResourceMapper(OptimadeResourceMapper):
     PROJECT_PREFIX: str = "extras.optimade."
 
     TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
-    ALL_ATTRIBUTES: list = []
-    REQUIRED_ATTRIBUTES: list = []
+    ALL_ATTRIBUTES: set = set()
+    REQUIRED_ATTRIBUTES: set = set()
 
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:

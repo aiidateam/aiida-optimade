@@ -1,3 +1,6 @@
+import warnings
+
+from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.models import StructureResourceAttributes
 from aiida_optimade.translators import StructureDataTranslator
 
@@ -13,8 +16,8 @@ class StructureMapper(ResourceMapper):
     ENDPOINT = "structures"
 
     TRANSLATOR = StructureDataTranslator
-    ALL_ATTRIBUTES = list(StructureResourceAttributes.schema().get("properties").keys())
-    REQUIRED_ATTRIBUTES = StructureResourceAttributes.schema().get("required")
+    ALL_ATTRIBUTES = set(StructureResourceAttributes.schema().get("properties").keys())
+    REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
 
     @classmethod
     def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
@@ -30,8 +33,8 @@ class StructureMapper(ResourceMapper):
 
         res = {}
         float_fields_stored_as_strings = {"elements_ratios"}
+
         # Add existing attributes
-        # TODO: Use sets instead!!
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         for existing_attribute, value in retrieved_attributes.items():
             if existing_attribute in float_fields_stored_as_strings and value:
@@ -50,11 +53,15 @@ class StructureMapper(ResourceMapper):
                     if attribute in cls.REQUIRED_ATTRIBUTES:
                         translator = None
                         raise NotImplementedError(
-                            f"Parsing required {attribute} from "
+                            f"Parsing required attribute {attribute!r} from "
                             f"{cls.TRANSLATOR} has not yet been implemented."
                         )
-                    # Print warning that parsing non-required attribute has not yet
-                    # been implemented
+
+                    warnings.warn(
+                        f"Parsing optional attribute {attribute!r} from "
+                        f"{cls.TRANSLATOR} has not yet been implemented.",
+                        NotImplementedWarning,
+                    )
                 else:
                     res[attribute] = create_attribute()
             # Store new attributes in `extras`
