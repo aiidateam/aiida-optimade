@@ -1,11 +1,11 @@
 import pytest
 
-from optimade.validator import ImplementationValidator
-
 
 @pytest.mark.skip("Does not comply with OPTIMADE validator")
 def test_with_validator(client):
     """Validate server"""
+    from optimade.validator import ImplementationValidator
+
     validator = ImplementationValidator(client=client)
     try:
         validator.main()

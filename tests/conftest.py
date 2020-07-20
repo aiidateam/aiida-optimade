@@ -25,7 +25,7 @@ def setup_config(top_dir):
     finally:
         if original_env_var is not None:
             os.environ["OPTIMADE_CONFIG_FILE"] = original_env_var
-        else:
+        elif "OPTIMADE_CONFIG_FILE" in os.environ:
             del os.environ["OPTIMADE_CONFIG_FILE"]
 
 
@@ -63,7 +63,7 @@ def aiida_profile(top_dir) -> TestManager:
     finally:
         if org_env_var is not None:
             os.environ["AIIDA_PROFILE"] = org_env_var
-        else:
+        elif "AIIDA_PROFILE" in os.environ:
             del os.environ["AIIDA_PROFILE"]
 
 

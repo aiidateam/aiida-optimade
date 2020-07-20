@@ -1,13 +1,13 @@
 # pylint: disable=missing-function-docstring
 import pytest
 
-from optimade.server.config import CONFIG
-
 
 @pytest.mark.skip(
     "Un-skip when a fix for optimade-python-tools issue #102 is in place."
 )
 def test_custom_field(check_response):
+    from optimade.server.config import CONFIG
+
     request = (
         f"/structures?filter=_{CONFIG.provider.prefix}_"
         f'{CONFIG.provider_fields["structures"][0]}'
@@ -208,6 +208,8 @@ def test_saved_extras_is_known(check_response):
 
 
 def test_node_columns_is_known(check_response):
+    from optimade.server.config import CONFIG
+
     request = (
         f"/structures?filter=_{CONFIG.provider.prefix}_"
         f"{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"
