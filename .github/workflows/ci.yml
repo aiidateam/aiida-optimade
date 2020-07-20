@@ -108,9 +108,8 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        xml: ./coverage.xml
         flags: pytest
-        yml: ./.codecov.yml
+        file: ./coverage.xml
 
   docker-image:
     runs-on: ubuntu-latest
