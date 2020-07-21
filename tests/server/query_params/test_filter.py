@@ -1,13 +1,13 @@
 # pylint: disable=missing-function-docstring
 import pytest
 
-from optimade.server.config import CONFIG
-
 
 @pytest.mark.skip(
     "Un-skip when a fix for optimade-python-tools issue #102 is in place."
 )
 def test_custom_field(check_response):
+    from optimade.server.config import CONFIG
+
     request = (
         f"/structures?filter=_{CONFIG.provider.prefix}_"
         f'{CONFIG.provider_fields["structures"][0]}'
@@ -83,6 +83,19 @@ def test_list_has_all(check_response):
     request = '/structures?filter=elements HAS ALL "Ge","Na","Al","Cl","O"'
     expected_uuids = ["254947de-54c8-4cdb-afc5-1cee237f9f98"]
     check_response(request, expected_uuids)
+
+
+def test_warnings_for_assemblies(check_response):
+    """Check a NotImplementedWarning is raised for 'assemblies'"""
+    from aiida_optimade.common.warnings import NotImplementedWarning
+
+    request = "/structures?filter=nelements>=18"
+    expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
+
+    with pytest.warns(
+        NotImplementedWarning, match="Parsing optional attribute 'assemblies'",
+    ):
+        check_response(request, expected_uuids)
 
 
 def test_list_has_any(check_response):
@@ -195,6 +208,8 @@ def test_saved_extras_is_known(check_response):
 
 
 def test_node_columns_is_known(check_response):
+    from optimade.server.config import CONFIG
+
     request = (
         f"/structures?filter=_{CONFIG.provider.prefix}_"
         f"{CONFIG.provider_fields['structures'][0]} IS KNOWN AND nsites>=5280"

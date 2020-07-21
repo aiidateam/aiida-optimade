@@ -25,7 +25,7 @@ def setup_config(top_dir):
     finally:
         if original_env_var is not None:
             os.environ["OPTIMADE_CONFIG_FILE"] = original_env_var
-        else:
+        elif "OPTIMADE_CONFIG_FILE" in os.environ:
             del os.environ["OPTIMADE_CONFIG_FILE"]
 
 
@@ -46,8 +46,6 @@ def aiida_profile(top_dir) -> TestManager:
     org_env_var = os.getenv("AIIDA_PROFILE")
 
     try:
-        if "AIIDA_PROFILE" in os.environ:
-            del os.environ["AIIDA_PROFILE"]
         # Setup profile
         with test_manager(
             backend=get_test_backend_name(), profile_name=get_test_profile_name()
@@ -55,7 +53,8 @@ def aiida_profile(top_dir) -> TestManager:
             manager.reset_db()
 
             profile = load_profile().name
-            assert profile == "test_profile"
+            assert profile in ["test_profile", "test_django", "test_sqlalchemy"]
+            os.environ["AIIDA_PROFILE"] = profile
 
             filename = top_dir.joinpath("tests/static/test_structuredata.aiida")
             import_data(filename, silent=True)
@@ -64,6 +63,8 @@ def aiida_profile(top_dir) -> TestManager:
     finally:
         if org_env_var is not None:
             os.environ["AIIDA_PROFILE"] = org_env_var
+        elif "AIIDA_PROFILE" in os.environ:
+            del os.environ["AIIDA_PROFILE"]
 
 
 @pytest.fixture

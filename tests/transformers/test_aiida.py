@@ -3,7 +3,6 @@ import pytest
 from lark.exceptions import VisitError
 
 from optimade.filterparser import LarkParser, ParserError
-from optimade.server.mappers import BaseResourceMapper
 
 from aiida_optimade.transformers import AiidaTransformer
 
@@ -462,6 +461,7 @@ def test_aliased_length_operator():
 @pytest.mark.skip("AiidaTransformer does not implement custom mapper")
 def test_aliases():
     """Test that valid aliases are allowed, but do not affect r-values"""
+    from optimade.server.mappers import BaseResourceMapper
 
     class MyStructureMapper(BaseResourceMapper):
         """Test mapper with ALIASES"""

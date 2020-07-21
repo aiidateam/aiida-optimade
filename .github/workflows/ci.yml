@@ -95,15 +95,12 @@ jobs:
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-      run: .github/workflows/setup_aiida.sh
-
-    - name: Load test data
-      run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
+      run: .github/aiida/setup_aiida.sh
 
     - name: Test with pytest
       env:
-        AIIDA_PROFILE: test_${{ matrix.backend }}
-        OPTIMADE_CONFIG_FILE: ./aiida_optimade/config.json
+        AIIDA_TEST_BACKEND: ${{ matrix.backend }}
+        AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
       run: pytest --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
@@ -111,9 +108,8 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        xml: ./coverage.xml
         flags: pytest
-        yml: ./.codecov.yml
+        file: ./coverage.xml
 
   docker-image:
     runs-on: ubuntu-latest
@@ -154,7 +150,7 @@ jobs:
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: django
-      run: .github/workflows/setup_aiida.sh
+      run: .github/aiida/setup_aiida.sh
 
     - name: Load test data
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
@@ -165,6 +161,14 @@ jobs:
         docker-compose -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
+
+    - name: Test base URL - unversioned
+      run: |
+        curl http://localhost:3253/info > info.json
+        grep -F '"data":{' info.json || ( cat info.json; exit 1 )
+        grep -F 'aiida-optimade' info.json || ( cat info.json; exit 1 )
+        curl http://localhost:3253/structures/1 > structure.json
+        grep -F '"dimension_types":[' structure.json || ( cat structure.json; exit 1 )
 
     - name: Test base URL - vMAJOR
       run: |

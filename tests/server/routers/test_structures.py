@@ -5,7 +5,6 @@ from optimade.models import (
     StructureResponseOne,
     ReferenceResource,
 )
-from optimade.server.config import CONFIG
 
 from ..utils import EndpointTests
 
@@ -18,6 +17,8 @@ class TestStructuresEndpoint(EndpointTests):
 
     def test_structures_endpoint_data(self):
         """Check known properties/attributes for successful response"""
+        from optimade.server.config import CONFIG
+
         assert "data" in self.json_response
         assert len(self.json_response["data"]) == CONFIG.page_limit
         assert "meta" in self.json_response
@@ -63,6 +64,8 @@ class TestSingleStructureEndpoint(EndpointTests):
 
     def test_structures_endpoint_data(self):
         """Check known properties/attributes for successful response"""
+        from optimade.server.config import CONFIG
+
         assert "data" in self.json_response
         assert self.json_response["data"]["id"] == self.test_id
         assert self.json_response["data"]["type"] == "structures"

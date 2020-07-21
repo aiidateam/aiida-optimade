@@ -34,3 +34,6 @@ pip-delete-this-directory.txt
 # pytest / coverage reports
 coverage.xml
 .pytest_cache/
+
+# logs
+logs

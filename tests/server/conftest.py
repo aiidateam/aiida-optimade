@@ -3,10 +3,8 @@ from typing import List
 
 import pytest
 
-from optimade.server.config import CONFIG
 
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client():
     """Return TestClient for OPTIMADE server"""
     from .utils import client_factory
@@ -36,6 +34,7 @@ def get_good_response(client):
 @pytest.fixture
 def check_response(get_good_response):
     """Fixture to check response using client fixture"""
+    from optimade.server.config import CONFIG
 
     def inner(
         request: str,
