@@ -35,6 +35,8 @@ def run(obj: dict, log_level: str, debug: bool):
     else:
         os.environ["OPTIMADE_DEBUG"] = "0"
 
+    os.environ["AIIDA_OPTIMADE_LOG_LEVEL"] = log_level.upper()
+
     if os.getenv("AIIDA_PROFILE") is None:
         from aiida import load_profile
 

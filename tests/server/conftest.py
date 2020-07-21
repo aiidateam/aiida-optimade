@@ -6,7 +6,7 @@ import pytest
 from optimade.server.config import CONFIG
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def client():
     """Return TestClient for OPTIMADE server"""
     from .utils import client_factory

@@ -19,6 +19,7 @@ import optimade.server.exception_handlers as exc_handlers
 from optimade.server.middleware import EnsureQueryParamIntegrity
 from optimade.server.routers.utils import BASE_URL_PREFIXES, mongo_id_for_database
 
+from aiida_optimade.common import LOGGER
 from aiida_optimade.middleware import RedirectOpenApiDocs
 from aiida_optimade.routers import (
     info,
@@ -29,13 +30,12 @@ from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
 if CONFIG.debug:  # pragma: no cover
-    print("DEBUG MODE")
+    LOGGER.info("DEBUG MODE")
 
 # Load AiiDA profile
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
 load_profile(PROFILE_NAME)
-if CONFIG.debug:  # pragma: no cover
-    print(f"AiiDA Profile: {PROFILE_NAME}")
+LOGGER.debug("AiiDA Profile: %s", PROFILE_NAME)
 
 # Load links in mongomock
 LINKS_DATA = Path(__file__).parent.joinpath("data/links.json").resolve()

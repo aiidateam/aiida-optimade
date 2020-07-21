@@ -19,7 +19,7 @@ setup(
         "aiida-core~=1.3.0",
         "fastapi~=0.59.0",
         "lark-parser~=0.9.0",
-        "optimade[mongo]~=0.9.8",
+        "optimade[mongo]~=0.10.0",
         "pydantic~=1.6",
         "uvicorn~=0.11.5",
         "click~=7.1",

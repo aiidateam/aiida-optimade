@@ -1,4 +1,7 @@
 """Pytest fixtures for command line interface tests."""
+import os
+from typing import List
+
 import click
 import pytest
 
@@ -13,7 +16,7 @@ def run_cli_command():
     from click.testing import Result
 
     def _run_cli_command(
-        command: click.Command, options: list = None, raises: bool = False
+        command: click.Command, options: List[str] = None, raises: bool = False
     ) -> Result:
         """Run the command and check the result.
 
@@ -28,9 +31,11 @@ def run_cli_command():
         import traceback
 
         runner = click.testing.CliRunner()
-        result = runner.invoke(
-            command, options or [], env={"AIIDA_PROFILE": "optimade_sqla"}
-        )
+        profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
+        if profile == "test_profile":
+            # This is for local tests only
+            profile = "optimade_sqla"
+        result = runner.invoke(command, options or [], env={"AIIDA_PROFILE": profile})
 
         if raises:
             assert result.exception is not None, result.output

@@ -4,18 +4,18 @@
   "page_limit_max": 500,
   "default_db": "aiida_optimade",
   "base_url": null,
-  "implementation": {
-    "name": "aiida-optimade",
-    "version": "0.8.0",
-    "source_url": "https://github.com/aiidateam/aiida-optimade",
-    "maintainer": {"email": "casper.andersen@epfl.ch"}
-  },
   "provider": {
     "prefix": "aiida",
     "name": "AiiDA",
     "description": "AiiDA: Automated Interactive Infrastructure and Database for Computational Science (http://www.aiida.net)",
     "homepage": "http://www.aiida.net",
     "index_base_url": null
+  },
+  "implementation": {
+    "name": "aiida-optimade",
+    "version": "0.8.0",
+    "source_url": "https://github.com/aiidateam/aiida-optimade",
+    "maintainer": {"email": "casper.andersen@epfl.ch"}
   },
   "provider_fields": {
     "structures": [
