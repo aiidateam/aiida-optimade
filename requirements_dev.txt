@@ -1,0 +1,4 @@
+pylint~=2.5
+black~=19.10b0
+pre-commit~=2.6
+invoke~=1.4

@@ -14,7 +14,7 @@ RUN pip install aiida-core==${AIIDA_VERSION}
 RUN reentry scan
 
 # Copy repo contents
-COPY setup.py setup.json README.md ./
+COPY setup.py setup.json README.md requirements*.txt ./
 COPY aiida_optimade ./aiida_optimade
 RUN pip install -e .
 
