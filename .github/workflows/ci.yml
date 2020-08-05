@@ -6,6 +6,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
 
     steps:
     - uses: actions/checkout@v2
@@ -28,8 +29,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   pre-commit:
-
     runs-on: ubuntu-latest
+    timeout-minutes: 2
 
     steps:
     - uses: actions/checkout@v2
@@ -49,14 +50,14 @@ jobs:
       run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
 
   pytest:
-
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false
       matrix:
-        # TODO: 3.7 on GH Actions currently doesn't work with PyYAML (dependency of aiida-core)
-        python-version: [3.6, 3.8]
+        # TODO: 3.7.8 on GH Actions currently doesn't work with PyYAML (dependency of aiida-core)
+        python-version: [3.6, 3.7.7, 3.8]
         backend: ['django', 'sqlalchemy']
 
     services:
@@ -113,6 +114,7 @@ jobs:
 
   docker-image:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     services:
       postgres:
