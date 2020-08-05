@@ -1,5 +1,5 @@
 aiida-core~=1.3.0
-fastapi~=0.59.0
+fastapi~=0.60.1
 lark-parser~=0.9.0
 optimade[mongo]~=0.10.0
 pydantic~=1.6
