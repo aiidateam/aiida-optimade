@@ -56,8 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: 3.7.8 on GH Actions currently doesn't work with PyYAML (dependency of aiida-core)
-        python-version: [3.6, 3.7.7, 3.8]
+        python-version: [3.6, 3.7, 3.8]
         backend: ['django', 'sqlalchemy']
 
     services:
