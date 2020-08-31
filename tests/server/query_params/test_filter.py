@@ -93,7 +93,7 @@ def test_warnings_for_assemblies(check_response):
     expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
 
     with pytest.warns(
-        NotImplementedWarning, match="Parsing optional attribute 'assemblies'",
+        NotImplementedWarning, match="Parsing optional attribute 'assemblies'"
     ):
         check_response(request, expected_uuids)
 

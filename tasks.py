@@ -42,7 +42,7 @@ def setver(_, patch=False, new_ver=""):
         ('"version": ([^,]+),', f'"version": "{new_ver}",'),
     )
     update_file(
-        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",'),
+        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",')
     )
 
     print("Bumped version to {}".format(new_ver))
@@ -72,7 +72,7 @@ def optimade_req(_, ver=""):
     )
 
     api_version_tuple = re.findall(
-        semver_regex, re.findall('__api_version__ = ".*"', optimade_init.text)[0],
+        semver_regex, re.findall('__api_version__ = ".*"', optimade_init.text)[0]
     )[0]
     api_version = ".".join(api_version_tuple[:3])
     if api_version_tuple[3]:
@@ -80,7 +80,6 @@ def optimade_req(_, ver=""):
     if api_version_tuple[4]:
         api_version += f"+{api_version[4]}"
 
-    update_file("setup.py", (r"optimade\[mongo\]~=([^,]+)", f'optimade[mongo]~={ver}"'))
     update_file(
         "README.md",
         (
@@ -120,7 +119,6 @@ def aiida_req(_, ver=""):
     if not ver:
         raise Exception("Please specify --ver='Major.Minor.Patch'")
 
-    update_file("setup.py", ("aiida-core~=([^,]+)", f'aiida-core~={ver}"'))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):

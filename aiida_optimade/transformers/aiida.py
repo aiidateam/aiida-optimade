@@ -53,7 +53,7 @@ class AiidaTransformer(Transformer):
 
     @v_args(inline=True)
     def not_implemented_string(self, value):
-        """ not_implemented_string: value
+        """not_implemented_string: value
 
         Raise NotImplementedError.
         For further information, see Materials-Consortia/OPTIMADE issue 157:
