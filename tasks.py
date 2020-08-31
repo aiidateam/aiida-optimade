@@ -85,9 +85,9 @@ def optimade_req(_, ver=""):
         "README.md",
         (
             "https://raw.githubusercontent.com/Materials-Consortia/"
-            "optimade-python-tools/v([^,]+)/.ci/",
+            "optimade-python-tools/v([^,]+)/optimade-",
             "https://raw.githubusercontent.com/Materials-Consortia/"
-            f"optimade-python-tools/v{ver}/.ci/",
+            f"optimade-python-tools/v{ver}/optimade-",
         ),
         strip="\n",
     )
