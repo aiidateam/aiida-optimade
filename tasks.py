@@ -42,7 +42,8 @@ def setver(_, patch=False, new_ver=""):
         ('"version": ([^,]+),', f'"version": "{new_ver}",'),
     )
     update_file(
-        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",')
+        "tests/static/test_config.json",
+        ('"version": ([^,]+),', f'"version": "{new_ver}",'),
     )
 
     print("Bumped version to {}".format(new_ver))
