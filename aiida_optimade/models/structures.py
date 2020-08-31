@@ -21,7 +21,7 @@ class StructureResourceAttributes(OptimadeStructureResourceAttributes):
     """Extended StructureResourceAttributes for AiiDA-specific fields"""
 
     ctime: datetime = Field(
-        ..., description="Creation time of the Node in the AiiDA database.",
+        ..., description="Creation time of the Node in the AiiDA database."
     )
 
     class Config:

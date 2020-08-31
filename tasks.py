@@ -42,7 +42,7 @@ def setver(_, patch=False, new_ver=""):
         ('"version": ([^,]+),', f'"version": "{new_ver}",'),
     )
     update_file(
-        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",'),
+        "tests/test_config.json", ('"version": ([^,]+),', f'"version": "{new_ver}",')
     )
 
     print("Bumped version to {}".format(new_ver))
@@ -72,7 +72,7 @@ def optimade_req(_, ver=""):
     )
 
     api_version_tuple = re.findall(
-        semver_regex, re.findall('__api_version__ = ".*"', optimade_init.text)[0],
+        semver_regex, re.findall('__api_version__ = ".*"', optimade_init.text)[0]
     )[0]
     api_version = ".".join(api_version_tuple[:3])
     if api_version_tuple[3]:
