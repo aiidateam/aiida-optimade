@@ -52,10 +52,11 @@ def setver(_, patch=False, new_ver=""):
 @task
 def optimade_req(_, ver=""):
     """Update the optimade-python-tools minimum version requirement"""
-
     if not ver:
         raise Exception("Please specify --ver='Major.Minor.Patch'")
-    if not re.match("[0-9]+.[0-9]+.[0-9]+", ver):
+    if ver.startswith("v"):
+        ver = ver[1:]
+    if not re.match(r"[0-9]+(\.[0-9]+){2}", ver):
         raise Exception("ver MUST be specified as 'Major.Minor.Patch'")
 
     optimade_init = requests.get(
@@ -81,6 +82,9 @@ def optimade_req(_, ver=""):
     if api_version_tuple[4]:
         api_version += f"+{api_version[4]}"
 
+    update_file(
+        "requirements.txt", (r"optimade\[mongo\]~=.+", f"optimade[mongo]~={ver}")
+    )
     update_file(
         "README.md",
         (
@@ -116,10 +120,12 @@ def optimade_req(_, ver=""):
 @task
 def aiida_req(_, ver=""):
     """Update the aiida-core minimum version requirement"""
-
     if not ver:
         raise Exception("Please specify --ver='Major.Minor.Patch'")
+    if ver.startswith("v"):
+        ver = ver[1:]
 
+    update_file("requirements.txt", ("aiida-core~=.+", f"aiida-core~={ver}"))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):
