@@ -1,17 +1,10 @@
-import pytest
-
-
-@pytest.mark.skip("Does not comply with OPTIMADE validator")
-def test_with_validator(client):
+def test_with_validator(remote_client):
     """Validate server"""
     from optimade.validator import ImplementationValidator
 
-    validator = ImplementationValidator(client=client)
-    try:
-        validator.main()
-    except Exception as exc:  # pylint: disable=broad-except
-        print(repr(exc))
+    validator = ImplementationValidator(client=remote_client, verbosity=5)
 
+    validator.validate_implementation()
     assert validator.valid
 
 

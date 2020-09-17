@@ -49,13 +49,13 @@ class StructureMapper(ResourceMapper):
             for attribute in missing_attributes:
                 try:
                     create_attribute = getattr(translator, attribute)
-                except AttributeError:
+                except AttributeError as exc:
                     if attribute in cls.REQUIRED_ATTRIBUTES:
                         translator = None
                         raise NotImplementedError(
                             f"Parsing required attribute {attribute!r} from "
                             f"{cls.TRANSLATOR} has not yet been implemented."
-                        )
+                        ) from exc
 
                     warnings.warn(
                         f"Parsing optional attribute {attribute!r} from "

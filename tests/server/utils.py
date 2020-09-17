@@ -75,7 +75,7 @@ class OptimadeTestClient(TestClient):
             while url.startswith("/"):
                 url = url[1:]
             url = f"{self.version}/{url}"
-        return super(OptimadeTestClient, self).request(
+        return super().request(
             method=method,
             url=url,
             params=params,
@@ -151,12 +151,21 @@ def client_factory():
     """Return TestClient for OPTIMADE server"""
     from aiida_optimade.main import APP
 
-    def inner(version: str = None):
+    def inner(
+        version: str = None, raise_server_exceptions: bool = True
+    ) -> OptimadeTestClient:
         if version:
             return OptimadeTestClient(
-                APP, base_url="http://example.org/", version=version
+                APP,
+                base_url="http://example.org",
+                version=version,
+                raise_server_exceptions=raise_server_exceptions,
             )
-        return OptimadeTestClient(APP, base_url="http://example.org/")
+        return OptimadeTestClient(
+            APP,
+            base_url="http://example.org",
+            raise_server_exceptions=raise_server_exceptions,
+        )
 
     return inner
 
