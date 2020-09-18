@@ -16,7 +16,12 @@ from aiida import load_profile
 from optimade import __api_version__
 from optimade.server.config import CONFIG
 import optimade.server.exception_handlers as exc_handlers
-from optimade.server.middleware import EnsureQueryParamIntegrity
+from optimade.server.middleware import (
+    EnsureQueryParamIntegrity,
+    CheckWronglyVersionedBaseUrls,
+    HandleApiHint,
+    AddWarnings,
+)
 from optimade.server.routers import versions
 from optimade.server.routers.utils import BASE_URL_PREFIXES, mongo_id_for_database
 
@@ -75,6 +80,9 @@ APP = FastAPI(
 APP.add_middleware(CORSMiddleware, allow_origins=["*"])
 APP.add_middleware(EnsureQueryParamIntegrity)
 APP.add_middleware(RedirectOpenApiDocs)
+APP.add_middleware(CheckWronglyVersionedBaseUrls)
+APP.add_middleware(HandleApiHint)
+APP.add_middleware(AddWarnings)
 
 
 # Add various exception handlers

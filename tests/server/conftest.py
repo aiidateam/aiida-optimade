@@ -12,6 +12,14 @@ def client():
     return client_factory()()
 
 
+@pytest.fixture(scope="module")
+def remote_client():
+    """Return TestClient for OPTIMADE server, mimicking a remote client"""
+    from .utils import client_factory
+
+    return client_factory()(raise_server_exceptions=False)
+
+
 @pytest.fixture
 def get_good_response(client):
     """Get OPTIMADE response with some sanity checks"""
@@ -21,10 +29,10 @@ def get_good_response(client):
             response = client.get(request)
             assert response.status_code == 200, f"Request failed: {response.json()}"
             response = response.json()
-        except Exception as exc:
+        except Exception:
             print("Request attempted:")
             print(f"{client.base_url}{client.version}{request}")
-            raise exc
+            raise
         else:
             return response
 
@@ -106,11 +114,11 @@ def check_error_response(client):
             else:
                 assert expected_detail == error["detail"], error
 
-        except Exception as exc:
+        except Exception:
             print("Request attempted:")
             print(f"{client.base_url}{client.version}{request}")
             if response:
                 print(f"\nCaptured response:\n{response}")
-            raise exc
+            raise
 
     return inner
