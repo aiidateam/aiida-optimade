@@ -20,51 +20,55 @@ def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
 
 
 @task
-def setver(_, patch=False, new_ver=""):
+def setver(_, patch=False, version=""):
     """Update the package version throughout the package"""
-
-    if (not patch and not new_ver) or (patch and new_ver):
-        raise Exception(
+    if (not patch and not version) or (patch and version):
+        raise RuntimeError(
             "Either use --patch or specify e.g. "
-            '--new-ver="Major.Minor.Patch(a|b|rc)?[0-9]+"'
+            '--version="Major.Minor.Patch(a|b|rc)?[0-9]+"'
         )
     if patch:
         ver = [int(x) for x in __version__.split(".")]
         ver[2] += 1
-        new_ver = ".".join(map(str, ver))
+        version = ".".join(map(str, ver))
+    elif version:
+        if version.startswith("v"):
+            version = version[1:]
+        if re.match(r"[0-9]+(\.[0-9]+){2}", version) is None:
+            raise ValueError("version MUST be specified as 'Major.Minor.Patch'")
 
     update_file(
-        "aiida_optimade/__init__.py", ("__version__ = .+", f'__version__ = "{new_ver}"')
+        "aiida_optimade/__init__.py", ("__version__ = .+", f'__version__ = "{version}"')
     )
-    update_file("setup.json", ('"version": ([^,]+),', f'"version": "{new_ver}",'))
+    update_file("setup.json", ('"version": ([^,]+),', f'"version": "{version}",'))
     update_file(
         "aiida_optimade/config.json",
-        ('"version": ([^,]+),', f'"version": "{new_ver}",'),
+        ('"version": ([^,]+),', f'"version": "{version}",'),
     )
     update_file(
         "tests/static/test_config.json",
-        ('"version": ([^,]+),', f'"version": "{new_ver}",'),
+        ('"version": ([^,]+),', f'"version": "{version}",'),
     )
 
-    print("Bumped version to {}".format(new_ver))
+    print(f"Bumped version to {version}")
 
 
 @task
 def optimade_req(_, ver=""):
     """Update the optimade-python-tools minimum version requirement"""
     if not ver:
-        raise Exception("Please specify --ver='Major.Minor.Patch'")
+        raise RuntimeError("Please specify --ver='Major.Minor.Patch'")
     if ver.startswith("v"):
         ver = ver[1:]
     if not re.match(r"[0-9]+(\.[0-9]+){2}", ver):
-        raise Exception("ver MUST be specified as 'Major.Minor.Patch'")
+        raise ValueError("ver MUST be specified as 'Major.Minor.Patch'")
 
     optimade_init = requests.get(
         "https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools"
         f"/v{ver}/optimade/__init__.py"
     )
     if optimade_init.status_code != 200:
-        raise Exception(f"{ver} does not seem to be published on GitHub")
+        raise RuntimeError(f"{ver} does not seem to be published on GitHub")
 
     semver_regex = (
         r"(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)"
@@ -114,14 +118,14 @@ def optimade_req(_, ver=""):
         update_file(".github/workflows/ci.yml", (f"/v{regex}", f"/v{version}"))
         update_file("README.md", (f"/v{regex}/info", f"/v{version}/info"), strip="\n")
 
-    print("Bumped OPTIMADE Python Tools version requirement to {}".format(ver))
+    print(f"Bumped OPTIMADE Python Tools version requirement to {ver}")
 
 
 @task
 def aiida_req(_, ver=""):
     """Update the aiida-core minimum version requirement"""
     if not ver:
-        raise Exception("Please specify --ver='Major.Minor.Patch'")
+        raise RuntimeError("Please specify --ver='Major.Minor.Patch'")
     if ver.startswith("v"):
         ver = ver[1:]
 
@@ -134,4 +138,4 @@ def aiida_req(_, ver=""):
             ("AIIDA_VERSION: .*", f"AIIDA_VERSION: {ver}"),
         )
 
-    print("Bumped AiiDA Core version requirement to {}".format(ver))
+    print(f"Bumped AiiDA Core version requirement to {ver}")
