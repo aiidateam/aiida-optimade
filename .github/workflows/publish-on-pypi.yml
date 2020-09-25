@@ -1,16 +1,21 @@
 name: Publish on PyPI
 
 on:
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+*
+  release:
+    types:
+      - published
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     if: github.repository == 'aiidateam/aiida-optimade' && startsWith(github.ref, 'refs/tags/v')
+    env:
+      PUBLISH_UPDATE_BRANCH: develop
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -18,16 +23,30 @@ jobs:
 
     - name: Upgrade setuptools
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade setuptools
+        python -m pip install -U pip
+        pip install -U setuptools
 
-    - name: Checkout repository
-      uses: actions/checkout@v2
+    - name: Update version and update '${{ env.PUBLISH_UPDATE_BRANCH }}'
+      uses: CasperWA/push-protected@v1
+      with:
+        token: ${{ secrets.RELEASE_PAT }}
+        branch: ${{ env.PUBLISH_UPDATE_BRANCH }}
+        changes: .github/static/update_version.sh
 
-    - name: Assert package version
-      env:
-        TAG_VERSION: ${{ github.ref }}
-      run: python ./.ci/assert_version.py
+    - name: Update tag to latest commit (getting the newest version locally)
+      run: |
+        git config --local user.email "casper.andersen@epfl.ch"
+        git config --local user.name "CasperWA"
+
+        git fetch origin
+        git branch ${{ env.PUBLISH_UPDATE_BRANCH }} origin/${{ env.PUBLISH_UPDATE_BRANCH }}
+        git checkout ${{ env.PUBLISH_UPDATE_BRANCH }}
+
+        TAG_MSG=.github/static/release_tag_msg.txt
+        sed -i "s|TAG_NAME|${GITHUB_REF#refs/tags/}|g" "${TAG_MSG}"
+
+        git tag -af -F "${TAG_MSG}" ${GITHUB_REF#refs/tags/}
+        git push -f --tags
 
     - name: Build source distribution
       run: python ./setup.py sdist
