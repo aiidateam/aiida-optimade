@@ -121,7 +121,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
                 if isinstance(scalar, list):
                     res.append(self.check_floating_round_errors(item))
                 else:
-                    if scalar < might_as_well_be_zero:
+                    if abs(scalar) < might_as_well_be_zero:
                         scalar = 0
                     vector.append(scalar)
             res.append(vector)
