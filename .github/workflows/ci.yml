@@ -169,3 +169,4 @@ jobs:
         port: 3253
         path: /
         all versioned paths: yes
+        validator version: "0.12.0"
