@@ -89,7 +89,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -U setuptools
-        pip install -e .[testing]
+        pip install -e .[testing] optimade[mongo]==0.12.0  # optimade version pinned due to regression in version 0.12.1
         reentry scan
 
     - name: Setup up environment for AiiDA
@@ -169,3 +169,4 @@ jobs:
         port: 3253
         path: /
         all versioned paths: yes
+        validator version: "0.12.0"
