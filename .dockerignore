@@ -3,5 +3,4 @@
 .gitignore
 *.egg-info
 *.swp
-run.sh
 profiles/

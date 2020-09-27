@@ -1,7 +1,5 @@
 FROM python:3.7
 
-ENV AIIDA_PATH /app
-
 WORKDIR /app
 
 # Install specific optimade version
@@ -18,7 +16,7 @@ COPY setup.py setup.json README.md requirements*.txt ./
 COPY aiida_optimade ./aiida_optimade
 RUN pip install -e .
 
-COPY .docker/run.sh ./
+COPY profiles/run.sh ./
 
 EXPOSE 80
 
