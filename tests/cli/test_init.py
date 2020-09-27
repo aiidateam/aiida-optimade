@@ -1,6 +1,9 @@
 # pylint: disable=unused-argument
 def test_init(run_cli_command, aiida_profile, top_dir):
-    """Test `aiida-optimade -p profile_name init` works"""
+    """Test `aiida-optimade -p profile_name init` works.
+
+    Also, check the `-f/--force` option.
+    """
     from aiida import orm
     from aiida.tools.importexport import import_data
 
@@ -33,6 +36,30 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     # Try again, now all Nodes should have been updated
     result = run_cli_command(cmd_init.init)
     assert "No new StructureData Nodes found to initialize" in result.stdout
+
+    # Test '-f/--force' option
+    options = ["--force"]
+    result = run_cli_command(cmd_init.init, options)
+    assert (
+        f"About to remove OPTIMADE-specific extras for {n_structure_data} Nodes."
+        in result.stdout
+    )
+    assert (
+        f"Done removing extra {extras_key!r} in {n_structure_data} Nodes."
+        in result.stdout
+    )
+    assert "Success!" in result.stdout
+    assert (
+        f"{n_structure_data} StructureData Nodes have been initialized."
+        in result.stdout
+    )
+
+    n_updated_structure_data = (
+        orm.QueryBuilder()
+        .append(orm.StructureData, filters={"extras": {"has_key": extras_key}})
+        .count()
+    )
+    assert n_structure_data == n_updated_structure_data
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
