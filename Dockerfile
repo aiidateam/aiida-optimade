@@ -16,7 +16,7 @@ COPY setup.py setup.json README.md requirements*.txt ./
 COPY aiida_optimade ./aiida_optimade
 RUN pip install -e .
 
-COPY profiles/run.sh ./
+COPY .docker/run.sh ./
 
 EXPOSE 80
 
