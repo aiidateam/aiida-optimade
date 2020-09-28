@@ -1,3 +1,7 @@
+import pytest
+
+
+@pytest.mark.skip("Does not work with optimade>=0.12.1")
 def test_with_validator(remote_client):
     """Validate server"""
     from optimade.validator import ImplementationValidator

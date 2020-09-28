@@ -50,12 +50,12 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def has_vacancies(self):
         """Copy of aiida.orm.StructureData:has_vacancies"""
-        from aiida.orm.nodes.data.structure import _sum_threshold
+        from aiida.orm.nodes.data.structure import _SUM_THRESHOLD
 
         def kind_has_vacancies(weights):
             """Copy of aiida.orm.Kinds:has_vacancies"""
             w_sum = sum(weights)
-            return not 1.0 - w_sum < _sum_threshold
+            return not 1.0 - w_sum < _SUM_THRESHOLD
 
         return any(kind_has_vacancies(kind["weights"]) for kind in self._kinds)
 
