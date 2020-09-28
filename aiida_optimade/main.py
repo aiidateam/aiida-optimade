@@ -42,7 +42,7 @@ from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
 if CONFIG.config_file is None:
-    LOGGER.warning(
+    LOGGER.warning(  # pragma: no cover
         "Invalid config file or no config file provided, running server with default "
         "settings. Errors: %s",
         [
@@ -53,7 +53,7 @@ if CONFIG.config_file is None:
 else:
     LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
 
-if CONFIG.debug:  # pragma: no cover
+if CONFIG.debug:
     LOGGER.info("DEBUG MODE")
 
 # Load AiiDA profile

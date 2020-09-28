@@ -22,7 +22,7 @@ from aiida_optimade.cli.options import AIIDA_PROFILES
     f"{', '.join([repr(name) for name in AIIDA_PROFILES])}.",
 )
 @click.pass_context
-def cli(ctx, profile: Profile):
+def cli(ctx, profile: Profile):  # pragma: no cover
     """AiiDA-OPTIMADE command line interface (CLI)."""
 
     if ctx.obj is None:
