@@ -4,30 +4,6 @@ on: [push, pull_request]
 
 jobs:
 
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8
-
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --statistics
-
   pre-commit:
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -44,7 +20,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -U setuptools
-        pip install pre-commit
+
+        while IFS="" read -r line || [ -n "${line}" ]; do
+            if [[ "${line}" =~ ^pre-commit.*$ ]]; then
+                pre_commit="${line}"
+            fi
+        done < requirements_dev.txt
+
+        pip install ${pre_commit}
 
     - name: Test with pre-commit
       run: pre-commit run --all-files -c .ci/.pre-commit-config.yaml || ( git status --short ; git diff ; exit 1 )
@@ -87,7 +70,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install -U pip
         pip install -U setuptools
         pip install -e .[testing]
         reentry scan
@@ -145,7 +128,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -U setuptools
-        pip install -e .
+
+        while IFS="" read -r line || [ -n "${line}" ]; do
+            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
+                aiida_core="${line}"
+            fi
+        done < requirements.txt
+
+        pip install ${aiida_core}
         reentry scan
 
     - name: Setup up environment for AiiDA
@@ -167,6 +157,5 @@ jobs:
       uses: Materials-Consortia/optimade-validator-action@v2
       with:
         port: 3253
-        path: /
         all versioned paths: yes
-        validator version: "0.12.0"
+        validator version: v0.12.0
