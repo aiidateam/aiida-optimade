@@ -70,7 +70,7 @@ class AiidaCollection:
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
                 raise ValueError(
-                    f"You supplied key {key}. _find() only takes the keys: "
+                    f"You supplied key {key!r}. _find() only takes the keys: "
                     '"filters", "order_by", "limit", "project", "offset"'
                 )
 
