@@ -4,5 +4,8 @@ include Dockerfile
 include .dockerignore
 include LICENSE
 include README.md
-include run.sh
+include setup.cfg
 include setup.json
+include requirements*.txt
+include aiida_optimade/*.json
+include aiida_optimade/data/*.json

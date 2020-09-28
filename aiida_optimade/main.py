@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import warnings
 import bson.json_util
 
 from lark.exceptions import VisitError
@@ -14,7 +15,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from aiida import load_profile
 
 from optimade import __api_version__
-from optimade.server.config import CONFIG
+
+with warnings.catch_warnings(record=True) as w:
+    from optimade.server.config import CONFIG
+
+    config_warnings = w
+
 import optimade.server.exception_handlers as exc_handlers
 from optimade.server.middleware import (
     EnsureQueryParamIntegrity,
@@ -35,7 +41,19 @@ from aiida_optimade.routers import (
 from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
-if CONFIG.debug:  # pragma: no cover
+if CONFIG.config_file is None:
+    LOGGER.warning(  # pragma: no cover
+        "Invalid config file or no config file provided, running server with default "
+        "settings. Errors: %s",
+        [
+            warnings.formatwarning(w.message, w.category, w.filename, w.lineno, "")
+            for w in config_warnings
+        ],
+    )
+else:
+    LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
+
+if CONFIG.debug:
     LOGGER.info("DEBUG MODE")
 
 # Load AiiDA profile

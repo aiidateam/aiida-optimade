@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import click
 
 from aiida.cmdline.params.options import PROFILE as VERDI_PROFILE
@@ -19,10 +22,19 @@ from aiida_optimade.cli.options import AIIDA_PROFILES
     f"{', '.join([repr(name) for name in AIIDA_PROFILES])}.",
 )
 @click.pass_context
-def cli(ctx, profile: Profile):
+def cli(ctx, profile: Profile):  # pragma: no cover
     """AiiDA-OPTIMADE command line interface (CLI)."""
 
     if ctx.obj is None:
         ctx.obj = {}
 
     ctx.obj["profile"] = profile
+
+    # Set config
+    if (
+        not os.getenv("OPTIMADE_CONFIG_FILE")
+        or not Path(os.getenv("OPTIMADE_CONFIG_FILE")).exists()
+    ):
+        os.environ["OPTIMADE_CONFIG_FILE"] = str(
+            Path(__file__).parent.parent.joinpath("config.json").resolve()
+        )

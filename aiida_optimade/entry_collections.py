@@ -39,7 +39,7 @@ class AiidaCollection:
 
         self.transformer = AiidaTransformer()
         self.provider = CONFIG.provider.prefix
-        self.provider_fields = CONFIG.provider_fields[resource_mapper.ENDPOINT]
+        self.provider_fields = CONFIG.provider_fields.get(resource_mapper.ENDPOINT, [])
         self.parser = LarkParser()
 
         # "Cache"
