@@ -13,6 +13,7 @@ services:
       AIIDA_PATH: /app
       AIIDA_PROFILE: {{ aiida_profile }}
       OPTIMADE_CONFIG_FILE: /app/aiida_optimade/config.json
+      FORCE_INIT: {{ force_init }}
     volumes:
      - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
      - '{{ config_folder }}:/profiles'

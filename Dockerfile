@@ -1,7 +1,5 @@
 FROM python:3.7
 
-ENV AIIDA_PATH /app
-
 WORKDIR /app
 
 # Install specific optimade version

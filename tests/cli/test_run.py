@@ -19,6 +19,7 @@ def run_server(run_cli_command, **kwargs):
 
     try:
         kwargs["command"] = cmd_run.run
+        kwargs["options"] = ["--reload"]
         server = Process(target=run_cli_command, kwargs=kwargs)
         server.start()
         sleep(10)  # The server needs time to start up
@@ -32,8 +33,6 @@ def run_server(run_cli_command, **kwargs):
 def run_and_terminate_server(run_cli_command, capfd):
     """Run server and close it again, returning click.testing.Result"""
 
-    capfd.readouterr()  # This is supposed to clear the internal cache
-
     def _run_and_terminate_server(options: List[str] = None, raises: bool = False):
         """Run the server using `aiida-optimade run`
 
@@ -43,6 +42,8 @@ def run_and_terminate_server(run_cli_command, capfd):
         :return: sys output
         """
         from aiida_optimade.cli import cmd_run
+
+        capfd.readouterr()  # This is supposed to clear the internal cache
 
         try:
             kwargs = {
@@ -81,7 +82,7 @@ def test_run(run_server):  # pylint: disable=unused-argument
 
 def test_log_level_debug(run_and_terminate_server):
     """Test passing log level "debug" to `aiida-optimade run`"""
-    options = ["--log-level", "debug"]
+    options = ["--log-level", "debug", "--reload"]
     output = run_and_terminate_server(options=options)
     assert "DEBUG MODE" in output.out
     assert "DEBUG:" in output.out
