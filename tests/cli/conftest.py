@@ -84,6 +84,8 @@ def run_and_terminate_server():
         if profile == "test_profile" and not bool(os.getenv("CI", "")):
             # This is for local tests only
             profile = "optimade_sqla"
+        elif bool(os.getenv("CI", "")):
+            profile = os.getenv("AIIDA_TEST_PROFILE")
 
         args = ["aiida-optimade"]
         args.append(command)
