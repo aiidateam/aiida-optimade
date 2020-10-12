@@ -25,7 +25,7 @@ def run_server():
     env["AIIDA_PROFILE"] = profile
 
     try:
-        result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, text=True)
+        result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True)
         sleep(5)  # The server needs time to start up
         yield
     finally:
