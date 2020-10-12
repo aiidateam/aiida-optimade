@@ -35,7 +35,7 @@ def run_cli_command():
 
         runner = click.testing.CliRunner()
         profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
-        if profile == "test_profile":
+        if profile == "test_profile" and not bool(os.getenv("CI", "")):
             # This is for local tests only
             profile = "optimade_sqla"
         result = runner.invoke(command, options or [], env={"AIIDA_PROFILE": profile})
@@ -81,7 +81,7 @@ def run_and_terminate_server():
         :return: Test result
         """
         profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
-        if profile == "test_profile":
+        if profile == "test_profile" and not bool(os.getenv("CI", "")):
             # This is for local tests only
             profile = "optimade_sqla"
 

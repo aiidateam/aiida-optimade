@@ -16,7 +16,7 @@ def run_server():
     :param raises: whether `aiida-optimade run` is expected to raise an exception
     """
     profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
-    if profile == "test_profile":
+    if profile == "test_profile" and not bool(os.getenv("CI", "")):
         # This is for local tests only
         profile = "optimade_sqla"
 
