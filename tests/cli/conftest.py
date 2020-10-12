@@ -92,7 +92,7 @@ def run_and_terminate_server():
         env = dict(os.environ)
         env["AIIDA_PROFILE"] = profile
         result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-        sleep(5)  # The server needs time to start up
+        sleep(10)  # The server needs time to start up
 
         result.send_signal(signal.SIGINT)
         try:
