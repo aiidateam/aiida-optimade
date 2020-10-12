@@ -1,6 +1,9 @@
 """Pytest fixtures for command line interface tests."""
 import os
-from typing import List
+from subprocess import Popen, PIPE, TimeoutExpired
+import signal
+from time import sleep
+from typing import List, Tuple
 
 import click
 import pytest
@@ -53,3 +56,55 @@ def run_cli_command():
         return result
 
     return _run_cli_command
+
+
+@pytest.fixture
+def run_and_terminate_server():
+    """Run a `click` command with the given options.
+
+    The call will raise if the command triggered an exception or the exit code returned
+    is non-zero.
+    """
+
+    def _run_and_terminate_server(
+        command: str, options: List[str] = None
+    ) -> Tuple[str, str]:
+        """Run the command and check the result.
+
+        Note, the `output_lines` attribute is added to return value containing list of
+        stripped output lines.
+
+        :param command: `aiida-optimade` command to use.
+        :param options: The list of command line options to pass to the command
+            invocation
+        :param raises: Whether the command is expected to raise an exception
+        :return: Test result
+        """
+        profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
+        if profile == "test_profile":
+            # This is for local tests only
+            profile = "optimade_sqla"
+
+        args = ["aiida-optimade"]
+        args.append(command)
+        args.extend(options or [])
+
+        env = dict(os.environ)
+        env["AIIDA_PROFILE"] = profile
+        result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, text=True)
+        sleep(5)  # The server needs time to start up
+
+        result.send_signal(signal.SIGINT)
+        try:
+            result.wait(10)
+        except TimeoutExpired:
+            result.kill()
+            sleep(2)
+
+        stdout, stderr = result.communicate()
+
+        assert result is not None
+
+        return stdout, stderr
+
+    return _run_and_terminate_server
