@@ -87,7 +87,7 @@ def run_and_terminate_server():
         elif bool(os.getenv("CI", "")):
             profile = os.getenv("AIIDA_TEST_PROFILE")
 
-        args = ["aiida-optimade"]
+        args = ["aiida-optimade", "-p", profile]
         args.append(command)
         args.extend(options or [])
 
