@@ -16,11 +16,9 @@ def run_server():
     :param raises: whether `aiida-optimade run` is expected to raise an exception
     """
     profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
-    if profile == "test_profile" and not bool(os.getenv("CI", "")):
+    if profile == "test_profile":
         # This is for local tests only
         profile = "optimade_sqla"
-    elif bool(os.getenv("CI", "")):
-        profile = os.getenv("AIIDA_TEST_PROFILE")
 
     args = ["aiida-optimade", "-p", profile, "run"]
     env = dict(os.environ)
@@ -120,11 +118,9 @@ def test_env_var_is_set(run_and_terminate_server):
 
     fixture_profile = os.getenv("AIIDA_PROFILE")
     assert fixture_profile is not None
-    if fixture_profile == "test_profile" and not bool(os.getenv("CI", "")):
+    if fixture_profile == "test_profile":
         # This is for local tests only
         fixture_profile = "optimade_sqla"
-    elif bool(os.getenv("CI", "")):
-        fixture_profile = os.getenv("AIIDA_TEST_PROFILE")
     options = ["--log-level", "debug"]
     output, errors = run_and_terminate_server(command="run", options=options)
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
