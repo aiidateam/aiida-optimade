@@ -84,6 +84,7 @@ jobs:
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
         AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
+        AIIDA_PROFILE: test_${{ matrix.backend }}
       run: pytest --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
