@@ -1,10 +1,11 @@
-# pylint: disable=protected-access,too-many-locals
+# pylint: disable=protected-access,too-many-locals,too-many-branches
 from typing import Tuple
 
 import click
+from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
-from aiida_optimade.common.logger import LOGGER
+from aiida_optimade.common.logger import LOGGER, disable_logging
 
 
 @cli.command()
@@ -37,6 +38,7 @@ from aiida_optimade.common.logger import LOGGER
 def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
     """Calculate OPTIMADE fields in the AiiDA database."""
     from aiida import load_profile
+    from aiida.cmdline.utils import echo
 
     try:
         profile: str = obj.get("profile").name
@@ -45,7 +47,8 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
     profile = load_profile(profile).name
 
     try:
-        from aiida_optimade.routers.structures import STRUCTURES
+        with disable_logging():
+            from aiida_optimade.routers.structures import STRUCTURES
 
         if not force_yes:
             click.confirm(
@@ -75,13 +78,19 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
         number_of_nodes = STRUCTURES.count(**query_kwargs)
         if number_of_nodes:
             if not silent:
-                click.echo(
+                echo.echo_info(
                     f"Fields found for {number_of_nodes} Nodes. "
-                    "The fields will now be removed for these Nodes. "
-                    "Note: This may take several minutes!"
+                    "The fields will now be removed for these Nodes."
                 )
+                echo.echo_warning("This may take several minutes!")
 
             all_calculated_nodes = STRUCTURES._find_all(**query_kwargs)
+
+            if not silent:
+                all_calculated_nodes = tqdm(
+                    all_calculated_nodes, desc="Removing fields", leave=False
+                )
+
             for node, optimade in all_calculated_nodes:
                 for field in fields:
                     optimade.pop(field, None)
@@ -90,39 +99,42 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
             del all_calculated_nodes
 
             if not silent:
-                click.echo(
-                    f"Done removing {', '.join(fields)} from {number_of_nodes} Nodes."
+                echo.echo_info(
+                    f"Done removing {', '.join(fields)} from {number_of_nodes} Node"
+                    f"{'s' if number_of_nodes > 1 else ''}."
                 )
 
         if not silent:
-            click.echo(
-                f"{'Re-c' if number_of_nodes else 'C'}alcuating field(s) {fields} in "
-                f"{profile!r}. Note: This may take several minutes!"
+            echo.echo_info(
+                f"{'Re-c' if number_of_nodes else 'C'}alcuating field"
+                f"{'s' if len(fields) > 1 else ''} {', '.join(fields)} in {profile!r}."
             )
+            echo.echo_warning("This may take several minutes!")
 
         STRUCTURES._filter_fields = set()
         STRUCTURES._alias_filter({field: "" for field in fields})
-        updated_pks = STRUCTURES._check_and_calculate_entities()
+        updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except click.Abort:
-        click.echo("Aborted!")
+        echo.echo_warning("Aborted!")
         return
     except Exception as exc:  # pylint: disable=broad-except
         from traceback import print_exc
 
         LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%s", print_exc())
-        click.echo(
+        echo.echo_critical(
             f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
         )
-        return
 
     if not silent:
         if updated_pks:
-            click.echo(
-                f"Success! {profile!r} has had {len(fields)} fields calculated for "
-                f"{len(updated_pks)} Nodes for use with AiiDA-OPTIMADE."
+            echo.echo_success(
+                f"{profile!r} has had {len(fields)} field"
+                f"{'s' if len(fields) > 1 else ''} calculated for {len(updated_pks)} "
+                f"Node{'s' if len(updated_pks) > 1 else ''} for use with "
+                "AiiDA-OPTIMADE."
             )
         else:
-            click.echo(
-                f"No StructureData Nodes found to calculate fields {', '.join(fields)} for "
-                f"{profile!r}."
+            echo.echo_info(
+                "No StructureData Nodes found to calculate field"
+                f"{'s' if len(fields) > 1 else ''} {', '.join(fields)} for {profile!r}."
             )

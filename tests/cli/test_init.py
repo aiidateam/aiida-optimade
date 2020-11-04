@@ -19,11 +19,11 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
     result = run_cli_command(cmd_init.init)
-    assert "Success!" in result.stdout, result.stdout
+    assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_structure_data} StructureData Nodes have been initialized."
         in result.stdout
-    )
+    ), result.stdout
 
     extras_key = AiidaEntityTranslator.EXTRAS_KEY
     n_updated_structure_data = (
@@ -43,16 +43,16 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     assert (
         f"About to remove OPTIMADE-specific extras for {n_structure_data} Nodes."
         in result.stdout
-    )
+    ), result.stdout
     assert (
         f"Done removing extra {extras_key!r} in {n_structure_data} Nodes."
         in result.stdout
-    )
-    assert "Success!" in result.stdout
+    ), result.stdout
+    assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_structure_data} StructureData Nodes have been initialized."
         in result.stdout
-    )
+    ), result.stdout
 
     n_updated_structure_data = (
         orm.QueryBuilder()

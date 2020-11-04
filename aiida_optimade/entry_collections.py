@@ -1,6 +1,8 @@
 from typing import Tuple, List, Union, Any
+import warnings
 
 from fastapi import HTTPException
+from tqdm import tqdm
 
 from aiida.orm import Entity, QueryBuilder
 
@@ -310,12 +312,28 @@ class AiidaCollection:
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
 
-    def _check_and_calculate_entities(self) -> List[int]:
+    def _check_and_calculate_entities(self, cli: bool = False) -> List[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
         been queried for using "filter".
+
+        Parameters:
+            cli: Whether or not this method is run through the CLI.
+
+        Returns:
+            A list of the Node PKs representing the Nodes that were necessary to
+            calculate the given fields for.
+
         """
+
+        def _update_entities(entities: list, fields: list):
+            """Utility function to update entities within this method"""
+            for entity in entities:
+                self.resource_cls(
+                    **self.resource_mapper.map_back(dict(zip(fields, entity)))
+                )
+
         extras_keys = [
             key for key in self.resource_mapper.PROJECT_PREFIX.split(".") if key
         ]
@@ -348,10 +366,16 @@ class AiidaCollection:
             entities = self._find_all(
                 filters={"id": {"in": necessary_entity_ids}}, project=fields
             )
-            for entity in entities:
-                self.resource_cls(
-                    **self.resource_mapper.map_back(dict(zip(fields, entity)))
-                )
+
+            if cli:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    _update_entities(
+                        tqdm(entities, desc="(Re)calculating fields", leave=False),
+                        fields,
+                    )
+            else:
+                _update_entities(entities, fields)
             return necessary_entity_ids
 
         return []

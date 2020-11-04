@@ -1,10 +1,37 @@
 """Logging to both file and widget"""
+from contextlib import contextmanager
 import logging
 import os
 from pathlib import Path
 import sys
 
 from uvicorn.logging import DefaultFormatter
+
+
+@contextmanager
+def disable_logging():
+    """Temporarily disable logging.
+
+    Usage::
+
+        from aiida_optimade.common.utils import disable_logging
+
+        # Do stuff logging to all handlers.
+        # ...
+        with disable_logging():
+            # Do stuff without logging to any handlers.
+            # ...
+        # Do stuff logging to all handlers now re-enabled.
+        # ...
+
+    """
+    try:
+        # Disable logging lower than CRITICAL level
+        logging.disable(logging.CRITICAL)
+        yield
+    finally:
+        # Re-enable logging to desired levels
+        logging.disable(logging.NOTSET)
 
 
 # Instantiate LOGGER

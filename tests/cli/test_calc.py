@@ -62,7 +62,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
         "The fields will now be removed for these Nodes." not in result.stdout
     ), result.stdout
 
-    assert "Success!" in result.stdout, result.stdout
+    assert "Success:" in result.stdout, result.stdout
     assert f"calculated for {n_structure_data} Nodes" in result.stdout, result.stdout
 
     n_updated_structure_data = (
@@ -120,7 +120,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
         "The fields will now be removed for these Nodes." in result.stdout
     ), result.stdout
 
-    assert "Success!" in result.stdout, result.stdout
+    assert "Success:" in result.stdout, result.stdout
     assert f"calculated for {n_structure_data} Nodes" in result.stdout, result.stdout
 
     n_updated_structure_data = (
