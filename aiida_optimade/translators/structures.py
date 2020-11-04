@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,too-many-public-methods
 import itertools
 
 from typing import List, Union
@@ -257,39 +257,23 @@ class StructureDataTranslator(AiidaEntityTranslator):
         and then, in order left to right, replaced by anonymous symbols:
         A, B, C, ..., Z, Aa, Ba, ..., Za, Ab, Bb, ... and so on.
         """
-        import string
+        from optimade.models.utils import ANONYMOUS_ELEMENTS
 
         attribute = "chemical_formula_anonymous"
 
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        elements = self.elements()
-        nelements = self.nelements()
+        weights = [weight for _, weight in self.get_symbol_weights().items()]
 
-        anonymous_elements = []
-        for i in range(nelements):
-            symbol = string.ascii_uppercase[i % len(string.ascii_uppercase)]
-            if i >= len(string.ascii_uppercase):
-                symbol += string.ascii_lowercase[
-                    (i - len(string.ascii_uppercase))
-                    // len(string.ascii_lowercase)
-                    % len(string.ascii_lowercase)
-                ]
-            # NOTE: This does not expect more than Zz elements (26+26*26 = 702) - should be enough ...
-            anonymous_elements.append(symbol)
-        map_anonymous = dict(zip(elements, anonymous_elements))
+        assert len(ANONYMOUS_ELEMENTS) >= len(
+            weights
+        ), f"Not enough generated anonymous elements to create `chemical_formula_anonymous` for Node <PK={self._pk}>. Found elements: {len(self.elements())}. Generated anonymous elements: {len(ANONYMOUS_ELEMENTS)}."
 
-        occupation = self.get_symbol_weights()
-        for symbol, weight in occupation.items():
-            rounded_weight = round(weight)
-            if rounded_weight == 1:
-                occupation[symbol] = ""
-            else:
-                occupation[symbol] = rounded_weight
-        res = "".join(
-            [f"{map_anonymous[symbol]}{occupation[symbol]}" for symbol in elements]
-        )
+        res = ""
+        for index, occupation in enumerate(sorted(weights, reverse=True)):
+            rounded_weight = "" if round(occupation) == 1 else round(occupation)
+            res += f"{ANONYMOUS_ELEMENTS[index]}{rounded_weight}"
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res

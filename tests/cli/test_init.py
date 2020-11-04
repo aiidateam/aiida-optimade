@@ -19,7 +19,7 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
     result = run_cli_command(cmd_init.init)
-    assert "Success!" in result.stdout
+    assert "Success!" in result.stdout, result.stdout
     assert (
         f"{n_structure_data} StructureData Nodes have been initialized."
         in result.stdout
