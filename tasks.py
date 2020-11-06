@@ -1,10 +1,7 @@
 import re
 from typing import Tuple
-import requests
 
 from invoke import task
-
-from aiida_optimade import __version__
 
 
 def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
@@ -28,6 +25,8 @@ def setver(_, patch=False, version=""):
             '--version="Major.Minor.Patch(a|b|rc)?[0-9]+"'
         )
     if patch:
+        from aiida_optimade import __version__
+
         ver = [int(x) for x in __version__.split(".")]
         ver[2] += 1
         version = ".".join(map(str, ver))
@@ -56,6 +55,8 @@ def setver(_, patch=False, version=""):
 @task
 def optimade_req(_, ver=""):
     """Update the optimade-python-tools minimum version requirement"""
+    import requests
+
     if not ver:
         raise RuntimeError("Please specify --ver='Major.Minor.Patch'")
     if ver.startswith("v"):
