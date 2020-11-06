@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'push-action/**'
 
 jobs:
 
@@ -85,7 +90,7 @@ jobs:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
         AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
         AIIDA_PROFILE: test_${{ matrix.backend }}
-      run: pytest --cov=./aiida_optimade/ --cov-report=xml
+      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8

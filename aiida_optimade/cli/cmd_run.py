@@ -78,4 +78,5 @@ def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bo
         host=host,
         port=port,
         log_level=log_level,
+        debug=debug,
     )

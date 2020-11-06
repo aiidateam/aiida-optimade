@@ -55,11 +55,17 @@ def test_run(run_server):  # pylint: disable=unused-argument
 
 
 def test_log_level_debug(run_and_terminate_server):
-    """Test passing log level "debug" to `aiida-optimade run`"""
+    """Test passing log level "debug" to `aiida-optimade run`
+
+    In the latest versions of uvicorn, setting the log-level to "debug"
+    is not enough to create debug log messages in stdout.
+    One needs to also be in debug mode, i.e., either set `reload=True`
+    or set `debug=True`.
+    """
     options = ["--log-level", "debug"]
     output, errors = run_and_terminate_server(command="run", options=options)
     assert "DEBUG MODE" in output, f"output: {output!r}, errors: {errors!r}"
-    assert "DEBUG:" in output, f"output: {output!r}, errors: {errors!r}"
+    assert "DEBUG:" not in output, f"output: {output!r}, errors: {errors!r}"
 
 
 def test_log_level_warning(run_and_terminate_server):
@@ -121,6 +127,5 @@ def test_env_var_is_set(run_and_terminate_server):
     if fixture_profile == "test_profile":
         # This is for local tests only
         fixture_profile = "optimade_sqla"
-    options = ["--log-level", "debug"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server(command="run")
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
