@@ -15,8 +15,8 @@ from aiida_optimade.common.logger import LOGGER
     nargs=-1,
 )
 @click.option(
-    "-q",
-    "--silent",
+    "-y",
+    "--force-yes",
     is_flag=True,
     default=False,
     show_default=True,
@@ -25,8 +25,16 @@ from aiida_optimade.common.logger import LOGGER
         "the AiiDA database."
     ),
 )
+@click.option(
+    "-q",
+    "--silent",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Suppress informational output.",
+)
 @click.pass_obj
-def calc(obj: dict, fields: Tuple[str], silent: bool):
+def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
     """Calculate OPTIMADE fields in the AiiDA database."""
     from aiida import load_profile
 
@@ -39,7 +47,7 @@ def calc(obj: dict, fields: Tuple[str], silent: bool):
     try:
         from aiida_optimade.routers.structures import STRUCTURES
 
-        if not silent:
+        if not force_yes:
             click.confirm(
                 "Are you sure you want to (re-)calculate the field(s): "
                 f"{', '.join(fields)}?",
@@ -66,11 +74,12 @@ def calc(obj: dict, fields: Tuple[str], silent: bool):
 
         number_of_nodes = STRUCTURES.count(**query_kwargs)
         if number_of_nodes:
-            click.echo(
-                f"Fields found for {number_of_nodes} Nodes. "
-                "The fields will now be removed for these Nodes. "
-                "Note: This may take several minutes!"
-            )
+            if not silent:
+                click.echo(
+                    f"Fields found for {number_of_nodes} Nodes. "
+                    "The fields will now be removed for these Nodes. "
+                    "Note: This may take several minutes!"
+                )
 
             all_calculated_nodes = STRUCTURES._find_all(**query_kwargs)
             for node, optimade in all_calculated_nodes:
@@ -80,14 +89,16 @@ def calc(obj: dict, fields: Tuple[str], silent: bool):
                 del node
             del all_calculated_nodes
 
-            click.echo(
-                f"Done removing {', '.join(fields)} from {number_of_nodes} Nodes."
-            )
+            if not silent:
+                click.echo(
+                    f"Done removing {', '.join(fields)} from {number_of_nodes} Nodes."
+                )
 
-        click.echo(
-            f"{'Re-c' if number_of_nodes else 'C'}alcuating field(s) {fields} in "
-            f"{profile!r}. Note: This may take several minutes!"
-        )
+        if not silent:
+            click.echo(
+                f"{'Re-c' if number_of_nodes else 'C'}alcuating field(s) {fields} in "
+                f"{profile!r}. Note: This may take several minutes!"
+            )
 
         STRUCTURES._filter_fields = set()
         STRUCTURES._alias_filter({field: "" for field in fields})
@@ -104,13 +115,14 @@ def calc(obj: dict, fields: Tuple[str], silent: bool):
         )
         return
 
-    if updated_pks:
-        click.echo(
-            f"Success! {profile!r} has had {len(fields)} fields calculated for "
-            f"{len(updated_pks)} Nodes for use with AiiDA-OPTIMADE."
-        )
-    else:
-        click.echo(
-            f"No StructureData Nodes found to calculate fields {', '.join(fields)} for "
-            f"{profile!r}."
-        )
+    if not silent:
+        if updated_pks:
+            click.echo(
+                f"Success! {profile!r} has had {len(fields)} fields calculated for "
+                f"{len(updated_pks)} Nodes for use with AiiDA-OPTIMADE."
+            )
+        else:
+            click.echo(
+                f"No StructureData Nodes found to calculate fields {', '.join(fields)} for "
+                f"{profile!r}."
+            )

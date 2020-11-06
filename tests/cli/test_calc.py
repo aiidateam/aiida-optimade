@@ -52,7 +52,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
         .count()
     )
 
-    options = ["--silent"] + fields
+    options = ["--force-yes"] + fields
     result = run_cli_command(cmd_calc.calc, options)
 
     assert (
@@ -112,7 +112,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
         .count()
     )
 
-    options = ["--silent"] + fields
+    options = ["--force-yes"] + fields
     result = run_cli_command(cmd_calc.calc, options)
 
     assert f"Fields found for {n_structure_data} Nodes." in result.stdout, result.stdout
