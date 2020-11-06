@@ -13,8 +13,16 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
     show_default=True,
     help="Force re-calculation of all OPTIMADE fields in the AiiDA database.",
 )
+@click.option(
+    "-q",
+    "--silent",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Suppress informational output.",
+)
 @click.pass_obj
-def init(obj: dict, force: bool):
+def init(obj: dict, force: bool, silent: bool):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     from aiida import load_profile
 
@@ -36,20 +44,27 @@ def init(obj: dict, force: bool):
             }
 
             number_of_nodes = STRUCTURES.count(**query_kwargs)
-            click.echo(
-                "Forcing re-calculation. About to remove OPTIMADE-specific extras for "
-                f"{number_of_nodes} Nodes. Note: This may take several seconds!"
-            )
+            if not silent:
+                click.echo(
+                    "Forcing re-calculation. About to remove OPTIMADE-specific extras "
+                    f"for {number_of_nodes} Nodes. Note: This may take several seconds!"
+                )
 
             all_calculated_nodes = STRUCTURES._find_all(**query_kwargs)
             for (node,) in all_calculated_nodes:
                 node.delete_extra(extras_key)
+                del node
+            del all_calculated_nodes
 
+            if not silent:
+                click.echo(
+                    f"Done removing extra {extras_key!r} in {number_of_nodes} Nodes."
+                )
+
+        if not silent:
             click.echo(
-                f"Done removing extra {extras_key!r} in {number_of_nodes} Nodes."
+                f"Initializing {profile!r}. Note: This may take several minutes!"
             )
-
-        click.echo(f"Initializing {profile!r}. Note: This may take several minutes!")
 
         STRUCTURES._filter_fields = set()
         STRUCTURES._alias_filter({"nelements": "2"})
@@ -60,10 +75,14 @@ def init(obj: dict, force: bool):
         )
         return
 
-    if updated_pks:
-        click.echo(
-            f"Success! {profile!r} has been initialized for use with AiiDA-OPTIMADE."
-        )
-        click.echo(f"{len(updated_pks)} StructureData Nodes have been initialized.")
-    else:
-        click.echo(f"No new StructureData Nodes found to initialize for {profile!r}.")
+    if not silent:
+        if updated_pks:
+            click.echo(
+                f"Success! {profile!r} has been initialized for use with "
+                "AiiDA-OPTIMADE."
+            )
+            click.echo(f"{len(updated_pks)} StructureData Nodes have been initialized.")
+        else:
+            click.echo(
+                f"No new StructureData Nodes found to initialize for {profile!r}."
+            )
