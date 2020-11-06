@@ -320,7 +320,7 @@ class AiidaCollection:
             key for key in self.resource_mapper.PROJECT_PREFIX.split(".") if key
         ]
         filter_fields = [
-            {"!has_key": field for field in self._get_extras_filter_fields()}
+            {"!has_key": field} for field in self._get_extras_filter_fields()
         ]
         necessary_entities_qb = self._find_all(
             filters={

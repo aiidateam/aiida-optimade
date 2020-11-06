@@ -59,7 +59,7 @@ if CONFIG.debug:
 # Load AiiDA profile
 PROFILE_NAME = os.getenv("AIIDA_PROFILE")
 load_profile(PROFILE_NAME)
-LOGGER.debug("AiiDA Profile: %s", PROFILE_NAME)
+LOGGER.info("AiiDA Profile: %s", PROFILE_NAME)
 
 # Load links in mongomock
 LINKS_DATA = Path(__file__).parent.joinpath("data/links.json").resolve()

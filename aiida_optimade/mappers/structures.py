@@ -31,17 +31,18 @@ class StructureMapper(ResourceMapper):
         """
         import json
 
-        res = {}
         float_fields_stored_as_strings = {"elements_ratios"}
 
         # Add existing attributes
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
-        for existing_attribute, value in retrieved_attributes.items():
-            if existing_attribute in float_fields_stored_as_strings and value:
-                value = json.loads(str(value))
-            res[existing_attribute] = value
-            if existing_attribute in missing_attributes:
-                missing_attributes.remove(existing_attribute)
+        existing_attributes = set(retrieved_attributes.keys())
+        missing_attributes.difference_update(existing_attributes)
+        for field in float_fields_stored_as_strings:
+            if field in existing_attributes and retrieved_attributes.get(field):
+                retrieved_attributes[field] = json.loads(
+                    str(retrieved_attributes[field])
+                )
+        res = retrieved_attributes.copy()
 
         # Create and add new attributes
         if missing_attributes:
