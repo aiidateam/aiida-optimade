@@ -50,16 +50,6 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
         with disable_logging():
             from aiida_optimade.routers.structures import STRUCTURES
 
-        if not force_yes:
-            click.confirm(
-                "Are you sure you want to (re-)calculate the field(s): "
-                f"{', '.join(fields)}?",
-                default=True,
-                abort=True,
-                show_default=True,
-            )
-
-        # Remove OPTIMADE fields in OPTIMADE-specific extra
         extras_key = STRUCTURES.resource_mapper.PROJECT_PREFIX.split(".")[1]
         query_kwargs = {
             "filters": {
@@ -79,10 +69,31 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
         if number_of_nodes:
             if not silent:
                 echo.echo_info(
-                    f"Fields found for {number_of_nodes} Nodes. "
-                    "The fields will now be removed for these Nodes."
+                    f"Field{'s' if len(fields) > 1 else ''} found for {number_of_nodes}"
+                    f" Node{'s' if number_of_nodes > 1 else ''}."
                 )
-                echo.echo_warning("This may take several minutes!")
+        if not silent:
+            echo.echo_info(
+                f"Total number of Nodes in profile {profile!r}: {STRUCTURES.count()}"
+            )
+
+        if not force_yes:
+            click.confirm(
+                f"Are you sure you want to {'re-' if number_of_nodes else ''}"
+                f"calculate the field{'s' if len(fields) > 1 else ''}: "
+                f"{', '.join(fields)}?",
+                default=True,
+                abort=True,
+                show_default=True,
+            )
+
+        if number_of_nodes:
+            if not silent:
+                echo.echo_warning(
+                    f"Removing field{'s' if len(fields) > 1 else ''} for "
+                    f"{number_of_nodes} Node{'s' if number_of_nodes > 1 else ''}. "
+                    "This may take several minutes!"
+                )
 
             all_calculated_nodes = STRUCTURES._find_all(**query_kwargs)
 
@@ -105,11 +116,10 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
                 )
 
         if not silent:
-            echo.echo_info(
-                f"{'Re-c' if number_of_nodes else 'C'}alcuating field"
-                f"{'s' if len(fields) > 1 else ''} {', '.join(fields)} in {profile!r}."
+            echo.echo_warning(
+                f"Calcuating field{'s' if len(fields) > 1 else ''} {', '.join(fields)}."
+                " This may take several minutes!"
             )
-            echo.echo_warning("This may take several minutes!")
 
         STRUCTURES._filter_fields = set()
         STRUCTURES._alias_filter({field: "" for field in fields})

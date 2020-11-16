@@ -59,7 +59,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
         f"Fields found for {n_structure_data} Nodes." not in result.stdout
     ), result.stdout
     assert (
-        "The fields will now be removed for these Nodes." not in result.stdout
+        f"Removing fields for {n_structure_data} Nodes." not in result.stdout
     ), result.stdout
 
     assert "Success:" in result.stdout, result.stdout
@@ -117,7 +117,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
 
     assert f"Fields found for {n_structure_data} Nodes." in result.stdout, result.stdout
     assert (
-        "The fields will now be removed for these Nodes." in result.stdout
+        f"Removing fields for {n_structure_data} Nodes." in result.stdout
     ), result.stdout
 
     assert "Success:" in result.stdout, result.stdout
@@ -135,6 +135,97 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     )
 
     assert n_structure_data == n_updated_structure_data
+
+    # Repopulate database with the "proper" test data
+    aiida_profile.reset_db()
+    original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
+    import_data(original_data)
+
+
+def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
+    """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
+    from aiida import orm
+    from aiida.tools.importexport import import_data
+
+    from aiida_optimade.cli import cmd_calc
+    from aiida_optimade.translators.entities import AiidaEntityTranslator
+
+    # Clear database and get initialized_nodes.aiida
+    aiida_profile.reset_db()
+    archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
+    import_data(archive)
+
+    extras_key = AiidaEntityTranslator.EXTRAS_KEY
+    original_data = orm.QueryBuilder().append(
+        orm.StructureData, project=["*", f"extras.{extras_key}"]
+    )
+    n_total_nodes = original_data.count()
+    original_data = original_data.all()
+
+    # Alter extra for various Nodes
+    node, _ = original_data[0]
+    node.delete_extra(extras_key)
+    del node
+
+    node, optimade = original_data[1]
+    optimade.pop("elements", None)
+    optimade.pop("elements_ratios", None)
+    node.set_extra(extras_key, optimade)
+    del node
+
+    node, optimade = original_data[2]
+    optimade.pop("elements", None)
+    node.set_extra(extras_key, optimade)
+    del node
+
+    node, optimade = original_data[3]
+    optimade.pop("elements_ratios", None)
+    node.set_extra(extras_key, optimade)
+    del node
+
+    del original_data
+
+    # "elements" should not be found in 3 Nodes
+    options = ["--force-yes", "elements"]
+    result = run_cli_command(cmd_calc.calc, options)
+
+    assert f"Field found for {n_total_nodes - 3} Nodes." in result.stdout, result.stdout
+    assert (
+        f"Removing field for {n_total_nodes - 3} Nodes." in result.stdout
+    ), result.stdout
+
+    assert "Success:" in result.stdout, result.stdout
+    assert f"calculated for {n_total_nodes} Nodes" in result.stdout, result.stdout
+
+    n_updated_structure_data = (
+        orm.QueryBuilder()
+        .append(
+            orm.StructureData,
+            filters={f"extras.{extras_key}": {"has_key": "elements"}},
+        )
+        .count()
+    )
+
+    assert n_total_nodes == n_updated_structure_data
+
+    # All missing fields should have been calcualted for all Nodes now,
+    # since "elements" will have been removed from all Nodes that had it
+    # first, meaning all Nodes will be investigated for other missing
+    # fields automatically - always.
+    # Let's check with "elements_ratios", which was the only field removed
+    # from one Node above.
+    # This will also test if "elements_ratios" will be calculated from a
+    # Node where both it and "elements" were missing prior to the previous
+    # invocation of `aiida-optimade calc`.
+    n_structure_data = (
+        orm.QueryBuilder()
+        .append(
+            orm.StructureData,
+            filters={f"extras.{extras_key}": {"has_key": "elements_ratios"}},
+        )
+        .count()
+    )
+    assert n_structure_data == n_total_nodes
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()

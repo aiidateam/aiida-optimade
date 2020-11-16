@@ -371,7 +371,7 @@ class AiidaCollection:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     _update_entities(
-                        tqdm(entities, desc="(Re)calculating fields", leave=False),
+                        tqdm(entities, desc="Calculating fields", leave=False),
                         fields,
                     )
             else:
