@@ -7,11 +7,12 @@ from optimade.models import (
     StructureResource as OptimadeStructureResource,
     StructureResourceAttributes as OptimadeStructureResourceAttributes,
 )
-from optimade.server.config import CONFIG
 
 
 def prefix_provider(string: str) -> str:
     """Prefix string with `_{provider}_`"""
+    from optimade.server.config import CONFIG
+
     if string in CONFIG.provider_fields.get("structures", []):
         return f"_{CONFIG.provider.prefix}_{string}"
     return string

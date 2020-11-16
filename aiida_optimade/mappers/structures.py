@@ -18,6 +18,7 @@ class StructureMapper(ResourceMapper):
     TRANSLATOR = StructureDataTranslator
     ALL_ATTRIBUTES = set(StructureResourceAttributes.schema().get("properties").keys())
     REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
+    # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
 
     @classmethod
     def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
