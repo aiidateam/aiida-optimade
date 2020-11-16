@@ -24,6 +24,7 @@ LINKS = MongoCollection(
     "/links",
     response_model=Union[LinksResponse, ErrorResponse],
     response_model_exclude_unset=True,
+    response_model_exclude_none=False,
     tags=["Links"],
 )
 def get_links(request: Request, params: EntryListingQueryParams = Depends()):
