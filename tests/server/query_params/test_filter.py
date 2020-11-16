@@ -85,19 +85,6 @@ def test_list_has_all(check_response):
     check_response(request, expected_uuids)
 
 
-def test_warnings_for_assemblies(check_response):
-    """Check a NotImplementedWarning is raised for 'assemblies'"""
-    from aiida_optimade.common.warnings import NotImplementedWarning
-
-    request = "/structures?filter=nelements>=18"
-    expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
-
-    with pytest.warns(
-        NotImplementedWarning, match="Parsing optional attribute 'assemblies'"
-    ):
-        check_response(request, expected_uuids)
-
-
 def test_list_has_any(check_response):
     elements = '"La","Ba"'
     request = f"/structures?filter=elements HAS ALL {elements}"

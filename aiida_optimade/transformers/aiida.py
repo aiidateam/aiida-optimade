@@ -150,8 +150,12 @@ class AiidaTransformer(Transformer):
         """
         if arg[1] == "KNOWN":
             key = "!=="
-        if arg[1] == "UNKNOWN":
+        elif arg[1] == "UNKNOWN":
             key = "=="
+        else:
+            raise NotImplementedError(
+                f"Unknown operator: {arg[1]}. Must be either KNOWN or UNKNOWN."
+            )
         return {key: None}
 
     def fuzzy_string_op_rhs(self, arg):
@@ -169,6 +173,11 @@ class AiidaTransformer(Transformer):
             like = f"{arg[-1]}%"
         elif arg[0] == "ENDS":
             like = f"%{arg[-1]}"
+        else:
+            raise NotImplementedError(
+                f"Unknown fuzzy string operator: {arg[0]}. "
+                "Must be either CONTAINS, STARTS or ENDS."
+            )
         return {"like": like}
 
     def set_op_rhs(self, arg):
@@ -256,15 +265,30 @@ class AiidaTransformer(Transformer):
         return int(number)
 
     @v_args(inline=True)
+    def signed_float(self, number):
+        """
+        signed_float: SIGNED_FLOAT
+
+        All floats values are converted and stored as hex strings in AiiDA.
+        """
+        return float(number).hex()
+
+    @v_args(inline=True)
     def number(self, number):
         """
         number: SIGNED_INT | SIGNED_FLOAT
+
+        All floats values are converted and stored as hex strings in AiiDA.
         """
         if number.type == "SIGNED_INT":
-            type_ = int
-        elif number.type == "SIGNED_FLOAT":
-            type_ = float
-        return type_(number)
+            return int(number)
+        if number.type == "SIGNED_FLOAT":
+            return float(number).hex()
+
+        raise NotImplementedError(
+            f"number: {number} (type: {number.type}) does not seem to be a SIGNED_INT "
+            "or SIGNED_FLOAT"
+        )
 
     def __default__(self, data, children, meta):  # pragma: no cover
         raise NotImplementedError(

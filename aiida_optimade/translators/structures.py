@@ -1,12 +1,17 @@
 # pylint: disable=line-too-long,too-many-public-methods
 import itertools
+from math import fsum
 
 from typing import List, Union
 from aiida.orm import StructureData
 
 from aiida_optimade.common import OptimadeIntegrityError, AiidaError
-
-from .entities import AiidaEntityTranslator
+from aiida_optimade.translators.entities import AiidaEntityTranslator
+from aiida_optimade.translators.utils import (
+    check_floating_round_errors,
+    floats_to_hex,
+    hex_to_floats,
+)
 
 
 __all__ = ("StructureDataTranslator",)
@@ -41,7 +46,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
             self.__sites = self._get_unique_node_property("attributes.sites")
         return self.__sites
 
-    # Helper methods to calculate OPTIMADE fields
+    # Introspective helper methods to calculate OPTIMADE fields
     def get_symbols_set(self):
         """Copy of aiida.orm.StructureData:get_symbols_set()"""
         return set(
@@ -104,29 +109,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         return False
 
-    def check_floating_round_errors(self, some_list: List[Union[List, float]]) -> list:
-        """Check whether there are some float rounding errors (check only for close to zero numbers)
-
-        :param some_list: Must be a list of either lists or float values
-        :type some_list: list
-        """
-        might_as_well_be_zero = (
-            1e-8  # This is for Å, so 1e-8 Å can by all means be considered 0 Å
-        )
-        res = []
-
-        for item in some_list:
-            vector = []
-            for scalar in item:
-                if isinstance(scalar, list):
-                    res.append(self.check_floating_round_errors(item))
-                else:
-                    if abs(scalar) < might_as_well_be_zero:
-                        scalar = 0
-                    vector.append(scalar)
-            res.append(vector)
-        return res
-
     # Start creating fields
     def elements(self) -> List[str]:
         """Names of elements found in the structure as a list of strings, in alphabetical order."""
@@ -163,15 +145,15 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "elements_ratios"
 
         if attribute in self.new_attributes:
-            return self.new_attributes[attribute]
+            return hex_to_floats(self.new_attributes[attribute])
 
         ratios = self.get_symbol_weights()
 
-        total_weight = sum(ratios.values())
+        total_weight = fsum(ratios.values())
         res = [ratios[symbol] / total_weight for symbol in self.elements()]
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
-        self.new_attributes[attribute] = str(res)
+        self.new_attributes[attribute] = floats_to_hex(res)
         return res
 
     def chemical_formula_descriptive(self) -> str:
@@ -330,14 +312,14 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "lattice_vectors"
 
         if attribute in self.new_attributes:
-            return self.new_attributes[attribute]
+            return hex_to_floats(self.new_attributes[attribute])
 
-        res = self.check_floating_round_errors(
+        res = check_floating_round_errors(
             self._get_unique_node_property("attributes.cell")
         )
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
-        self.new_attributes[attribute] = res
+        self.new_attributes[attribute] = floats_to_hex(res)
         return res
 
     def cartesian_site_positions(self) -> List[List[Union[float, None]]]:
@@ -349,13 +331,13 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "cartesian_site_positions"
 
         if attribute in self.new_attributes:
-            return self.new_attributes[attribute]
+            return hex_to_floats(self.new_attributes[attribute])
 
         sites = [list(site["position"]) for site in self._sites]
-        res = self.check_floating_round_errors(sites)
+        res = check_floating_round_errors(sites)
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
-        self.new_attributes[attribute] = res
+        self.new_attributes[attribute] = floats_to_hex(res)
         return res
 
     def nsites(self) -> int:
@@ -439,18 +421,21 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    # def assemblies(self) -> List[dict]:
-    #     """A description of groups of sites that are statistically correlated."""
-    #     attribute = "assemblies"
+    def assemblies(self) -> Union[List[dict], None]:
+        """A description of groups of sites that are statistically correlated.
 
-    #     if attribute in self.new_attributes:
-    #         return self.new_attributes[attribute]
+        NOTE: Currently not supported.
+        """
+        attribute = "assemblies"
 
-    #     res = []
+        if attribute in self.new_attributes:
+            return self.new_attributes[attribute]
 
-    #     # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
-    #     self.new_attributes[attribute] = res
-    #     return res
+        res = None
+
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        self.new_attributes[attribute] = res
+        return res
 
     def structure_features(self) -> List[str]:
         """A list of strings that flag which special features are used by the structure.
@@ -494,8 +479,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         # * Assemblies *
         # This flag MUST be present if the property assemblies is present.
-        # if self.assemblies():
-        #     res.append("assemblies")
+        if self.assemblies():
+            res.append("assemblies")
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
