@@ -164,7 +164,7 @@ jobs:
       with:
         port: 3253
         all versioned paths: yes
-        validator version: v0.12.0
+        validator version: latest
 
   build-package:
     runs-on: ubuntu-latest
