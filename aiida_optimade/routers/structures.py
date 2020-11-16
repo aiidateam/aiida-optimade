@@ -28,6 +28,7 @@ STRUCTURES = AiidaCollection(StructureData, StructureResource, StructureMapper)
     "/structures",
     response_model=Union[StructureResponseMany, ErrorResponse],
     response_model_exclude_unset=True,
+    response_model_exclude_none=False,
     tags=["Structures"],
 )
 @close_session
@@ -44,6 +45,7 @@ def get_structures(request: Request, params: EntryListingQueryParams = Depends()
     "/structures/{entry_id}",
     response_model=Union[StructureResponseOne, ErrorResponse],
     response_model_exclude_unset=True,
+    response_model_exclude_none=False,
     tags=["Structures"],
 )
 @close_session

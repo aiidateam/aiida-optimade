@@ -25,6 +25,7 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
     "/info",
     response_model=Union[InfoResponse, ErrorResponse],
     response_model_exclude_unset=True,
+    response_model_exclude_none=False,
     tags=["Info"],
 )
 def get_info(request: Request):
@@ -67,6 +68,7 @@ def get_info(request: Request):
     "/info/{entry}",
     response_model=Union[EntryInfoResponse, ErrorResponse],
     response_model_exclude_unset=True,
+    response_model_exclude_none=False,
     tags=["Info"],
 )
 def get_info_entry(request: Request, entry: str):

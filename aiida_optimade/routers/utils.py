@@ -77,7 +77,9 @@ def handle_response_fields(
     new_results = []
     while results:
         entry = results.pop(0)
-        new_entry = entry.dict(exclude=top_level, exclude_unset=True, by_alias=True)
+        new_entry = entry.dict(
+            exclude=top_level, exclude_unset=True, exclude_none=False, by_alias=True
+        )
         for field in attribute_level:
             if field in new_entry["attributes"]:
                 del new_entry["attributes"][field]

@@ -2,7 +2,7 @@ import warnings
 
 from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.models import StructureResourceAttributes
-from aiida_optimade.translators import StructureDataTranslator
+from aiida_optimade.translators import hex_to_floats, StructureDataTranslator
 
 from .entries import ResourceMapper
 
@@ -30,19 +30,19 @@ class StructureMapper(ResourceMapper):
         :param entry_pk: The AiiDA Node's PK
         :type entry_pk: int
         """
-        import json
-
-        float_fields_stored_as_strings = {"elements_ratios"}
+        float_fields = {
+            "elements_ratios",
+            "lattice_vectors",
+            "cartesian_site_positions",
+        }
 
         # Add existing attributes
         missing_attributes = cls.ALL_ATTRIBUTES.copy()
         existing_attributes = set(retrieved_attributes.keys())
         missing_attributes.difference_update(existing_attributes)
-        for field in float_fields_stored_as_strings:
+        for field in float_fields:
             if field in existing_attributes and retrieved_attributes.get(field):
-                retrieved_attributes[field] = json.loads(
-                    str(retrieved_attributes[field])
-                )
+                retrieved_attributes[field] = hex_to_floats(retrieved_attributes[field])
         res = retrieved_attributes.copy()
 
         # Create and add new attributes
