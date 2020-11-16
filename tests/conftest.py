@@ -57,7 +57,7 @@ def aiida_profile(top_dir) -> TestManager:
             os.environ["AIIDA_PROFILE"] = profile
 
             filename = top_dir.joinpath("tests/static/test_structuredata.aiida")
-            import_data(filename, silent=True)
+            import_data(filename)
 
             yield manager
     finally:

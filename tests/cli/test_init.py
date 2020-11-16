@@ -14,7 +14,7 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     aiida_profile.reset_db()
 
     archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
-    import_data(archive, silent=True)
+    import_data(archive)
 
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
@@ -64,4 +64,4 @@ def test_init(run_cli_command, aiida_profile, top_dir):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
-    import_data(original_data, silent=True)
+    import_data(original_data)

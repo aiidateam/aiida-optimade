@@ -14,7 +14,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
     # Clear database and get initialized_nodes.aiida
     aiida_profile.reset_db()
     archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
-    import_data(archive, silent=True)
+    import_data(archive)
 
     fields = ["elements", "chemical_formula_hill"]
 
@@ -81,7 +81,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
-    import_data(original_data, silent=True)
+    import_data(original_data)
 
 
 def test_calc(run_cli_command, aiida_profile, top_dir):
@@ -95,7 +95,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     # Clear database and get initialized_nodes.aiida
     aiida_profile.reset_db()
     archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
-    import_data(archive, silent=True)
+    import_data(archive)
 
     fields = ["elements", "chemical_formula_hill"]
 
@@ -139,4 +139,4 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
-    import_data(original_data, silent=True)
+    import_data(original_data)
