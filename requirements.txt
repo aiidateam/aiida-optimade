@@ -3,4 +3,4 @@ click~=7.1
 click-completion~=0.5.2
 optimade[mongo]~=0.12.3
 tqdm~=4.51
-uvicorn~=0.12.2
+uvicorn~=0.12.3
