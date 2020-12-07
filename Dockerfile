@@ -3,7 +3,7 @@ FROM python:3.7
 WORKDIR /app
 
 # Install specific optimade version
-ARG OPTIMADE_TOOLS_VERSION=0.12.4
+ARG OPTIMADE_TOOLS_VERSION=0.12.5
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
 # Install specific aiida-core version
