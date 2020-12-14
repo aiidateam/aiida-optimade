@@ -1,6 +1,6 @@
-aiida-core~=1.5.0
+aiida-core~=1.5.2
 click~=7.1
 click-completion~=0.5.2
 optimade[mongo]~=0.12.5
 tqdm~=4.54
-uvicorn~=0.12.3
+uvicorn~=0.13.1
