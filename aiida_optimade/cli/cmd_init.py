@@ -90,9 +90,9 @@ def init(obj: dict, force: bool, silent: bool):
         if updated_pks:
             echo.echo_success(
                 f"{profile!r} has been initialized for use with AiiDA-OPTIMADE. "
-                f"{len(updated_pks)} StructureData Nodes have been initialized."
+                f"{len(updated_pks)} StructureData and CifData Nodes have been initialized."
             )
         else:
             echo.echo_info(
-                f"No new StructureData Nodes found to initialize for {profile!r}."
+                f"No new StructureData and CifData Nodes found to initialize for {profile!r}."
             )

@@ -2,7 +2,7 @@
 import itertools
 from math import fsum
 
-from typing import List, Union
+from typing import Any, List, Union
 from aiida.orm import StructureData
 
 from aiida_optimade.common import OptimadeIntegrityError, AiidaError
@@ -28,23 +28,50 @@ class StructureDataTranslator(AiidaEntityTranslator):
     AIIDA_ENTITY = StructureData
 
     # StructureData specific properties
-    def __init__(self, uuid: str):
-        super().__init__(uuid)
+    def __init__(self, pk: str):
+        super().__init__(pk)
 
-        self.__kinds = None
-        self.__sites = None
+        self.__properties = None
 
     @property
     def _kinds(self) -> list:
-        if not self.__kinds:
-            self.__kinds = self._get_unique_node_property("attributes.kinds")
-        return self.__kinds
+        return self._get_node_property("attributes.kinds")
 
     @property
     def _sites(self) -> list:
-        if not self.__sites:
-            self.__sites = self._get_unique_node_property("attributes.sites")
-        return self.__sites
+        return self._get_node_property("attributes.sites")
+
+    @property
+    def _pbc(self) -> list:
+        return [
+            int(value)
+            for value in (
+                self._get_node_property(f"attributes.pbc{i + 1}") for i in range(3)
+            )
+        ]
+
+    @property
+    def _cell(self) -> list:
+        return self._get_node_property("attributes.cell")
+
+    def _get_node_property(self, node_property: str) -> Any:
+        """Cache for unique Node properties.
+
+        This is to ensure only a single QueryBuilder query is performed.
+        """
+        if not self.__properties:
+            properties = [
+                "attributes.kinds",
+                "attributes.sites",
+                "attributes.pbc1",
+                "attributes.pbc2",
+                "attributes.pbc3",
+                "attributes.cell",
+            ]
+            self.__properties = dict(
+                zip(properties, self._get_unique_node_property(properties))
+            )
+        return self.__properties.get(node_property)
 
     # Introspective helper methods to calculate OPTIMADE fields
     def get_symbols_set(self):
@@ -274,13 +301,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = [
-            int(value)
-            for value in (
-                self._get_unique_node_property(f"attributes.pbc{i + 1}")
-                for i in range(3)
-            )
-        ]
+        res = self._pbc
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -293,15 +314,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = sum(
-            [
-                int(value)
-                for value in (
-                    self._get_unique_node_property(f"attributes.pbc{i + 1}")
-                    for i in range(3)
-                )
-            ]
-        )
+        res = sum(self._pbc)
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res
@@ -314,9 +327,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if attribute in self.new_attributes:
             return hex_to_floats(self.new_attributes[attribute])
 
-        res = check_floating_round_errors(
-            self._get_unique_node_property("attributes.cell")
-        )
+        res = check_floating_round_errors(self._cell)
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = floats_to_hex(res)

@@ -1,8 +1,8 @@
 # pylint: disable=unused-argument,too-many-locals
 def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
-    """Test `aiida-optimade -p profile_name calc` works for non-existant fields.
+    """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
-    By "non-existant" the meaning is calculating fields that don't already exist for
+    By "non-existent" the meaning is calculating fields that don't already exist for
     any Nodes.
     """
     from aiida import orm
@@ -11,9 +11,9 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
-    # Clear database and get initialized_nodes.aiida
+    # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
+    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_data(archive)
 
     fields = ["elements", "chemical_formula_hill"]
@@ -92,9 +92,9 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
-    # Clear database and get initialized_nodes.aiida
+    # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
+    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_data(archive)
 
     fields = ["elements", "chemical_formula_hill"]
@@ -150,9 +150,9 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
-    # Clear database and get initialized_nodes.aiida
+    # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_nodes.aiida")
+    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_data(archive)
 
     extras_key = AiidaEntityTranslator.EXTRAS_KEY

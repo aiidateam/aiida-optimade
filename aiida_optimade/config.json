@@ -24,7 +24,7 @@
     "structures": {
       "immutable_id": "uuid",
       "last_modified": "mtime",
-      "type": "attributes.something.non.existing",
+      "type": "node_type",
       "relationships": "attributes.something.non.existing",
       "links": "attributes.something.non.existing"
     }
