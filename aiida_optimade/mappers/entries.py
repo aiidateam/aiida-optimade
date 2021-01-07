@@ -60,7 +60,7 @@ class ResourceMapper(OptimadeResourceMapper):
                 )
 
         for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS:
-            value = entity_properties.get(cls.alias_of(field))
+            value = entity_properties.get(cls.alias_for(field))
             if value is not None:
                 new_object[field] = value
 
