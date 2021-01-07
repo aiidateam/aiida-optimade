@@ -62,7 +62,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
+    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_data(original_data)
 
 
@@ -103,5 +103,5 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structuredata.aiida")
+    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_data(original_data)

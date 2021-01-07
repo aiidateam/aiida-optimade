@@ -58,24 +58,35 @@ def test_rhs_statements(check_response, get_valid_id):
 def test_list_has(check_response):
     request = '/structures?filter=elements HAS "Ga"'
     expected_uuids = [
+        "199bf419-0393-4970-8822-f1014e457d3c",
+        "205dfe10-a7e3-44bf-abde-6fbad64a857f",
+        "2fe2e894-d97a-4c6e-a633-84ef87084d65",
+        "6c32a26e-8423-471a-95fd-64b3d78572e8",
+        "85a0662f-13ea-4f99-88cf-041a02807f42",
+        "92d952f4-7be1-4f46-9583-2f757f05e455",
+        "995de9bb-5b4b-4860-97b9-75160631ef71",
         "a20609c5-fa2a-4299-8ebf-e4e97d7cb980",
+        "a805a2f6-792d-4718-b7fb-e34ed900ccd8",
+        "a96e823c-7344-435c-ac8a-7942da3f0ee1",
+        "b0ded7f2-69f8-4262-bcc2-5e402ddf7f7a",
+        "e05977df-619c-4cc4-80ba-eafeb13f58c1",
+        "e8f3aaec-4755-451a-b9bf-d6c327b31925",
         "f28033c7-4470-4a1b-a4bc-9e16585c053e",
     ]
     check_response(request, expected_uuids)
 
 
 def test_page_limit(check_response):
-    request = '/structures?filter=elements HAS "Ge"&page_limit=2'
+    request = '/structures?filter=elements HAS ALL "Ge","S"&page_limit=2'
     expected_uuids = [
-        "254947de-54c8-4cdb-afc5-1cee237f9f98",
-        "c51a7153-160e-42c0-a9eb-6f5fef95971b",
-        "68c20029-3785-446c-9b4d-290de2366e71",
-        "bfdf11e9-bc59-422d-8d99-1d7b3ba7d4d9",
+        "02548222-8f47-4fb4-afdb-197e2984f818",
+        "40891d6a-a7b5-44a2-bdd1-1d089cef5abc",
+        "9b7915de-41a1-4192-95d5-977e33874f14",
         "db08d6af-1e60-4395-afd9-9ed9a417e5e7",
     ]
     check_response(request, expected_uuids, page_limit=2)
 
-    request = '/structures?page_limit=2&filter=elements HAS "Ge"'
+    request = '/structures?page_limit=2&filter=elements HAS ALL "Ge","S"'
     check_response(request, expected_uuids, page_limit=2)
 
 
@@ -93,6 +104,18 @@ def test_list_has_any(check_response):
 
     request = f"/structures?filter=elements HAS ANY {elements}"
     expected_uuids = [
+        "0abfbfc3-1d88-41e9-8cb1-766065884cff",
+        "13f44f8d-63de-4105-bbde-a38469582322",
+        "16ed2841-2cbf-4a03-a287-ba7a25b9d57c",
+        "198945c9-de17-4f74-b91e-b9f0fcb3ec48",
+        "240df533-2527-46c6-8f50-f35fd963707e",
+        "2d6282a5-635e-4fcd-9ed2-0ec6147e5b58",
+        "540cf17b-458f-4ad2-b430-4d05778430a6",
+        "9085fbb2-f563-4ef9-af28-1318ee3abefc",
+        "a761cf35-0c5e-4367-87a1-75358f1b1896",
+        "b7a911fb-6692-4725-929a-d46cf1b8226a",
+        "c6ce6f24-6c5a-4318-93bc-aeea0a51d4d0",
+        "fdf06c54-5c9f-4aaa-92b1-b21f62a76fa3",
         "bc170570-ee0a-4a03-8b6f-374b0a3da41c",
         "c8368624-e49a-46ad-aef7-daaee4ff89e3",
         "a2aefddb-f9de-46a1-98c7-a19d40ef507c",
@@ -251,10 +274,22 @@ def test_string_contains(check_response):
 def test_string_start(check_response):
     request = '/structures?filter=chemical_formula_descriptive STARTS WITH "H"'
     expected_uuids = [
-        "8384257d-c69f-4e13-9e46-926bbf7f4bc0",
+        "02c28e40-0072-418a-9069-7e6ea123ce70",
+        "064d0111-4ca9-4511-bdd9-ebb70a47d61d",
+        "0b1b5f9d-51dc-473b-94f6-93d85a48ef4c",
         "0e95f602-4da4-4aee-a050-5201c12c8f38",
         "14edc674-37e5-4694-a296-8e59a2879f9f",
+        "4d918902-53f6-494a-99f3-859e677f0302",
+        "4f6f1c92-4d73-4006-90a0-7bfd59324dbf",
+        "545a4e77-b795-411a-be5c-da4a1823a90f",
+        "56f7e6b6-afb3-4773-b2b6-e8b5ba5b6683",
+        "6a5ad8b8-0922-4ec8-abc0-c5e32123b75b",
+        "6c417262-83cd-4fdb-9a9d-7763f1edf808",
+        "71bb1432-dc06-4763-9dee-40b11180496b",
+        "8384257d-c69f-4e13-9e46-926bbf7f4bc0",
         "8a8cfd2e-1cb0-4d5c-abb5-f80f32534ad2",
+        "9359efef-0558-4c52-8169-4f08a5b8692d",
+        "aac18afb-722e-49c5-8d66-95d57872ca01",
     ]
     check_response(request, expected_uuids)
 
