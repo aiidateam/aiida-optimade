@@ -8,6 +8,61 @@ from aiida_optimade.translators.structures import StructureDataTranslator
 __all__ = ("CifDataTranslator",)
 
 
+def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
+    """Copy of similar named function in AiiDA-Core.
+
+    Creates :py:class:`aiida.orm.nodes.data.structure.StructureData` using pymatgen.
+
+    :param occupancy_tolerance: If total occupancy of a site is between 1 and
+        occupancy_tolerance, the occupancies will be scaled down to 1.
+    :param site_tolerance: This tolerance is used to determine if two sites are sitting
+        in the same position, in which case they will be combined to a single
+        disordered site. Defaults to 1e-4.
+
+    .. note:: requires pymatgen module.
+
+    """
+    from aiida.tools.data.cif import InvalidOccupationsError
+    from pymatgen.io.cif import CifParser
+
+    parameters = kwargs.get("parameters", {})
+
+    constructor_kwargs = {}
+
+    parameters["primitive"] = parameters.pop("primitive_cell", False)
+
+    for argument in ["occupancy_tolerance", "site_tolerance"]:
+        if argument in parameters:
+            constructor_kwargs[argument] = parameters.pop(argument)
+
+    with cif.open() as handle:
+        parser = CifParser(handle, **constructor_kwargs)
+
+    try:
+        structures = parser.get_structures(**parameters)
+    except ValueError as exc_one:
+
+        # Verify whether the failure was due to wrong occupancy numbers
+        try:
+            constructor_kwargs["occupancy_tolerance"] = 1e10
+            with cif.open() as handle:
+                parser = CifParser(handle, **constructor_kwargs)
+            structures = parser.get_structures(**parameters)
+        except ValueError as exc_two:
+            # If it still fails, the occupancies were not the reason for failure
+            raise ValueError(
+                "pymatgen failed to provide a structure from the cif file"
+            ) from exc_two
+        else:
+            # If it now succeeds, non-unity occupancies were the culprit
+            raise InvalidOccupationsError(
+                "detected atomic sites with an occupation number larger than the "
+                "occupation tolerance"
+            ) from exc_one
+
+    return StructureData(pymatgen_structure=structures[0])
+
+
 class CifDataTranslator(StructureDataTranslator):
     """Create OPTIMADE "structures" attributes from an AiiDA CifData Node
 
@@ -41,12 +96,9 @@ class CifDataTranslator(StructureDataTranslator):
             self.__node = self._get_unique_node_property("*")
         if isinstance(self.__node, StructureData):
             return self.__node
+
         extras = self.__node.extras.copy()
-        self.__node: StructureData = self.__node.get_structure(
-            converter="pymatgen",
-            store=False,
-            primitive_cell=False,
-        )
+        self.__node = _get_aiida_structure_pymatgen_inline(cif=self.__node)
         self.__node.set_extra_many(extras)
         return self.__node
 
