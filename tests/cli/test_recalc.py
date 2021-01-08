@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,too-many-locals
 def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
-    """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
+    """Test `aiida-optimade -p profile_name recalc` works for non-existent fields.
 
     By "non-existent" the meaning is calculating fields that don't already exist for
     any Nodes.
@@ -8,7 +8,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
     from aiida import orm
     from aiida.tools.importexport import import_data
 
-    from aiida_optimade.cli import cmd_calc
+    from aiida_optimade.cli import cmd_recalc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
@@ -53,7 +53,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
     )
 
     options = ["--force-yes"] + fields
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_recalc.recalc, options)
 
     assert (
         f"Fields found for {n_structure_data} Nodes." not in result.stdout
@@ -85,11 +85,11 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
 
 
 def test_calc(run_cli_command, aiida_profile, top_dir):
-    """Test `aiida-optimade -p profile_name calc` works."""
+    """Test `aiida-optimade -p profile_name recalc` works."""
     from aiida import orm
     from aiida.tools.importexport import import_data
 
-    from aiida_optimade.cli import cmd_calc
+    from aiida_optimade.cli import cmd_recalc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
@@ -113,7 +113,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     )
 
     options = ["--force-yes"] + fields
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_recalc.recalc, options)
 
     assert f"Fields found for {n_structure_data} Nodes." in result.stdout, result.stdout
     assert (
@@ -143,11 +143,11 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
 
 
 def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
-    """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
+    """Test `aiida-optimade -p profile_name recalc` works for a partially initalized DB"""
     from aiida import orm
     from aiida.tools.importexport import import_data
 
-    from aiida_optimade.cli import cmd_calc
+    from aiida_optimade.cli import cmd_recalc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
@@ -187,7 +187,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
 
     # "elements" should not be found in 3 Nodes
     options = ["--force-yes", "elements"]
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_recalc.recalc, options)
 
     assert f"Field found for {n_total_nodes - 3} Nodes." in result.stdout, result.stdout
     assert (
@@ -216,7 +216,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
     # from one Node above.
     # This will also test if "elements_ratios" will be calculated from a
     # Node where both it and "elements" were missing prior to the previous
-    # invocation of `aiida-optimade calc`.
+    # invocation of `aiida-optimade recalc`.
     n_structure_data = (
         orm.QueryBuilder()
         .append(

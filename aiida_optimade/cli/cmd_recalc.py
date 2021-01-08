@@ -35,8 +35,8 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
     help="Suppress informational output.",
 )
 @click.pass_obj
-def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
-    """Calculate OPTIMADE fields in the AiiDA database."""
+def recalc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
+    """Recalculate OPTIMADE fields in the AiiDA database."""
     from aiida import load_profile
     from aiida.cmdline.utils import echo
 
@@ -130,7 +130,9 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
     except Exception as exc:  # pylint: disable=broad-except
         from traceback import print_exc
 
-        LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%s", print_exc())
+        LOGGER.error(
+            "Full exception from 'aiida-optimade recalc' CLI:\n%s", print_exc()
+        )
         echo.echo_critical(
             f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
         )
