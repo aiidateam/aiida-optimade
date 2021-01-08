@@ -1,6 +1,6 @@
 {
     "CONFIG_VERSION": {
-        "CURRENT": 3,
+        "CURRENT": 4,
         "OLDEST_COMPATIBLE": 3
     },
     "default_profile": "{{ aiida_profile }}",
@@ -11,10 +11,17 @@
             "AIIDADB_NAME": "{{ aiida_db_name }}",
             "AIIDADB_HOST": "{{ aiida_db_host }}",
             "AIIDADB_USER": "{{ aiida_db_user }}",
-            "AIIDADB_PORT": "{{ aiida_db_port }}",
+            "AIIDADB_PORT": {{ aiida_db_port }},
             "AIIDADB_BACKEND": "{{ aiida_db_backend }}",
             "default_user_email": "aiida@localhost",
-            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup"
+            "AIIDADB_REPOSITORY_URI": "file:///app/.aiida/repository-quicksetup",
+            "broker_protocol": "amqp",
+            "broker_username": "guest",
+            "broker_password": "guest",
+            "broker_host": "127.0.0.1",
+            "broker_port": 5672,
+            "broker_virtual_host": "",
+            "options": {}
         }
     }
 }
