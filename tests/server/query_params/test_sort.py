@@ -14,13 +14,9 @@ def test_int_asc(get_good_response):
     request = f"/structures?sort=nelements&page_limit={limit}"
     builder = (
         orm.QueryBuilder(limit=5)
-        .append(orm.StructureData, project="extras.optimade.nelements")
+        .append(orm.Node, project="extras.optimade.nelements")
         .order_by(
-            {
-                orm.StructureData: [
-                    {"extras.optimade.nelements": {"order": "asc", "cast": "i"}}
-                ]
-            }
+            {orm.Node: [{"extras.optimade.nelements": {"order": "asc", "cast": "i"}}]}
         )
     )
     expected_nelements = [nelement for nelement, in builder.all()]
@@ -39,13 +35,9 @@ def test_int_desc(get_good_response):
     request = f"/structures?sort=-nelements&page_limit={limit}"
     builder = (
         orm.QueryBuilder(limit=limit)
-        .append(orm.StructureData, project="extras.optimade.nelements")
+        .append(orm.Node, project="extras.optimade.nelements")
         .order_by(
-            {
-                orm.StructureData: [
-                    {"extras.optimade.nelements": {"order": "desc", "cast": "i"}}
-                ]
-            }
+            {orm.Node: [{"extras.optimade.nelements": {"order": "desc", "cast": "i"}}]}
         )
     )
     expected_nelements = [nelement for nelement, in builder.all()]
@@ -62,8 +54,8 @@ def test_str_asc(check_response):
     request = "/structures?sort=immutable_id&page_limit=5"
     builder = (
         orm.QueryBuilder()
-        .append(orm.StructureData, project="id")
-        .order_by({orm.StructureData: [{"uuid": {"order": "asc", "cast": "t"}}]})
+        .append(orm.Node, project="id")
+        .order_by({orm.Node: [{"uuid": {"order": "asc", "cast": "t"}}]})
     )
     expected_ids = [str(_[0]) for _ in builder.all()]
     check_response(
@@ -80,8 +72,8 @@ def test_str_desc(check_response):
     request = "/structures?sort=-immutable_id&page_limit=5"
     builder = (
         orm.QueryBuilder()
-        .append(orm.StructureData, project="id")
-        .order_by({orm.StructureData: [{"uuid": {"order": "desc", "cast": "t"}}]})
+        .append(orm.Node, project="id")
+        .order_by({orm.Node: [{"uuid": {"order": "desc", "cast": "t"}}]})
     )
     expected_ids = [str(_[0]) for _ in builder.all()]
     check_response(
@@ -100,8 +92,8 @@ def test_datetime_asc(get_good_response):
     request = f"/structures?sort=last_modified&page_limit={limit}"
     builder = (
         orm.QueryBuilder(limit=5)
-        .append(orm.StructureData, project="mtime")
-        .order_by({orm.StructureData: [{"mtime": {"order": "asc", "cast": "i"}}]})
+        .append(orm.Node, project="mtime")
+        .order_by({orm.Node: [{"mtime": {"order": "asc", "cast": "i"}}]})
     )
     expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
@@ -119,8 +111,8 @@ def test_datetime_desc(get_good_response):
     request = f"/structures?sort=-last_modified&page_limit={limit}"
     builder = (
         orm.QueryBuilder(limit=limit)
-        .append(orm.StructureData, project="mtime")
-        .order_by({orm.StructureData: [{"mtime": {"order": "desc", "cast": "i"}}]})
+        .append(orm.Node, project="mtime")
+        .order_by({orm.Node: [{"mtime": {"order": "desc", "cast": "i"}}]})
     )
     expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 

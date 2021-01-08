@@ -22,7 +22,7 @@ class TestStructuresEndpoint(EndpointTests):
         assert "data" in self.json_response
         assert len(self.json_response["data"]) == CONFIG.page_limit
         assert "meta" in self.json_response
-        assert self.json_response["meta"]["data_available"] == 1090
+        assert self.json_response["meta"]["data_available"] == 1620
         assert self.json_response["meta"]["more_data_available"]
 
     def test_get_next_responses(self, client):

@@ -3,7 +3,7 @@ import click
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
-from aiida_optimade.common.logger import disable_logging
+from aiida_optimade.common.logger import disable_logging, LOGGER
 
 
 @cli.command()
@@ -82,6 +82,9 @@ def init(obj: dict, force: bool, silent: bool):
         STRUCTURES._alias_filter({"nelements": "2"})
         updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except Exception as exc:  # pylint: disable=broad-except
+        from traceback import print_exc
+
+        LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%s", print_exc())
         echo.echo_critical(
             f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
         )
@@ -90,9 +93,11 @@ def init(obj: dict, force: bool, silent: bool):
         if updated_pks:
             echo.echo_success(
                 f"{profile!r} has been initialized for use with AiiDA-OPTIMADE. "
-                f"{len(updated_pks)} StructureData Nodes have been initialized."
+                f"{len(updated_pks)} StructureData and CifData Nodes have been "
+                "initialized."
             )
         else:
             echo.echo_info(
-                f"No new StructureData Nodes found to initialize for {profile!r}."
+                "No new StructureData and CifData Nodes found to initialize for "
+                f"{profile!r}."
             )

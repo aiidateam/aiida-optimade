@@ -1,4 +1,4 @@
-from typing import Union, Any
+from typing import Any, List, Union
 from aiida.orm import Node, QueryBuilder
 from aiida.manage.manager import get_manager
 
@@ -23,16 +23,18 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
         self.new_attributes = {}
         self.__node = None
 
-    def _get_unique_node_property(self, project: str) -> Union[Node, Any]:
+    def _get_unique_node_property(
+        self, project: Union[List[str], str]
+    ) -> Union[Node, Any]:
         query = QueryBuilder(limit=1)
         query.append(self.AIIDA_ENTITY, filters={"id": self._pk}, project=project)
         if query.count() != 1:
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        res = query.first()[0]
+        res = query.first()
         del query
-        return res
+        return res if len(res) > 1 else res[0]
 
     @property
     def _node(self) -> Node:
@@ -44,13 +46,16 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
 
     @_node.setter
     def _node(self, value: Union[None, Node]):
+        if self._node_loaded:
+            del self.__node
         self.__node = value
 
+    @property
     def _node_loaded(self):
         return bool(self.__node)
 
     def _get_optimade_extras(self) -> Union[None, dict]:
-        if self._node_loaded:  # pylint: disable=using-constant-test
+        if self._node_loaded:
             return self._node.extras.get(self.EXTRAS_KEY, None)
         return self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")
 
@@ -67,7 +72,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
                 if self._get_unique_node_property("extras")
                 else {}
             )
-            extras["optimade"] = optimade
+            extras[self.EXTRAS_KEY] = optimade
 
             profile = get_manager().get_profile()
             if profile.database_backend == "django":
@@ -91,5 +96,5 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
             # For posterity, this is how to do the same, going through AiiDA's API:
             # self._node.set_extra(self.EXTRAS_KEY, optimade)
 
-        # Lastly, reset NODE in an attempt to remove it from memory
+        # Lastly, reset _node and del __node in an attempt to remove it from memory
         self._node = None

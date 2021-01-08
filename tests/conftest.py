@@ -56,7 +56,7 @@ def aiida_profile(top_dir) -> TestManager:
             assert profile in ["test_profile", "test_django", "test_sqlalchemy"]
             os.environ["AIIDA_PROFILE"] = profile
 
-            filename = top_dir.joinpath("tests/static/test_structuredata.aiida")
+            filename = top_dir.joinpath("tests/static/test_structures.aiida")
             import_data(filename)
 
             yield manager

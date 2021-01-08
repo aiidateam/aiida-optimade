@@ -1,5 +1,5 @@
 # pylint: disable=arguments-differ
-from typing import Tuple
+from typing import Dict, Tuple
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
@@ -14,7 +14,7 @@ class ResourceMapper(OptimadeResourceMapper):
 
     PROJECT_PREFIX: str = "extras.optimade."
 
-    TRANSLATOR: AiidaEntityTranslator = AiidaEntityTranslator
+    TRANSLATORS: Dict[str, AiidaEntityTranslator]
     ALL_ATTRIBUTES: set = set()
     REQUIRED_ATTRIBUTES: set = set()
 
@@ -40,12 +40,10 @@ class ResourceMapper(OptimadeResourceMapper):
         :return: A resource object in OPTIMADE format
         :rtype: dict
         """
-        mapping = ((real, alias) for alias, real in cls.all_aliases())
-
         new_object_attributes = {}
         new_object = {}
 
-        for real, alias in mapping:
+        for alias, real in cls.all_aliases():
             if (
                 real in entity_properties
                 and entity_properties[real] is not None
@@ -53,26 +51,35 @@ class ResourceMapper(OptimadeResourceMapper):
             ):
                 new_object_attributes[alias] = entity_properties[real]
 
-        # We always need "id"
-        if "id" not in entity_properties:
-            raise KeyError(
-                f'"id" should be present in entity_properties: {entity_properties}'
-            )
+        # We always need "id" and "node_type"
+        for required_property in ["id", "node_type"]:
+            if required_property not in entity_properties:
+                raise KeyError(
+                    f"{required_property!r} should be present in entity_properties: "
+                    f"{entity_properties}"
+                )
 
         for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS:
-            value = entity_properties.get(field, None)
+            value = entity_properties.get(cls.alias_for(field))
             if value is not None:
                 new_object[field] = value
 
         new_object["attributes"] = cls.build_attributes(
-            new_object_attributes, new_object["id"]
+            retrieved_attributes=new_object_attributes,
+            entry_pk=new_object["id"],
+            node_type=new_object["type"],
         )
         new_object["type"] = cls.ENDPOINT
 
         return new_object
 
     @classmethod
-    def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
+    def build_attributes(
+        cls,
+        retrieved_attributes: dict,
+        entry_pk: int,
+        node_type: str,
+    ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
@@ -80,4 +87,7 @@ class ResourceMapper(OptimadeResourceMapper):
 
         :param entry_pk: The AiiDA Node's PK
         :type entry_pk: int
+
+        :param node_type: The AiiDA Node's type
+        :type node_type: str
         """

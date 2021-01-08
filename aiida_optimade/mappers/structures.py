@@ -1,8 +1,14 @@
+from typing import Dict
 import warnings
 
 from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.models import StructureResourceAttributes
-from aiida_optimade.translators import hex_to_floats, StructureDataTranslator
+from aiida_optimade.translators import (
+    hex_to_floats,
+    AiidaEntityTranslator,
+    CifDataTranslator,
+    StructureDataTranslator,
+)
 
 from .entries import ResourceMapper
 
@@ -15,13 +21,18 @@ class StructureMapper(ResourceMapper):
 
     ENDPOINT = "structures"
 
-    TRANSLATOR = StructureDataTranslator
+    TRANSLATORS: Dict[str, AiidaEntityTranslator] = {
+        "data.cif.CifData.": CifDataTranslator,
+        "data.structure.StructureData.": StructureDataTranslator,
+    }
     ALL_ATTRIBUTES = set(StructureResourceAttributes.schema().get("properties").keys())
     REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
 
     @classmethod
-    def build_attributes(cls, retrieved_attributes: dict, entry_pk: int) -> dict:
+    def build_attributes(
+        cls, retrieved_attributes: dict, entry_pk: int, node_type: str
+    ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
@@ -47,7 +58,7 @@ class StructureMapper(ResourceMapper):
 
         # Create and add new attributes
         if missing_attributes:
-            translator = cls.TRANSLATOR(entry_pk)
+            translator = cls.TRANSLATORS[node_type](entry_pk)
             for attribute in missing_attributes:
                 try:
                     create_attribute = getattr(translator, attribute)
@@ -56,18 +67,20 @@ class StructureMapper(ResourceMapper):
                         translator = None
                         raise NotImplementedError(
                             f"Parsing required attribute {attribute!r} from "
-                            f"{cls.TRANSLATOR} has not yet been implemented."
+                            f"{translator.__class__.__name__} has not yet been "
+                            "implemented."
                         ) from exc
 
                     warnings.warn(
                         f"Parsing optional attribute {attribute!r} from "
-                        f"{cls.TRANSLATOR} has not yet been implemented.",
+                        f"{translator.__class__.__name__} has not yet been "
+                        "implemented.",
                         NotImplementedWarning,
                     )
                 else:
                     res[attribute] = create_attribute()
             # Store new attributes in `extras`
             translator.store_attributes()
-            translator = None
+            del translator
 
         return res

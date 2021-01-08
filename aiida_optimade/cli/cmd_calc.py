@@ -145,6 +145,6 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
             )
         else:
             echo.echo_info(
-                "No StructureData Nodes found to calculate field"
+                "No StructureData and CifData Nodes found to calculate field"
                 f"{'s' if len(fields) > 1 else ''} {', '.join(fields)} for {profile!r}."
             )

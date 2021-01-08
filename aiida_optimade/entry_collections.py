@@ -4,7 +4,7 @@ import warnings
 from fastapi import HTTPException
 from tqdm import tqdm
 
-from aiida.orm import Entity, QueryBuilder
+from aiida.orm import Node, QueryBuilder
 
 from optimade.filterparser import LarkParser
 from optimade.models import EntryResource
@@ -30,11 +30,11 @@ class AiidaCollection:
 
     def __init__(
         self,
-        entity: Entity,
+        entities: Union[str, List[str]],
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
     ):
-        self.entity = entity
+        self.entities = entities if isinstance(entities, list) else [entities]
         self.parser = LarkParser()
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
@@ -67,7 +67,7 @@ class AiidaCollection:
         return set(attributes["properties"].keys())
 
     @staticmethod
-    def _find(entity_type: Entity, **kwargs) -> QueryBuilder:
+    def _find(node_types: List[str], **kwargs) -> QueryBuilder:
         """Workhorse function to perform AiiDA QueryBuilder query"""
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
@@ -77,28 +77,29 @@ class AiidaCollection:
                 )
 
         filters = kwargs.get("filters", {})
+        filters["node_type"] = {"or": [{"==": node_type} for node_type in node_types]}
         order_by = kwargs.get("order_by", None)
-        order_by = {entity_type: order_by} if order_by else {entity_type: {"id": "asc"}}
+        order_by = {Node: order_by} if order_by else {Node: {"id": "asc"}}
         limit = kwargs.get("limit", None)
         offset = kwargs.get("offset", None)
         project = kwargs.get("project", [])
 
         query = QueryBuilder(limit=limit, offset=offset)
-        query.append(entity_type, project=project, filters=filters)
+        query.append(Node, project=project, filters=filters)
         query.order_by(order_by)
 
         return query
 
     def _find_all(self, **kwargs) -> list:
-        """Helper function to instantiate an AiiDA QueryBuilder"""
-        query = self._find(self.entity, **kwargs)
+        """Execute AiiDA QueryBuilder query, return all results."""
+        query = self._find(self.entities, **kwargs)
         res = query.all()
         del query
         return res
 
     def count(self, **kwargs) -> int:
         """Count amount of data returned for query"""
-        query = self._find(self.entity, **kwargs)
+        query = self._find(self.entities, **kwargs)
         res = query.count()
         del query
         return res
@@ -306,6 +307,7 @@ class AiidaCollection:
         return cursor_kwargs
 
     def _get_extras_filter_fields(self) -> set:
+        """Get all queried fields saved in Node extras."""
         return {
             field[len(self.resource_mapper.PROJECT_PREFIX) :]  # noqa: E203
             for field in self._filter_fields
