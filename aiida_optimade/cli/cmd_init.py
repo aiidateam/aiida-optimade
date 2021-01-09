@@ -91,14 +91,17 @@ def init(obj: dict, force: bool, silent: bool, minimized_fields: bool):
 
         STRUCTURES._filter_fields = set()
         if minimized_fields:
-            STRUCTURES._alias_filter(
-                dict.fromkeys(
-                    [
-                        "structure_features",  # required (will create species)
-                    ],
-                    None,
-                )
+            minimized_keys = (
+                STRUCTURES.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
             )
+            minimized_keys |= STRUCTURES.get_attribute_fields()
+            minimized_keys |= {
+                f"_{STRUCTURES.provider}_" + _ for _ in STRUCTURES.provider_fields
+            }
+            minimized_keys.difference_update(
+                {"cartesian_site_positions", "nsites", "species_at_sites"}
+            )
+            STRUCTURES._alias_filter(dict.fromkeys(minimized_keys, None))
         else:
             STRUCTURES._alias_filter({"nsites": None})
 

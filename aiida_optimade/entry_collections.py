@@ -153,7 +153,7 @@ class AiidaCollection:
         all_fields = criteria.pop("fields")
         if getattr(params, "response_fields", False):
             fields = set(params.response_fields.split(","))
-            fields |= self.resource_mapper.get_required_fields()
+            fields |= self.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
         else:
             fields = all_fields.copy()
 
@@ -362,7 +362,7 @@ class AiidaCollection:
             necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
             # Create the missing OPTIMADE fields:
-            fields = {"id", "type"}
+            fields = self.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
             if all_fields:
                 # All OPTIMADE fields
                 fields |= self.get_attribute_fields()
@@ -373,6 +373,11 @@ class AiidaCollection:
                 # "id" and "type" are ALWAYS needed though, hence `fields` is initiated
                 # with these values
                 fields |= self._get_extras_filter_fields()
+                fields |= {
+                    f"_{self.provider}_" + _
+                    for _ in self._filter_fields
+                    if _ in self.provider_fields
+                }
             fields = list({self.resource_mapper.alias_for(f) for f in fields})
 
             entities = self._find_all(

@@ -16,7 +16,6 @@ class ResourceMapper(OptimadeResourceMapper):
 
     TRANSLATORS: Dict[str, AiidaEntityTranslator]
     ALL_ATTRIBUTES: set = set()
-    REQUIRED_ATTRIBUTES: set = set()
 
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:
@@ -40,6 +39,8 @@ class ResourceMapper(OptimadeResourceMapper):
         :return: A resource object in OPTIMADE format
         :rtype: dict
         """
+        from optimade.server.config import CONFIG
+
         new_object_attributes = {}
         new_object = {}
 
@@ -64,8 +65,13 @@ class ResourceMapper(OptimadeResourceMapper):
             if value is not None:
                 new_object[field] = value
 
+        mapping = {aiida: optimade for optimade, aiida in cls.all_aliases()}
+
         new_object["attributes"] = cls.build_attributes(
             retrieved_attributes=new_object_attributes,
+            desired_attributes={mapping.get(_, _) for _ in entity_properties}
+            - cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
+            - set(CONFIG.aliases.get(cls.ENDPOINT, {}).keys()),
             entry_pk=new_object["id"],
             node_type=new_object["type"],
         )
@@ -77,6 +83,7 @@ class ResourceMapper(OptimadeResourceMapper):
     def build_attributes(
         cls,
         retrieved_attributes: dict,
+        desired_attributes: list,
         entry_pk: int,
         node_type: str,
     ) -> dict:
@@ -84,6 +91,9 @@ class ResourceMapper(OptimadeResourceMapper):
 
         :param retrieved_attributes: Dict of new attributes, will be updated accordingly
         :type retrieved_attributes: dict
+
+        :param desired_attributes: Set of attributes to be built.
+        :type desired_attributes: set
 
         :param entry_pk: The AiiDA Node's PK
         :type entry_pk: int
