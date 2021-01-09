@@ -23,8 +23,19 @@ from aiida_optimade.common.logger import disable_logging, LOGGER
     show_default=True,
     help="Suppress informational output.",
 )
+@click.option(
+    "-m",
+    "--minimized-fields",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help=(
+        "Do not calculate large-valued fields. This is especially good for structure "
+        "with thousands of atoms."
+    ),
+)
 @click.pass_obj
-def init(obj: dict, force: bool, silent: bool):
+def init(obj: dict, force: bool, silent: bool, minimized_fields: bool):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     from aiida import load_profile
     from aiida.cmdline.utils import echo
@@ -79,8 +90,21 @@ def init(obj: dict, force: bool, silent: bool):
             echo.echo_warning("This may take several minutes!")
 
         STRUCTURES._filter_fields = set()
-        STRUCTURES._alias_filter({"nelements": "2"})
-        updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
+        if minimized_fields:
+            STRUCTURES._alias_filter(
+                dict.fromkeys(
+                    [
+                        "structure_features",  # required (will create species)
+                    ],
+                    None,
+                )
+            )
+        else:
+            STRUCTURES._alias_filter({"nsites": None})
+
+        updated_pks = STRUCTURES._check_and_calculate_entities(
+            cli=not silent, all_fields=not minimized_fields
+        )
     except Exception as exc:  # pylint: disable=broad-except
         from traceback import print_exc
 

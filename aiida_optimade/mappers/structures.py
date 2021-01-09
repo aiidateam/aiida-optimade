@@ -29,6 +29,7 @@ class StructureMapper(ResourceMapper):
     REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
 
+    # pylint: disable=too-many-locals
     @classmethod
     def build_attributes(
         cls, retrieved_attributes: dict, entry_pk: int, node_type: str
@@ -79,6 +80,23 @@ class StructureMapper(ResourceMapper):
                     )
                 else:
                     res[attribute] = create_attribute()
+            # Special post-treatment for `structure_features`
+            all_fields = (
+                translator._get_optimade_extras()
+            )  # pylint: disable=protected-access
+            all_fields.update(translator.new_attributes)
+            structure_features = all_fields.get("structure_features", [])
+            if all_fields.get("species", None) is None:
+                for feature in ["disorder", "implicit_atoms", "site_attachments"]:
+                    try:
+                        structure_features.remove(feature)
+                    except ValueError:
+                        # Not in list
+                        pass
+            if structure_features != all_fields.get("structure_features", []):
+                # Some fields were removed
+                translator.new_attributes["structure_features"] = structure_features
+
             # Store new attributes in `extras`
             translator.store_attributes()
             del translator

@@ -314,7 +314,9 @@ class AiidaCollection:
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
 
-    def _check_and_calculate_entities(self, cli: bool = False) -> List[int]:
+    def _check_and_calculate_entities(
+        self, cli: bool = False, all_fields: bool = True
+    ) -> List[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
@@ -322,6 +324,8 @@ class AiidaCollection:
 
         Parameters:
             cli: Whether or not this method is run through the CLI.
+            all_fields: Whether or not to calculate _all_ OPTIMADE fields or only those
+                defined through `filter_fields`.
 
         Returns:
             A list of the Node PKs representing the Nodes that were necessary to
@@ -358,11 +362,17 @@ class AiidaCollection:
             necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
             # Create the missing OPTIMADE fields:
-            # All OPTIMADE fields
             fields = {"id", "type"}
-            fields |= self.get_attribute_fields()
-            # All provider-specific fields
-            fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
+            if all_fields:
+                # All OPTIMADE fields
+                fields |= self.get_attribute_fields()
+                # All provider-specific fields
+                fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
+            else:
+                # Only calculate for `filter_fields`
+                # "id" and "type" are ALWAYS needed though, hence `fields` is initiated
+                # with these values
+                fields |= self._get_extras_filter_fields()
             fields = list({self.resource_mapper.alias_for(f) for f in fields})
 
             entities = self._find_all(
