@@ -1,4 +1,5 @@
-# pylint: disable=missing-function-docstring
+"""Test the `filters` query parameter."""
+# pylint: disable=missing-function-docstring,protected-access,import-error,too-many-statements
 import pytest
 
 
@@ -367,3 +368,153 @@ def test_brackets(check_response):
         "f28033c7-4470-4a1b-a4bc-9e16585c053e",
     ]
     check_response(request, expected_uuids)
+
+
+def test_count_filter(caplog):
+    """Test EntryCollection.count() when changing filters"""
+    from aiida_optimade.routers.structures import STRUCTURES
+
+    STRUCTURES._count = None
+
+    # The _count attribute should be None
+    filters = {}
+    count_one = STRUCTURES.count(filters=filters)
+    assert "self._count is None" in caplog.text
+    assert "was not the same as was found in self._count" not in caplog.text
+    assert "Using self._count" not in caplog.text
+    caplog.clear()
+    assert "node_type" in filters  # node_type will be added in the _find method
+    assert STRUCTURES._count == {
+        "count": count_one,
+        "filters": filters,
+        "limit": None,
+        "offset": None,
+    }
+
+    # Changing filters' "node_type" shouldn't result in a new QueryBuilder call
+    filters["node_type"] = {"==": "data.structure.StructureData."}
+    count_two = STRUCTURES.count(filters=filters)
+    assert "self._count is None" not in caplog.text
+    assert "was not the same as was found in self._count" not in caplog.text
+    assert "Using self._count" in caplog.text
+    caplog.clear()
+    # _find method is not called, so the updated node_type shouldn't change after
+    # count()
+    assert filters["node_type"] == {"==": "data.structure.StructureData."}
+    assert count_one == count_two
+    assert STRUCTURES._count == {
+        "count": count_two,
+        "filters": filters,
+        "limit": None,
+        "offset": None,
+    }
+
+    # Changing filters to a non-zero value. This should result in a new QueryBuilder
+    # call
+    filters = {"extras.optimade.elements": {"contains": ["La", "Ba"]}}
+    count_three = STRUCTURES.count(filters=filters)
+    assert "self._count is None" not in caplog.text
+    assert "filters was not the same as was found in self._count" in caplog.text
+    assert "Using self._count" not in caplog.text
+    assert count_three == 1
+    assert STRUCTURES._count == {
+        "count": count_three,
+        "filters": filters,
+        "limit": None,
+        "offset": None,
+    }
+
+
+def test_querybuilder_calls(caplog, get_valid_id):
+    """Check the expected number of QueryBuilder calls are respected"""
+    from aiida_optimade.routers.structures import STRUCTURES
+    from fastapi.params import Query
+    from optimade.server.query_params import EntryListingQueryParams
+
+    def _set_params(params: EntryListingQueryParams) -> EntryListingQueryParams:
+        """Utility function to set all query parameter defaults"""
+        for attribute, value in params.__dict__.copy().items():
+            if isinstance(value, Query):
+                setattr(params, attribute, value.default)
+        return params
+
+    STRUCTURES._clear_cache()
+
+    optimade_filter = 'elements HAS ALL "La","Ba"'
+    expected_data_returned = 1
+
+    # First request will do the following:
+    # 1. Query for and set data_available (setting _count to data_available)
+    # 2. Query to check extras filter field 'elements', store in cache
+    # 3. Query for and set data_returned (setting _count to data_returned)
+    # 4. Query for results in DB
+    # 5. Reuse _count for more_data_available
+    caplog.clear()
+    params = _set_params(EntryListingQueryParams(filter=optimade_filter))
+    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    assert caplog.text.count("Using QueryBuilder") == 4
+    assert data_returned == expected_data_returned
+    assert "Setting data_available!" in caplog.text  # 1.
+    assert "self._count is None" in caplog.text  # 1.
+    assert "Checking all extras fields" in caplog.text  # 2.
+    assert "Setting data_returned using filter" in caplog.text  # 3.
+    assert "filters was not the same as was found in self._count" in caplog.text  # 3.
+    assert "Using self._count" in caplog.text  # 5.
+
+    # Perform the exact same request, which will do the following:
+    # 1. Reuse _data_available
+    # 2. Recognize elements is already in cache of checked extras
+    # 3. Reuse set _data_returned
+    # 4. Query for results in DB
+    # 5. Reuse _count for more_data_available
+    caplog.clear()
+    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    assert caplog.text.count("Using QueryBuilder") == 1
+    assert data_returned == expected_data_returned
+    assert "Setting data_available!" not in caplog.text  # 1.
+    assert "self._count is None" not in caplog.text  # 1., 3., 5.
+    assert "Fields have already been checked." in caplog.text  # 2.
+    assert "Setting data_returned using filter" not in caplog.text  # 3.
+    assert "was not the same as was found in self._count" not in caplog.text  # 5.
+    assert "Using self._count" in caplog.text  # 5.
+
+    # Perform request with different filter, but the same extra, which will do the
+    # following:
+    # 1. Reuse _data_available
+    # 2. Recognize elements is already in cache of checked extras
+    # 3. Query for and set data_returned (setting _count to data_returned)
+    # 4. Query for results in DB
+    # 5. Reuse _count for more_data_available
+    optimade_filter = 'elements HAS "Ga"'
+    expected_data_returned = 14
+    caplog.clear()
+    params = _set_params(EntryListingQueryParams(filter=optimade_filter))
+    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    assert caplog.text.count("Using QueryBuilder") == 2
+    assert data_returned == expected_data_returned
+    assert "Setting data_available!" not in caplog.text  # 1.
+    assert "self._count is None" not in caplog.text  # 1., 3., 5.
+    assert "Fields have already been checked." in caplog.text  # 2.
+    assert "Setting data_returned using filter" in caplog.text  # 3.
+    assert "filters was not the same as was found in self._count" in caplog.text  # 3.
+    assert "Using self._count" in caplog.text  # 5.
+
+    # Perform request with non-extras field, which will do the following:
+    # 1. Reuse _data_available
+    # 2. Recognize no extras field is requested
+    # 3. Query for and set data_returned (setting _count to data_returned)
+    # 4. Query for results in DB
+    # 5. Reuse _count for more_data_available
+    optimade_filter = f"id={get_valid_id}"
+    expected_data_returned = 1
+    caplog.clear()
+    params = _set_params(EntryListingQueryParams(filter=optimade_filter))
+    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    assert caplog.text.count("Using QueryBuilder") == 2
+    assert data_returned == expected_data_returned
+    assert "Setting data_available!" not in caplog.text  # 1.
+    assert "self._count is None" not in caplog.text  # 1., 3., 5.
+    assert "No filter and/or no extras fields requested." in caplog.text  # 2.
+    assert "Setting data_returned using filter" in caplog.text  # 3.
+    assert "filters was not the same as was found in self._count" in caplog.text  # 3.
+    assert "Using self._count" in caplog.text  # 5.
