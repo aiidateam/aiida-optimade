@@ -1,12 +1,12 @@
 # pylint: disable=missing-class-docstring,too-few-public-methods
 from datetime import datetime
-
-from pydantic import Field
+from typing import Optional
 
 from optimade.models import (
     StructureResource as OptimadeStructureResource,
     StructureResourceAttributes as OptimadeStructureResourceAttributes,
 )
+from optimade.models.utils import OptimadeField, SupportLevel
 
 
 def prefix_provider(string: str) -> str:
@@ -21,8 +21,11 @@ def prefix_provider(string: str) -> str:
 class StructureResourceAttributes(OptimadeStructureResourceAttributes):
     """Extended StructureResourceAttributes for AiiDA-specific fields"""
 
-    ctime: datetime = Field(
-        ..., description="Creation time of the Node in the AiiDA database."
+    ctime: Optional[datetime] = OptimadeField(
+        ...,
+        description="Creation time of the Node in the AiiDA database.",
+        support=SupportLevel.SHOULD,
+        queryable=SupportLevel.MUST,
     )
 
     class Config:

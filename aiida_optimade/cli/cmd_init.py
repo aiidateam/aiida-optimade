@@ -23,8 +23,19 @@ from aiida_optimade.common.logger import disable_logging, LOGGER
     show_default=True,
     help="Suppress informational output.",
 )
+@click.option(
+    "-m",
+    "--minimized-fields",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help=(
+        "Do not calculate large-valued fields. This is especially good for structure "
+        "with thousands of atoms."
+    ),
+)
 @click.pass_obj
-def init(obj: dict, force: bool, silent: bool):
+def init(obj: dict, force: bool, silent: bool, minimized_fields: bool):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     from aiida import load_profile
     from aiida.cmdline.utils import echo
@@ -79,8 +90,24 @@ def init(obj: dict, force: bool, silent: bool):
             echo.echo_warning("This may take several minutes!")
 
         STRUCTURES._filter_fields = set()
-        STRUCTURES._alias_filter({"nelements": "2"})
-        updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
+        if minimized_fields:
+            minimized_keys = (
+                STRUCTURES.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS.copy()
+            )
+            minimized_keys |= STRUCTURES.get_attribute_fields()
+            minimized_keys |= {
+                f"_{STRUCTURES.provider}_" + _ for _ in STRUCTURES.provider_fields
+            }
+            minimized_keys.difference_update(
+                {"cartesian_site_positions", "nsites", "species_at_sites"}
+            )
+            STRUCTURES._alias_filter(dict.fromkeys(minimized_keys, None))
+        else:
+            STRUCTURES._alias_filter({"nsites": None})
+
+        updated_pks = STRUCTURES._check_and_calculate_entities(
+            cli=not silent, all_fields=not minimized_fields
+        )
     except Exception as exc:  # pylint: disable=broad-except
         from traceback import print_exc
 

@@ -54,19 +54,17 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
     def _node_loaded(self):
         return bool(self.__node)
 
-    def _get_optimade_extras(self) -> Union[None, dict]:
+    def _get_optimade_extras(self) -> dict:
         if self._node_loaded:
-            return self._node.extras.get(self.EXTRAS_KEY, None)
-        return self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")
+            return self._node.extras.get(self.EXTRAS_KEY, {})
+        res = self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")
+        return res or {}
 
     def store_attributes(self):
         """Store new attributes in Node extras and reset self._node"""
         if self.new_attributes:
             optimade = self._get_optimade_extras()
-            if optimade:
-                optimade.update(self.new_attributes)
-            else:
-                optimade = self.new_attributes
+            optimade.update(self.new_attributes)
             extras = (
                 self._get_unique_node_property("extras")
                 if self._get_unique_node_property("extras")
