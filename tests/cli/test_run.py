@@ -1,10 +1,11 @@
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,unused-argument
 import os
 import signal
 from subprocess import Popen, PIPE, TimeoutExpired
 from time import sleep
 
 import pytest
+import requests
 
 
 @pytest.fixture
@@ -24,6 +25,7 @@ def run_server():
     env = dict(os.environ)
     env["AIIDA_PROFILE"] = profile
 
+    result = None
     try:
         result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True)
         sleep(10)  # The server needs time to start up
@@ -38,9 +40,8 @@ def run_server():
         assert result is not None
 
 
-def test_run(run_server):  # pylint: disable=unused-argument
+def test_run(run_server):
     """Test running `aiida-optimade run`"""
-    import requests
     from optimade import __api_version__
     from optimade.models import InfoResponse
 
@@ -129,3 +130,28 @@ def test_env_var_is_set(run_and_terminate_server):
         fixture_profile = "optimade_sqla"
     output, errors = run_and_terminate_server(command="run")
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
+
+
+def test_last_modified(run_server):
+    """Ensure last_modified does not change upon requests"""
+    from optimade import __api_version__
+
+    request = (
+        "http://localhost:5000"
+        f"/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}/structures"
+    )
+
+    first_response = requests.get(request)
+    assert first_response.status_code == 200
+    first_response = first_response.json()
+    sleep(2)
+    second_response = requests.get(request)
+    assert second_response.status_code == 200
+    second_response = second_response.json()
+
+    assert [_["id"] for _ in first_response["data"]] == [
+        _["id"] for _ in second_response["data"]
+    ]
+    assert [_["attributes"]["last_modified"] for _ in first_response["data"]] == [
+        _["attributes"]["last_modified"] for _ in second_response["data"]
+    ]
