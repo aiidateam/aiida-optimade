@@ -1,6 +1,8 @@
-FROM python:3.7
+FROM python:3.8
 
 WORKDIR /app
+
+RUN pip install -U pip setuptools wheel
 
 # Install specific optimade version
 ARG OPTIMADE_TOOLS_VERSION=0.12.8
