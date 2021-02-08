@@ -121,16 +121,15 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
                 " This may take several minutes!"
             )
 
-        STRUCTURES._filter_fields = set()
-        STRUCTURES._alias_filter({field: "" for field in fields})
+        STRUCTURES._filter_fields = {
+            STRUCTURES.resource_mapper.alias_for(_) for _ in fields
+        }
         updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except click.Abort:
         echo.echo_warning("Aborted!")
         return
     except Exception as exc:  # pylint: disable=broad-except
-        from traceback import print_exc
-
-        LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%s", print_exc())
+        LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%r", exc)
         echo.echo_critical(
             f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
         )

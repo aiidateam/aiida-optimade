@@ -1,5 +1,9 @@
-# pylint: disable=unused-argument,too-many-locals
-def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
+"""Test CLI `aiida-optimade calc` command"""
+# pylint: disable=unused-argument,too-many-locals,import-error
+import re
+
+
+def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
     By "non-existent" the meaning is calculating fields that don't already exist for
@@ -78,6 +82,12 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir):
 
     assert n_structure_data == n_updated_structure_data
 
+    # Ensure the database was reported to be updated.
+    assert (
+        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        is not None
+    ), caplog.text
+
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
@@ -142,7 +152,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     import_data(original_data)
 
 
-def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
+def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
     from aiida import orm
     from aiida.tools.importexport import import_data
@@ -208,16 +218,12 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
 
     assert n_total_nodes == n_updated_structure_data
 
-    # All missing fields should have been calcualted for all Nodes now,
-    # since "elements" will have been removed from all Nodes that had it
-    # first, meaning all Nodes will be investigated for other missing
-    # fields automatically - always.
-    # Let's check with "elements_ratios", which was the only field removed
-    # from one Node above.
-    # This will also test if "elements_ratios" will be calculated from a
-    # Node where both it and "elements" were missing prior to the previous
-    # invocation of `aiida-optimade calc`.
-    n_structure_data = (
+    # Only the requested fields should have been calculated now.
+    # Let's check with "elements_ratios", which was removed from the extras,
+    # but wasn't re-calculated.
+    # The 3 Nodes where "elements_ratios" has been removed, should still have
+    # it removed now.
+    n_special_structure_data = (
         orm.QueryBuilder()
         .append(
             orm.StructureData,
@@ -225,7 +231,13 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir):
         )
         .count()
     )
-    assert n_structure_data == n_total_nodes
+    assert n_special_structure_data == n_total_nodes - 3
+
+    # Ensure the database was reported to be updated.
+    assert (
+        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        is not None
+    ), caplog.text
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()

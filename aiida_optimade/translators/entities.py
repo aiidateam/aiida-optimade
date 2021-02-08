@@ -2,7 +2,7 @@ from typing import Any, List, Union
 from aiida.orm import Node, QueryBuilder
 from aiida.manage.manager import get_manager
 
-from aiida_optimade.common import AiidaEntityNotFound, AiidaError
+from aiida_optimade.common import AiidaEntityNotFound, AiidaError, LOGGER
 
 
 __all__ = ("AiidaEntityTranslator",)
@@ -75,6 +75,9 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
             extras[self.EXTRAS_KEY] = optimade
 
             profile = get_manager().get_profile()
+            LOGGER.debug(
+                "(%s) Updating Node %s in DB!", profile.database_backend, self._pk
+            )
             if profile.database_backend == "django":
                 from aiida.backends.djsite.db.models import DbNode
 

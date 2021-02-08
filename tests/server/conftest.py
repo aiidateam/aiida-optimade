@@ -1,4 +1,5 @@
 # pylint: disable=redefined-outer-name
+import re
 from typing import List
 
 import pytest
@@ -21,12 +22,21 @@ def remote_client():
 
 
 @pytest.fixture
-def get_good_response(client):
+def get_good_response(client, caplog):
     """Get OPTIMADE response with some sanity checks"""
 
     def inner(request):
         try:
             response = client.get(request)
+
+            # Ensure the DB was NOT touched
+            assert (
+                re.match(
+                    r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL
+                )
+                is None
+            ), caplog.text
+
             assert response.status_code == 200, f"Request failed: {response.json()}"
             response = response.json()
         except Exception:
@@ -78,7 +88,7 @@ def check_response(get_good_response):
 
 
 @pytest.fixture
-def check_error_response(client):
+def check_error_response(client, caplog):
     """General method for testing expected errornous response"""
 
     def inner(
@@ -90,6 +100,15 @@ def check_error_response(client):
         response = None
         try:
             response = client.get(request)
+
+            # Ensure the DB was NOT touched
+            assert (
+                re.match(
+                    r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL
+                )
+                is None
+            ), caplog.text
+
             assert response.status_code == expected_status, (
                 "Request should have been an error with status code "
                 f"{expected_status}, but instead {response.status_code} was received."

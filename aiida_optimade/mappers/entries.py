@@ -1,5 +1,5 @@
 # pylint: disable=arguments-differ
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
@@ -31,26 +31,30 @@ class ResourceMapper(OptimadeResourceMapper):
         )
 
     @classmethod
-    def map_back(cls, entity_properties: dict) -> dict:
+    def alias_of(cls, field: str) -> str:
+        """Return de-aliased field name, if it exists,
+        otherwise return the input field name.
+
+        Args:
+            field: Field name to be de-aliased.
+
+        Returns:
+            De-aliased field name, falling back to returning `field`.
+
+        """
+        return {alias: real for real, alias in cls.all_aliases()}.get(field, field)
+
+    @classmethod
+    def map_back(cls, entity_properties: Dict[str, Any]) -> dict:
         """Map properties from AiiDA to OPTIMADE
 
-        :param entity_properties: Found AiiDA properties through QueryBuilder query
-        :type entity_properties: dict
+        Parameters:
+            entity_properties: Found AiiDA properties through QueryBuilder query.
 
-        :return: A resource object in OPTIMADE format
-        :rtype: dict
+        Return:
+            A resource object in OPTIMADE format.
+
         """
-        new_object_attributes = {}
-        new_object = {}
-
-        for alias, real in cls.all_aliases():
-            if (
-                real in entity_properties
-                and entity_properties[real] is not None
-                and alias not in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
-            ):
-                new_object_attributes[alias] = entity_properties[real]
-
         # We always need "id" and "node_type"
         for required_property in ["id", "node_type"]:
             if required_property not in entity_properties:
@@ -59,13 +63,21 @@ class ResourceMapper(OptimadeResourceMapper):
                     f"{entity_properties}"
                 )
 
-        for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS:
-            value = entity_properties.get(cls.alias_for(field))
-            if value is not None:
-                new_object[field] = value
+        new_object = {
+            field: entity_properties[cls.alias_for(field)]
+            for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
+            if cls.alias_for(field) in entity_properties
+        }
 
         new_object["attributes"] = cls.build_attributes(
-            retrieved_attributes=new_object_attributes,
+            retrieved_attributes={
+                alias: entity_properties[real]
+                for alias, real in cls.all_aliases()
+                if (
+                    real in entity_properties
+                    and alias not in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
+                )
+            },
             entry_pk=new_object["id"],
             node_type=new_object["type"],
         )
@@ -79,6 +91,7 @@ class ResourceMapper(OptimadeResourceMapper):
         retrieved_attributes: dict,
         entry_pk: int,
         node_type: str,
+        missing_attributes: dict = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
