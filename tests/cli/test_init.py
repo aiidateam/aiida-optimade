@@ -1,4 +1,9 @@
-def test_init_structuredata(run_cli_command, aiida_profile, top_dir):
+"""Test CLI `aiida-optimade init` command"""
+# pylint: disable=import-error
+import re
+
+
+def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
@@ -60,13 +65,19 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir):
     )
     assert n_structure_data == n_updated_structure_data
 
+    # Ensure the database was reported to be updated.
+    assert (
+        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        is not None
+    ), caplog.text
+
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_data(original_data)
 
 
-def test_init_cifdata(run_cli_command, aiida_profile, top_dir):
+def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
     from aiida import orm
     from aiida.tools.importexport import import_data
@@ -100,6 +111,12 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir):
     # Try again, now all Nodes should have been updated
     result = run_cli_command(cmd_init.init)
     assert "No new StructureData and CifData Nodes found to initialize" in result.stdout
+
+    # Ensure the database was reported to be updated.
+    assert (
+        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        is not None
+    ), caplog.text
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()

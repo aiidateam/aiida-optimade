@@ -95,6 +95,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         """Copy of aiida.orm.StructureData:get_formula()"""
         from aiida.orm.nodes.data.structure import get_symbols_string, get_formula
 
+        kind = None
         symbol_list = []
         for site in self._sites:
             for _kind in self._kinds:

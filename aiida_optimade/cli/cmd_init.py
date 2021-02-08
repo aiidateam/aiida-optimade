@@ -78,13 +78,13 @@ def init(obj: dict, force: bool, silent: bool):
             echo.echo_info(f"Initializing {profile!r}.")
             echo.echo_warning("This may take several minutes!")
 
-        STRUCTURES._filter_fields = set()
-        STRUCTURES._alias_filter({"nelements": "2"})
+        STRUCTURES._filter_fields = {
+            STRUCTURES.resource_mapper.alias_for(_)
+            for _ in STRUCTURES.resource_mapper.ALL_ATTRIBUTES
+        }
         updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except Exception as exc:  # pylint: disable=broad-except
-        from traceback import print_exc
-
-        LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%s", print_exc())
+        LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%r", exc)
         echo.echo_critical(
             f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
         )

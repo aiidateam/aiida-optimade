@@ -422,9 +422,17 @@ class AiidaCollection:
 
         def _update_entities(entities: list, fields: list):
             """Utility function to update entities within this method"""
+            optimade_fields = [self.resource_mapper.alias_of(_) for _ in fields]
             for entity in entities:
-                self.resource_cls(
-                    **self.resource_mapper.map_back(dict(zip(fields, entity)))
+                field_to_entity_value = dict(zip(optimade_fields, entity))
+                retrieved_attributes = field_to_entity_value.copy()
+                for missing_attribute in self._get_extras_filter_fields():
+                    retrieved_attributes.pop(missing_attribute)
+                self.resource_mapper.build_attributes(
+                    retrieved_attributes=retrieved_attributes,
+                    entry_pk=field_to_entity_value["id"],
+                    node_type=field_to_entity_value["type"],
+                    missing_attributes=self._get_extras_filter_fields(),
                 )
 
         extras_keys = [
@@ -448,13 +456,11 @@ class AiidaCollection:
             # fields.
             necessary_entity_ids = [pk[0] for pk in necessary_entities_qb]
 
-            # Create the missing OPTIMADE fields:
-            # All OPTIMADE fields
+            # Create the missing OPTIMADE fields
             fields = {"id", "type"}
             fields |= self.get_attribute_fields()
-            # All provider-specific fields
             fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
-            fields = list({self.resource_mapper.alias_for(f) for f in fields})
+            fields = list({self.resource_mapper.alias_for(_) for _ in fields})
 
             entities = self._find_all(
                 filters={"id": {"in": necessary_entity_ids}}, project=fields

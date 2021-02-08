@@ -31,15 +31,26 @@ class StructureMapper(ResourceMapper):
 
     @classmethod
     def build_attributes(
-        cls, retrieved_attributes: dict, entry_pk: int, node_type: str
+        cls,
+        retrieved_attributes: dict,
+        entry_pk: int,
+        node_type: str,
+        missing_attributes: set = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
-        :param retrieved_attributes: Dict of new attributes, will be updated accordingly
-        :type retrieved_attributes: dict
+        Parameters:
+            retrieved_attributes: New attributes, will be updated accordingly.
+            entry_pk: The AiiDA Node's PK (`Node.pk`)
+            node_type: The AiiDA Node's type (`Node.node_type`)
+            missing_attributes: Missing attributes to be calculated.
+                If this is not supplied, it will be determined as the difference
+                between `ALL_ATTRIBUTES` and the keys of `retrieved_attributes`.
 
-        :param entry_pk: The AiiDA Node's PK
-        :type entry_pk: int
+        Returns:
+            An updated dictionary based on `retrieved_attributes`, including all
+            newly calculated fields.
+
         """
         float_fields = {
             "elements_ratios",
@@ -48,9 +59,9 @@ class StructureMapper(ResourceMapper):
         }
 
         # Add existing attributes
-        missing_attributes = cls.ALL_ATTRIBUTES.copy()
         existing_attributes = set(retrieved_attributes.keys())
-        missing_attributes.difference_update(existing_attributes)
+        if missing_attributes is None:
+            missing_attributes = cls.ALL_ATTRIBUTES - existing_attributes
         for field in float_fields:
             if field in existing_attributes and retrieved_attributes.get(field):
                 retrieved_attributes[field] = hex_to_floats(retrieved_attributes[field])
