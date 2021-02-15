@@ -2,6 +2,6 @@ aiida-core~=1.5.2
 click~=7.1
 click-completion~=0.5.2
 optimade[mongo]~=0.12.8
-pymatgen==2020.12.31
+pymatgen==2021.2.14
 tqdm~=4.56
 uvicorn~=0.13.3
