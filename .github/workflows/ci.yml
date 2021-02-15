@@ -35,7 +35,7 @@ jobs:
         pip install ${pre_commit}
 
     - name: Test with pre-commit
-      run: pre-commit run --all-files -c .ci/.pre-commit-config.yaml || ( git status --short ; git diff ; exit 1 )
+      run: SKIP=codecov-validator pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
 
   pytest:
     runs-on: ubuntu-latest
