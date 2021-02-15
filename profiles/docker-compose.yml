@@ -22,3 +22,14 @@ services:
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
       - "docker.host.internal:$DOCKER_HOST_IP"
+    networks:
+      - optimade
+
+  mongodb:
+    restart: always
+    image: mongo:4
+    networks:
+      - optimade
+
+networks:
+  optimade:
