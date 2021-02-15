@@ -1,5 +1,6 @@
 """Test the `filters` query parameter."""
 # pylint: disable=missing-function-docstring,protected-access,import-error,too-many-statements
+import os
 import pytest
 
 
@@ -19,7 +20,7 @@ def test_custom_field(check_response):
 
 
 def test_id(check_response, get_valid_id):
-    request = f"/structures?filter=id={get_valid_id}"
+    request = f'/structures?filter=id="{get_valid_id}"'
     expected_ids = [str(get_valid_id)]
     check_response(request, expected_ids, expect_id=True)
 
@@ -47,7 +48,7 @@ def test_rhs_statements(check_response, get_valid_id):
     expected_uuids = []
     check_response(request, expected_uuids)
 
-    request = f"/structures?filter={get_valid_id}=id"
+    request = f'/structures?filter="{get_valid_id}"=id'
     expected_ids = [str(get_valid_id)]
     check_response(request, expected_ids, expect_id=True)
 
@@ -170,19 +171,29 @@ def test_list_length_operators(check_response):
 def test_list_length_bad_operators(check_error_response):
     """Check NonImplementedError is raised when using a valid,
     but not-supported operator"""
+    from optimade.server.config import CONFIG
+
     bad_valid_operator = "!="
     request = f"/structures?filter=elements LENGTH {bad_valid_operator} 2"
+
+    expected_detail = (
+        f"Operator {bad_valid_operator} not implemented for LENGTH filter."
+        if CONFIG.use_real_mongo
+        else f"Operator {bad_valid_operator} has not been implemented for the LENGTH filter."
+    )
+
     check_error_response(
         request,
         expected_status=501,
         expected_title="NotImplementedError",
-        expected_detail=(
-            f"Operator {bad_valid_operator} has not been implemented for the LENGTH "
-            "filter."
-        ),
+        expected_detail=expected_detail,
     )
 
 
+@pytest.mark.skipif(
+    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+    reason="Test is not for MongoDB",
+)
 def test_list_has_only(check_error_response):
     # HAS ONLY is not yet implemented
     request = '/structures?filter=elements HAS ONLY "Ac"'
@@ -231,12 +242,14 @@ def test_node_columns_is_known(check_response):
     ]
     check_response(request, expected_uuids)
 
-    request = "/structures?filter=last_modified IS KNOWN AND nsites>=5280"
-    expected_uuids = [
-        "d99ddab5-026b-45f6-88b7-d81bf0e41988",
-        "65e650a8-120d-47d8-afb1-40c81e01d66c",
-    ]
-    check_response(request, expected_uuids)
+    if not CONFIG.use_real_mongo:
+        # Does not work with the Mongo filtertransformer (datetime and IS KNOWN)
+        request = "/structures?filter=last_modified IS KNOWN AND nsites>=5280"
+        expected_uuids = [
+            "d99ddab5-026b-45f6-88b7-d81bf0e41988",
+            "65e650a8-120d-47d8-afb1-40c81e01d66c",
+        ]
+        check_response(request, expected_uuids)
 
     request = "/structures?filter=id IS KNOWN AND nsites>=5280"
     expected_uuids = [
@@ -425,6 +438,10 @@ def test_count_filter(caplog):
     }
 
 
+@pytest.mark.skipif(
+    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+    reason="Test is not for MongoDB",
+)
 def test_querybuilder_calls(caplog, get_valid_id):
     """Check the expected number of QueryBuilder calls are respected"""
     from aiida_optimade.routers.structures import STRUCTURES
@@ -505,7 +522,7 @@ def test_querybuilder_calls(caplog, get_valid_id):
     # 3. Query for and set data_returned (setting _count to data_returned)
     # 4. Query for results in DB
     # 5. Reuse _count for more_data_available
-    optimade_filter = f"id={get_valid_id}"
+    optimade_filter = f'id="{get_valid_id}"'
     expected_data_returned = 1
     caplog.clear()
     params = _set_params(EntryListingQueryParams(filter=optimade_filter))

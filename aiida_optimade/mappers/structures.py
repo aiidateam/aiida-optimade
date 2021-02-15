@@ -1,6 +1,8 @@
 from typing import Dict
 import warnings
 
+from optimade.server.config import CONFIG
+
 from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.models import StructureResourceAttributes
 from aiida_optimade.translators import (
@@ -10,7 +12,7 @@ from aiida_optimade.translators import (
     StructureDataTranslator,
 )
 
-from .entries import ResourceMapper
+from aiida_optimade.mappers.entries import ResourceMapper
 
 
 __all__ = ("StructureMapper",)
@@ -74,24 +76,33 @@ class StructureMapper(ResourceMapper):
                 try:
                     create_attribute = getattr(translator, attribute)
                 except AttributeError as exc:
-                    if attribute in cls.REQUIRED_ATTRIBUTES:
-                        translator = None
-                        raise NotImplementedError(
-                            f"Parsing required attribute {attribute!r} from "
-                            f"{translator.__class__.__name__} has not yet been "
-                            "implemented."
-                        ) from exc
+                    if not CONFIG.use_real_mongo:
+                        if attribute in cls.REQUIRED_ATTRIBUTES:
+                            translator = None
+                            raise NotImplementedError(
+                                f"Parsing required attribute {attribute!r} from "
+                                f"{translator.__class__.__name__} has not yet been "
+                                "implemented."
+                            ) from exc
 
-                    warnings.warn(
-                        f"Parsing optional attribute {attribute!r} from "
-                        f"{translator.__class__.__name__} has not yet been "
-                        "implemented.",
-                        NotImplementedWarning,
-                    )
+                        warnings.warn(
+                            f"Parsing optional attribute {attribute!r} from "
+                            f"{translator.__class__.__name__} has not yet been "
+                            "implemented.",
+                            NotImplementedWarning,
+                        )
+                    else:
+                        warnings.warn(
+                            f"Trying to parse attribute {attribute!r} from "
+                            f"{translator.__class__.__name__}, but is has not been "
+                            "implemented. This may be a mistake, but may also be fine, "
+                            "since a MongoDB is used.",
+                            NotImplementedWarning,
+                        )
                 else:
                     res[attribute] = create_attribute()
-            # Store new attributes in `extras`
-            translator.store_attributes()
+            # Store new attributes in Node extras or MongoDB collection
+            translator.store_attributes(mongo=CONFIG.use_real_mongo)
             del translator
 
         return res

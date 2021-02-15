@@ -1,8 +1,15 @@
 """Test CLI `aiida-optimade calc` command"""
 # pylint: disable=unused-argument,too-many-locals,import-error
+import os
 import re
 
+import pytest
 
+
+@pytest.mark.skipif(
+    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+    reason="Test is not for MongoDB",
+)
 def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
@@ -84,7 +91,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Ensure the database was reported to be updated.
     assert (
-        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        re.match(r".*Updating Node [0-9]+ in AiiDA DB!.*", caplog.text, flags=re.DOTALL)
         is not None
     ), caplog.text
 
@@ -94,6 +101,10 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     import_data(original_data)
 
 
+@pytest.mark.skipif(
+    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+    reason="Test is not for MongoDB",
+)
 def test_calc(run_cli_command, aiida_profile, top_dir):
     """Test `aiida-optimade -p profile_name calc` works."""
     from aiida import orm
@@ -152,6 +163,10 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     import_data(original_data)
 
 
+@pytest.mark.skipif(
+    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+    reason="Test is not for MongoDB",
+)
 def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
     from aiida import orm
@@ -235,7 +250,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Ensure the database was reported to be updated.
     assert (
-        re.match(r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL)
+        re.match(r".*Updating Node [0-9]+ in AiiDA DB!.*", caplog.text, flags=re.DOTALL)
         is not None
     ), caplog.text
 

@@ -131,7 +131,7 @@ def get_single_entry(
     params: SingleEntryQueryParams,
 ) -> EntryResponseOne:
     """Generalized /{entry}/{entry_id} endpoint getter"""
-    params.filter = f"id={entry_id}"
+    params.filter = f'id="{entry_id}"'
     (
         results,
         data_returned,

@@ -41,57 +41,6 @@ from aiida_optimade.routers import (
 from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
-if CONFIG.config_file is None:
-    LOGGER.warning(  # pragma: no cover
-        "Invalid config file or no config file provided, running server with default "
-        "settings. Errors: %s",
-        [
-            warnings.formatwarning(w.message, w.category, w.filename, w.lineno, "")
-            for w in config_warnings
-        ],
-    )
-else:
-    LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
-
-if CONFIG.debug:
-    LOGGER.info("DEBUG MODE")
-
-# Load AiiDA profile
-PROFILE_NAME = os.getenv("AIIDA_PROFILE")
-load_profile(PROFILE_NAME)
-LOGGER.info("AiiDA Profile: %s", PROFILE_NAME)
-
-# Load links in mongomock
-LINKS_DATA = Path(__file__).parent.joinpath("data/links.json").resolve()
-with open(LINKS_DATA) as handle:
-    data = json.load(handle)
-
-    if CONFIG.debug:
-        data.append(
-            {
-                "id": "local",
-                "type": "links",
-                "name": "Local server",
-                "description": (
-                    "Locally running instance of the AiiDA-OPTIMADE server using AiiDA"
-                    f" profile {PROFILE_NAME!r}."
-                ),
-                "base_url": "http://localhost:5000",
-                "homepage": "https://github.com/aiidateam/aiida-optimade",
-                "link_type": "child",
-            }
-        )
-
-    processed = []
-    for link in data:
-        link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
-        processed.append(link)
-
-    links.LINKS.collection.insert_many(
-        bson.json_util.loads(bson.json_util.dumps(processed))
-    )
-
-
 DOCS_ENDPOINT_PREFIX = f"{get_custom_base_url_path()}{BASE_URL_PREFIXES['major']}"
 APP = FastAPI(
     title="OPTIMADE API for AiiDA",
@@ -142,3 +91,69 @@ for endpoint in (info, links, structures):
 for version in ("major", "minor", "patch"):
     for endpoint in (info, links, structures):
         APP.include_router(endpoint.ROUTER, prefix=BASE_URL_PREFIXES[version])
+
+
+@APP.on_event("startup")
+async def startup():
+    """Things to do upon server startup"""
+    if CONFIG.config_file is None:
+        LOGGER.warning(  # pragma: no cover
+            "Invalid config file or no config file provided, running server with default "
+            "settings. Errors: %s",
+            [
+                warnings.formatwarning(w.message, w.category, w.filename, w.lineno, "")
+                for w in config_warnings
+            ],
+        )
+    else:
+        LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
+
+    if CONFIG.debug:
+        LOGGER.info("DEBUG MODE")
+
+    # Load AiiDA profile
+    PROFILE_NAME = os.getenv("AIIDA_PROFILE")
+    load_profile(PROFILE_NAME)
+    LOGGER.info("AiiDA Profile: %s", PROFILE_NAME)
+
+    # Load links
+    with open(Path(__file__).parent.joinpath("data/links.json").resolve()) as handle:
+        data = json.load(handle)
+
+        if CONFIG.debug:
+            data.append(
+                {
+                    "id": "local",
+                    "type": "links",
+                    "name": "Local server",
+                    "description": (
+                        "Locally running instance of the AiiDA-OPTIMADE server using AiiDA"
+                        f" profile {PROFILE_NAME!r}."
+                    ),
+                    "base_url": "http://localhost:5000",
+                    "homepage": "https://github.com/aiidateam/aiida-optimade",
+                    "link_type": "child",
+                }
+            )
+
+        processed = []
+        for link in data:
+            link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
+            processed.append(link)
+
+        if CONFIG.use_real_mongo:
+            if links.LINKS.count(
+                filter={"id": {"$in": [_["id"] for _ in processed]}}
+            ) != len(links.LINKS):
+                LOGGER.debug(
+                    "Will drop and reinsert links data in %s",
+                    links.LINKS.collection.full_name,
+                )
+                links.LINKS.collection.drop()
+                links.LINKS.collection.insert_many(
+                    bson.json_util.loads(bson.json_util.dumps(processed)),
+                )
+        else:
+            links.LINKS.collection.insert_many(
+                bson.json_util.loads(bson.json_util.dumps(processed)),
+            )

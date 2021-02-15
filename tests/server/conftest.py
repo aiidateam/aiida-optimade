@@ -104,7 +104,17 @@ def check_error_response(client, caplog):
             # Ensure the DB was NOT touched
             assert (
                 re.match(
-                    r".*Updating Node [0-9]+ in DB!.*", caplog.text, flags=re.DOTALL
+                    r".*Updating Node [0-9]+ in AiiDA DB!.*",
+                    caplog.text,
+                    flags=re.DOTALL,
+                )
+                is None
+            ), caplog.text
+            assert (
+                re.match(
+                    r".*Upserting Node [0-9]+ in MongoDB!.*",
+                    caplog.text,
+                    flags=re.DOTALL,
                 )
                 is None
             ), caplog.text

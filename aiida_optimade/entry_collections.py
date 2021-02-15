@@ -9,6 +9,7 @@ from aiida.orm import Node, QueryBuilder
 from optimade.filterparser import LarkParser
 from optimade.models import EntryResource
 from optimade.server.config import CONFIG
+from optimade.server.exceptions import BadRequest, Forbidden
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
 
 from aiida_optimade.common import CausationError
@@ -333,16 +334,15 @@ class AiidaCollection:
             getattr(params, "response_format", False)
             and params.response_format != "json"
         ):
-            raise HTTPException(
-                status_code=400, detail="Only 'json' response_format supported"
+            raise BadRequest(
+                detail=f'Response format {params.response_format} is not supported, please use response_format="json"'
             )
 
         # page_limit
         if getattr(params, "page_limit", False):
             limit = params.page_limit
             if limit > CONFIG.page_limit_max:
-                raise HTTPException(
-                    status_code=403,  # Forbidden
+                raise Forbidden(
                     detail=f"Max allowed page_limit is {CONFIG.page_limit_max}, "
                     f"you requested {limit}",
                 )
@@ -408,7 +408,9 @@ class AiidaCollection:
             if field.startswith(self.resource_mapper.PROJECT_PREFIX)
         }
 
-    def _check_and_calculate_entities(self, cli: bool = False) -> List[int]:
+    def _check_and_calculate_entities(
+        self, cli: bool = False, entries: List[List[int]] = None
+    ) -> List[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
@@ -444,14 +446,18 @@ class AiidaCollection:
         filter_fields = [
             {"!has_key": field} for field in self._get_extras_filter_fields()
         ]
-        necessary_entities_qb = self._find_all(
-            filters={
-                "or": [
-                    {extras_keys[0]: {"!has_key": extras_keys[1]}},
-                    {".".join(extras_keys): {"or": filter_fields}},
-                ]
-            },
-            project="id",
+        necessary_entities_qb = (
+            self._find_all(
+                filters={
+                    "or": [
+                        {extras_keys[0]: {"!has_key": extras_keys[1]}},
+                        {".".join(extras_keys): {"or": filter_fields}},
+                    ]
+                },
+                project="id",
+            )
+            if entries is None
+            else entries
         )
 
         if necessary_entities_qb:

@@ -30,5 +30,7 @@
       "relationships": "attributes.something.non.existing",
       "links": "attributes.something.non.existing"
     }
-  }
+  },
+  "log_level": "debug",
+  "log_dir": "./logs/"
 }
