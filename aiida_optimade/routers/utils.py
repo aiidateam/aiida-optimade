@@ -12,6 +12,7 @@ from optimade.models import (
     ToplevelLinks,
 )
 from optimade.server.config import CONFIG
+from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from optimade.server.routers.utils import meta_values
 
@@ -90,7 +91,7 @@ def handle_response_fields(
 
 
 def get_entries(
-    collection: AiidaCollection,
+    collection: Union[AiidaCollection, MongoCollection],
     response: EntryResponseMany,
     request: Request,
     params: EntryListingQueryParams,
@@ -100,7 +101,6 @@ def get_entries(
         results,
         data_returned,
         more_data_available,
-        data_available,
         fields,
     ) = collection.find(params)
 
@@ -115,13 +115,16 @@ def get_entries(
         links=ToplevelLinks(**pagination),
         data=results,
         meta=meta_values(
-            str(request.url), data_returned, data_available, more_data_available
+            url=request.url,
+            data_returned=data_returned,
+            data_available=len(collection),
+            more_data_available=more_data_available,
         ),
     )
 
 
 def get_single_entry(
-    collection: AiidaCollection,
+    collection: Union[AiidaCollection, MongoCollection],
     entry_id: str,
     response: EntryResponseOne,
     request: Request,
@@ -133,7 +136,6 @@ def get_single_entry(
         results,
         data_returned,
         more_data_available,
-        data_available,
         fields,
     ) = collection.find(params)
 
@@ -144,16 +146,17 @@ def get_single_entry(
             f"however it is {more_data_available}",
         )
 
-    links = ToplevelLinks(next=None)
-
     if fields and results is not None:
         results = handle_response_fields(results, fields, collection)[0]
 
     return response(
-        links=links,
+        links=ToplevelLinks(next=None),
         data=results,
         meta=meta_values(
-            str(request.url), data_returned, data_available, more_data_available
+            url=request.url,
+            data_returned=data_returned,
+            data_available=len(collection),
+            more_data_available=more_data_available,
         ),
     )
 

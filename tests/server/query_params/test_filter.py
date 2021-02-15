@@ -451,7 +451,7 @@ def test_querybuilder_calls(caplog, get_valid_id):
     # 5. Reuse _count for more_data_available
     caplog.clear()
     params = _set_params(EntryListingQueryParams(filter=optimade_filter))
-    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    (_, data_returned, _, _) = STRUCTURES.find(params=params)
     assert caplog.text.count("Using QueryBuilder") == 4
     assert data_returned == expected_data_returned
     assert "Setting data_available!" in caplog.text  # 1.
@@ -468,7 +468,7 @@ def test_querybuilder_calls(caplog, get_valid_id):
     # 4. Query for results in DB
     # 5. Reuse _count for more_data_available
     caplog.clear()
-    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    (_, data_returned, _, _) = STRUCTURES.find(params=params)
     assert caplog.text.count("Using QueryBuilder") == 1
     assert data_returned == expected_data_returned
     assert "Setting data_available!" not in caplog.text  # 1.
@@ -489,7 +489,7 @@ def test_querybuilder_calls(caplog, get_valid_id):
     expected_data_returned = 14
     caplog.clear()
     params = _set_params(EntryListingQueryParams(filter=optimade_filter))
-    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    (_, data_returned, _, _) = STRUCTURES.find(params=params)
     assert caplog.text.count("Using QueryBuilder") == 2
     assert data_returned == expected_data_returned
     assert "Setting data_available!" not in caplog.text  # 1.
@@ -509,7 +509,7 @@ def test_querybuilder_calls(caplog, get_valid_id):
     expected_data_returned = 1
     caplog.clear()
     params = _set_params(EntryListingQueryParams(filter=optimade_filter))
-    (_, data_returned, _, _, _) = STRUCTURES.find(params=params)
+    (_, data_returned, _, _) = STRUCTURES.find(params=params)
     assert caplog.text.count("Using QueryBuilder") == 2
     assert data_returned == expected_data_returned
     assert "Setting data_available!" not in caplog.text  # 1.

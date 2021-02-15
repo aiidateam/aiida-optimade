@@ -62,6 +62,10 @@ class AiidaCollection:
         self._count: dict = None
         self._checked_extras_filter_fields: set = set()
 
+    def __len__(self) -> int:
+        """Get available data entries in collection (data_available)"""
+        return self.data_available
+
     def get_attribute_fields(self) -> set:
         """Get all attribute properties/fields for OPTIMADE entity"""
         schema = self.resource_cls.schema()
@@ -216,7 +220,7 @@ class AiidaCollection:
 
     def find(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
-    ) -> Tuple[List[EntryResource], int, bool, int, set]:
+    ) -> Tuple[List[EntryResource], int, bool, set]:
         """Find all requested AiiDA entities as OPTIMADE JSON objects"""
         self.set_data_available()
         criteria = self._parse_params(params)
@@ -284,7 +288,6 @@ class AiidaCollection:
             results,
             self.data_returned,
             more_data_available,
-            self.data_available,
             all_fields - fields,
         )
 
