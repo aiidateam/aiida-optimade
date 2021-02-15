@@ -5,7 +5,7 @@ WORKDIR /app
 RUN pip install -U pip setuptools wheel
 
 # Install specific optimade version
-ARG OPTIMADE_TOOLS_VERSION=0.12.8
+ARG OPTIMADE_TOOLS_VERSION=0.12.9
 RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
 
 # Install specific aiida-core version
