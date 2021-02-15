@@ -14,6 +14,7 @@ services:
       AIIDA_PROFILE: test_django
       OPTIMADE_CONFIG_FILE: /app/aiida_optimade/config.json
       FORCE_INIT: ''
+      USE_MONGO: ''
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'

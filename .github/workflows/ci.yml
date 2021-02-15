@@ -178,6 +178,78 @@ jobs:
     - name: Build and start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
+        docker-compose -f profiles/docker-compose.yml up aiida-optimade &
+        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        sleep 15
+
+    - name: Test server with OPTIMADE Validator
+      uses: Materials-Consortia/optimade-validator-action@v2
+      with:
+        port: 3253
+        all versioned paths: yes
+        validator version: latest
+
+  docker-image-mongo:
+    runs-on: ubuntu-latest
+    # timeout-minutes: 14
+
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_DB: test_django
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U setuptools
+
+        while IFS="" read -r line || [ -n "${line}" ]; do
+            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
+                aiida_core="${line}"
+            fi
+        done < requirements.txt
+
+        pip install ${aiida_core}
+        reentry scan
+
+    - name: Setup up environment for AiiDA
+      env:
+        AIIDA_TEST_BACKEND: django
+      run: .github/aiida/setup_aiida.sh
+
+    - name: Load test data
+      run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
+
+    - name: Build and start the Docker image
+      env:
+        OPTIMADE_MONGO_URI: mongodb://mongodb:27017
+        OPTIMADE_MONGO_DATABASE: aiida-optimade
+        OPTIMADE_USE_REAL_MONGO: "true"
+        OPTIMADE_ALIASES: '{"structures":{"type":"node_type"}}'
+        USE_MONGO: --mongo
+      run: |
+        export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15

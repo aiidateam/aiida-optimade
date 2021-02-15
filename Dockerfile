@@ -2,21 +2,19 @@ FROM python:3.8
 
 WORKDIR /app
 
-RUN pip install -U pip setuptools wheel
-
-# Install specific optimade version
+# Install specific optimade and aiida-core versions
 ARG OPTIMADE_TOOLS_VERSION=0.12.9
-RUN pip install optimade==${OPTIMADE_TOOLS_VERSION}
-
-# Install specific aiida-core version
 ARG AIIDA_VERSION=1.5.2
-RUN pip install aiida-core==${AIIDA_VERSION}
-RUN reentry scan
 
 # Copy repo contents
 COPY setup.py setup.json README.md requirements*.txt ./
 COPY aiida_optimade ./aiida_optimade
-RUN pip install -e .
+
+RUN pip install -U pip setuptools wheel \
+    && pip install optimade==${OPTIMADE_TOOLS_VERSION} \
+    && pip install aiida-core==${AIIDA_VERSION} \
+    && reentry scan \
+    && pip install -e .
 
 COPY .docker/run.sh ./
 
