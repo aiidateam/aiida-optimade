@@ -64,10 +64,6 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
 
     steps:
     - uses: actions/checkout@v2
@@ -141,10 +137,6 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
 
     steps:
     - uses: actions/checkout@v2
@@ -188,11 +180,12 @@ jobs:
       with:
         port: 3253
         all versioned paths: yes
+        validate unversioned path: yes
         validator version: latest
 
   docker-mongo:
     runs-on: ubuntu-latest
-    # timeout-minutes: 14
+    timeout-minutes: 14
 
     services:
       mongo:
@@ -242,7 +235,6 @@ jobs:
       run: .github/aiida/setup_aiida.sh
 
     - name: Load test data
-      # run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
       run: .github/mongo/load_data.py
 
     - name: Build docker image
@@ -260,6 +252,7 @@ jobs:
       with:
         port: 3253
         all versioned paths: yes
+        validate unversioned path: yes
         validator version: latest
 
   build-package:
