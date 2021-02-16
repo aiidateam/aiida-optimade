@@ -9,6 +9,7 @@ services:
       args:
         OPTIMADE_TOOLS_VERSION: 0.12.9
         AIIDA_VERSION: 1.5.2
+        CONFIG_FILE: /aiida_optimade/config.json
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django

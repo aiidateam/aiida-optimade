@@ -123,7 +123,7 @@ jobs:
         flags: mongo
         file: ./mongo_cov.xml
 
-  docker-image:
+  docker:
     runs-on: ubuntu-latest
     timeout-minutes: 14
 
@@ -178,7 +178,7 @@ jobs:
     - name: Build and start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose -f profiles/docker-compose.yml up aiida-optimade &
+        docker-compose -f profiles/docker-compose.yml up aiida-optimade --build &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 
@@ -189,7 +189,7 @@ jobs:
         all versioned paths: yes
         validator version: latest
 
-  docker-image-mongo:
+  docker-mongo:
     runs-on: ubuntu-latest
     # timeout-minutes: 14
 
@@ -241,10 +241,13 @@ jobs:
     - name: Load test data
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
-    - name: Build and start the Docker image
+    - name: Build the Docker image
+      run: docker-compose build --build-arg CONFIG_FILE=".github/static/ci_config.json"
+
+    - name: Start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose --env-file .github/static/.env.ci -f profiles/docker-compose.yml up &
+        docker-compose --env-file ".github/static/.env.ci" -f profiles/docker-compose.yml up --build &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 

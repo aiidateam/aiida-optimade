@@ -20,4 +20,8 @@ COPY .docker/run.sh ./
 
 EXPOSE 80
 
+ARG CONFIG_FILE=aiida_optimade/config.json
+COPY ${CONFIG_FILE} ./config.json
+ENV OPTIMADE_CONFIG_FILE /app/config.json
+
 CMD ["/app/run.sh"]
