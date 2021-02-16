@@ -1,6 +1,6 @@
 {
   "name": "aiida-optimade",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "url": "https://github.com/aiidateam/aiida-optimade",
   "license": "MIT License",
   "author": "Casper Welzel Andersen",
