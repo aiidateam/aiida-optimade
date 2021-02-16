@@ -265,6 +265,8 @@ jobs:
         docker-compose -f profiles/docker-compose-mongo.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 30
+        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        sleep 90
 
     - name: Test server with OPTIMADE Validator
       uses: Materials-Consortia/optimade-validator-action@v2
