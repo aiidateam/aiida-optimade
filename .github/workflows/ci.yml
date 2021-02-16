@@ -210,6 +210,10 @@ jobs:
         image: rabbitmq:latest
         ports:
           - 5672:5672
+      mongodb:
+        image: mongo:4
+        ports:
+          - 27017:27017
 
     steps:
     - uses: actions/checkout@v2
@@ -233,21 +237,24 @@ jobs:
         pip install ${aiida_core}
         reentry scan
 
+        pip install pymongo
+
     - name: Setup up environment for AiiDA
       env:
         AIIDA_TEST_BACKEND: django
       run: .github/aiida/setup_aiida.sh
 
     - name: Load test data
-      run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
+      # run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
+      run: .github/mongo/load_data.py
 
-    - name: Build the Docker image
-      run: docker-compose build
+    - name: Build docker image
+      run: docker-compose -f profiles/docker-compose.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
 
     - name: Start the Docker image
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose up &
+        docker-compose -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 

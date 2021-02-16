@@ -41,6 +41,21 @@ from aiida_optimade.routers import (
 from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
+if CONFIG.config_file is None:
+    LOGGER.warning(  # pragma: no cover
+        "Invalid config file or no config file provided, running server with "
+        "default settings. Errors: %s",
+        [
+            warnings.formatwarning(w.message, w.category, w.filename, w.lineno, "")
+            for w in config_warnings
+        ],
+    )
+else:
+    LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
+
+if CONFIG.debug:
+    LOGGER.info("DEBUG MODE")
+
 DOCS_ENDPOINT_PREFIX = f"{get_custom_base_url_path()}{BASE_URL_PREFIXES['major']}"
 APP = FastAPI(
     title="OPTIMADE API for AiiDA",
@@ -96,25 +111,10 @@ for version in ("major", "minor", "patch"):
 @APP.on_event("startup")
 async def startup():
     """Things to do upon server startup"""
-    if CONFIG.config_file is None:
-        LOGGER.warning(  # pragma: no cover
-            "Invalid config file or no config file provided, running server with default "
-            "settings. Errors: %s",
-            [
-                warnings.formatwarning(w.message, w.category, w.filename, w.lineno, "")
-                for w in config_warnings
-            ],
-        )
-    else:
-        LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
-
-    if CONFIG.debug:
-        LOGGER.info("DEBUG MODE")
-
     # Load AiiDA profile
-    PROFILE_NAME = os.getenv("AIIDA_PROFILE")
-    load_profile(PROFILE_NAME)
-    LOGGER.info("AiiDA Profile: %s", PROFILE_NAME)
+    profile_name = os.getenv("AIIDA_PROFILE")
+    load_profile(profile_name)
+    LOGGER.info("AiiDA Profile: %s", profile_name)
 
     # Load links
     with open(Path(__file__).parent.joinpath("data/links.json").resolve()) as handle:
@@ -127,8 +127,8 @@ async def startup():
                     "type": "links",
                     "name": "Local server",
                     "description": (
-                        "Locally running instance of the AiiDA-OPTIMADE server using AiiDA"
-                        f" profile {PROFILE_NAME!r}."
+                        "Locally running instance of the AiiDA-OPTIMADE server using "
+                        f"AiiDA profile {profile_name!r}."
                     ),
                     "base_url": "http://localhost:5000",
                     "homepage": "https://github.com/aiidateam/aiida-optimade",
