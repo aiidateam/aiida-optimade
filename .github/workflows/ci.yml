@@ -258,7 +258,7 @@ jobs:
 
     - name: Start the Docker image
       env:
-        AIIDA_OPTIMADE_LOG_LEVEL: DEBUG
+        AIIDA_OPTIMADE_LOG_LEVEL: INFO
         USE_MONGO: '--mongo'
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
