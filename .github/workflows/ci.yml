@@ -254,7 +254,7 @@ jobs:
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Build docker image
-      run: docker-compose -f profiles/docker-compose-mongo.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
+      run: docker-compose -f profiles/docker-compose-mongo.yml build --build-arg CONFIG_FILE=".github/mongo/mongo_ci_config.json"
 
     - name: Start the Docker image
       env:
