@@ -1,6 +1,7 @@
-version: '2'
+version: '3'
 
 services:
+
   aiida-optimade:
     restart: always
     build:
@@ -9,11 +10,13 @@ services:
       args:
         OPTIMADE_TOOLS_VERSION: 0.12.9
         AIIDA_VERSION: 1.5.2
+        CONFIG_FILE: aiida_optimade/config.json
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django
-      OPTIMADE_CONFIG_FILE: /app/aiida_optimade/config.json
-      FORCE_INIT: ''
+      FORCE_INIT:
+      USE_MONGO:
+      AIIDA_OPTIMADE_LOG_LEVEL:
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
@@ -21,4 +24,4 @@ services:
       - '3253:80'
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
-      - "docker.host.internal:$DOCKER_HOST_IP"
+      - "docker.host.internal:${DOCKER_HOST_IP}"

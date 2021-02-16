@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+
+  aiida-optimade-{{ aiida_profile }}:
+    restart: always
+    depends_on:
+      - mongo
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        OPTIMADE_TOOLS_VERSION: 0.12.9
+        AIIDA_VERSION: 1.5.2
+        CONFIG_FILE: aiida_optimade/config.json
+    environment:
+      AIIDA_PATH: /app
+      AIIDA_PROFILE: {{ aiida_profile }}
+      FORCE_INIT: {{ force_init }}
+      USE_MONGO: {{ use_mongo }}
+      AIIDA_OPTIMADE_LOG_LEVEL:
+      OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
+    volumes:
+     - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
+     - '{{ config_folder }}:/profiles'
+    ports:
+      - '{{ port }}:80'
+    networks:
+      - optimade
+
+  mongo:
+    restart: always
+    image: mongo:4.2
+    networks:
+      - optimade
+
+networks:
+  optimade:

@@ -1,4 +1,4 @@
-# pylint: disable=no-name-in-module,too-many-arguments
+# pylint: disable=no-name-in-module,too-many-arguments,import-error
 import json
 import re
 import typing
@@ -149,11 +149,12 @@ class EndpointTests:
 
 def client_factory():
     """Return TestClient for OPTIMADE server"""
-    from aiida_optimade.main import APP
 
     def inner(
         version: str = None, raise_server_exceptions: bool = True
     ) -> OptimadeTestClient:
+        from aiida_optimade.main import APP
+
         if version:
             return OptimadeTestClient(
                 APP,

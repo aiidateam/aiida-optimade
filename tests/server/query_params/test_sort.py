@@ -1,3 +1,5 @@
+"""Test sort query parameter"""
+# pylint: disable=import-error
 from datetime import datetime, timezone
 from aiida import orm
 
@@ -9,17 +11,37 @@ def fmt_datetime(object_: datetime) -> str:
 
 def test_int_asc(get_good_response):
     """Ascending sort (integer)"""
+    from optimade.server.config import CONFIG
+
     limit = 5
 
     request = f"/structures?sort=nelements&page_limit={limit}"
-    builder = (
-        orm.QueryBuilder(limit=5)
-        .append(orm.Node, project="extras.optimade.nelements")
-        .order_by(
-            {orm.Node: [{"extras.optimade.nelements": {"order": "asc", "cast": "i"}}]}
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_nelements = [
+            _["nelements"]
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["nelements"],
+                sort=[("nelements", 1)],
+                limit=limit,
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder(limit=5)
+            .append(orm.Node, project="extras.optimade.nelements")
+            .order_by(
+                {
+                    orm.Node: [
+                        {"extras.optimade.nelements": {"order": "asc", "cast": "i"}}
+                    ]
+                }
+            )
         )
-    )
-    expected_nelements = [nelement for nelement, in builder.all()]
+        expected_nelements = [nelement for nelement, in builder.all()]
 
     response = get_good_response(request)
     nelements_list = [
@@ -30,17 +52,37 @@ def test_int_asc(get_good_response):
 
 def test_int_desc(get_good_response):
     """Descending sort (integer)"""
+    from optimade.server.config import CONFIG
+
     limit = 5
 
     request = f"/structures?sort=-nelements&page_limit={limit}"
-    builder = (
-        orm.QueryBuilder(limit=limit)
-        .append(orm.Node, project="extras.optimade.nelements")
-        .order_by(
-            {orm.Node: [{"extras.optimade.nelements": {"order": "desc", "cast": "i"}}]}
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_nelements = [
+            _["nelements"]
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["nelements"],
+                sort=[("nelements", -1)],
+                limit=limit,
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder(limit=limit)
+            .append(orm.Node, project="extras.optimade.nelements")
+            .order_by(
+                {
+                    orm.Node: [
+                        {"extras.optimade.nelements": {"order": "desc", "cast": "i"}}
+                    ]
+                }
+            )
         )
-    )
-    expected_nelements = [nelement for nelement, in builder.all()]
+        expected_nelements = [nelement for nelement, in builder.all()]
 
     response = get_good_response(request)
     nelements_list = [
@@ -51,13 +93,28 @@ def test_int_desc(get_good_response):
 
 def test_str_asc(check_response):
     """Ascending sort (string)"""
+    from optimade.server.config import CONFIG
+
     request = "/structures?sort=immutable_id&page_limit=5"
-    builder = (
-        orm.QueryBuilder()
-        .append(orm.Node, project="id")
-        .order_by({orm.Node: [{"uuid": {"order": "asc", "cast": "t"}}]})
-    )
-    expected_ids = [str(_[0]) for _ in builder.all()]
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_ids = [
+            _["id"]
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["id"],
+                sort=[("immutable_id", 1)],
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder()
+            .append(orm.Node, project="id")
+            .order_by({orm.Node: [{"uuid": {"order": "asc", "cast": "t"}}]})
+        )
+        expected_ids = [str(_[0]) for _ in builder.all()]
     check_response(
         request,
         expected_uuid=expected_ids,
@@ -69,13 +126,28 @@ def test_str_asc(check_response):
 
 def test_str_desc(check_response):
     """Descending sort (string)"""
+    from optimade.server.config import CONFIG
+
     request = "/structures?sort=-immutable_id&page_limit=5"
-    builder = (
-        orm.QueryBuilder()
-        .append(orm.Node, project="id")
-        .order_by({orm.Node: [{"uuid": {"order": "desc", "cast": "t"}}]})
-    )
-    expected_ids = [str(_[0]) for _ in builder.all()]
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_ids = [
+            _["id"]
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["id"],
+                sort=[("immutable_id", -1)],
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder()
+            .append(orm.Node, project="id")
+            .order_by({orm.Node: [{"uuid": {"order": "desc", "cast": "t"}}]})
+        )
+        expected_ids = [str(_[0]) for _ in builder.all()]
     check_response(
         request,
         expected_uuid=expected_ids,
@@ -87,15 +159,29 @@ def test_str_desc(check_response):
 
 def test_datetime_asc(get_good_response):
     """Ascending sort (datetime)"""
-    limit = 5
+    from optimade.server.config import CONFIG
 
-    request = f"/structures?sort=last_modified&page_limit={limit}"
-    builder = (
-        orm.QueryBuilder(limit=5)
-        .append(orm.Node, project="mtime")
-        .order_by({orm.Node: [{"mtime": {"order": "asc", "cast": "i"}}]})
-    )
-    expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
+    request = "/structures?sort=last_modified&page_limit=5"
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_mtime = [
+            fmt_datetime(_["last_modified"])
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["last_modified"],
+                sort=[("last_modified", 1)],
+                limit=5,
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder(limit=5)
+            .append(orm.Node, project="mtime")
+            .order_by({orm.Node: [{"mtime": {"order": "asc", "cast": "i"}}]})
+        )
+        expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
     response = get_good_response(request)
     last_modified_list = [
@@ -106,15 +192,29 @@ def test_datetime_asc(get_good_response):
 
 def test_datetime_desc(get_good_response):
     """Descending sort (datetime)"""
-    limit = 5
+    from optimade.server.config import CONFIG
 
-    request = f"/structures?sort=-last_modified&page_limit={limit}"
-    builder = (
-        orm.QueryBuilder(limit=limit)
-        .append(orm.Node, project="mtime")
-        .order_by({orm.Node: [{"mtime": {"order": "desc", "cast": "i"}}]})
-    )
-    expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
+    request = "/structures?sort=-last_modified&page_limit=5"
+
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        expected_mtime = [
+            fmt_datetime(_["last_modified"])
+            for _ in STRUCTURES_MONGO.collection.find(
+                filter={},
+                projection=["last_modified"],
+                sort=[("last_modified", -1)],
+                limit=5,
+            )
+        ]
+    else:
+        builder = (
+            orm.QueryBuilder(limit=5)
+            .append(orm.Node, project="mtime")
+            .order_by({orm.Node: [{"mtime": {"order": "desc", "cast": "i"}}]})
+        )
+        expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
     response = get_good_response(request)
     last_modified_list = [

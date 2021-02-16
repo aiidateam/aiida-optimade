@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument,redefined-outer-name
+# pylint: disable=unused-argument,redefined-outer-name,import-error
 import os
 from pathlib import Path
 
@@ -14,13 +14,16 @@ def top_dir() -> Path:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_config(top_dir):
+def setup_config(top_dir) -> None:
     """Method that runs before pytest collects tests so no modules are imported"""
-    filename = top_dir.joinpath("tests/static/test_config.json")
+    filename = top_dir / "tests/static/test_config.json"
 
     original_env_var = os.getenv("OPTIMADE_CONFIG_FILE")
+
     try:
-        os.environ["OPTIMADE_CONFIG_FILE"] = str(filename)
+        os.environ["OPTIMADE_CONFIG_FILE"] = os.getenv(
+            "PYTEST_OPTIMADE_CONFIG_FILE"
+        ) or str(filename)
         yield
     finally:
         if original_env_var is not None:
@@ -30,7 +33,7 @@ def setup_config(top_dir):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def aiida_profile(top_dir) -> TestManager:
+def aiida_profile(top_dir, setup_config) -> TestManager:
     """Load test data for AiiDA test profile
 
     It is necessary to remove `AIIDA_PROFILE`, since it clashes with the test profile
@@ -44,6 +47,7 @@ def aiida_profile(top_dir) -> TestManager:
     from aiida.tools.importexport import import_data
 
     org_env_var = os.getenv("AIIDA_PROFILE")
+    test_env_var = os.getenv("PYTEST_OPTIMADE_CONFIG_FILE")
 
     try:
         # Setup profile
@@ -56,8 +60,25 @@ def aiida_profile(top_dir) -> TestManager:
             assert profile in ["test_profile", "test_django", "test_sqlalchemy"]
             os.environ["AIIDA_PROFILE"] = profile
 
-            filename = top_dir.joinpath("tests/static/test_structures.aiida")
-            import_data(filename)
+            # Use AiiDA DB
+            import_data(top_dir.joinpath("tests/static/test_structures.aiida"))
+
+            if test_env_var:
+                # Use MongoDB
+                assert os.getenv("OPTIMADE_CONFIG_FILE", "") == test_env_var, (
+                    "Config file env var not set prior to updating the MongoDB! Found "
+                    "it to be a MongoDB backend, since PYTEST_OPTIMADE_CONFIG_FILE is "
+                    f"set to {test_env_var}"
+                )
+                import bson.json_util
+                from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+                STRUCTURES_MONGO.collection.drop()
+                with open(
+                    top_dir.joinpath("tests/static/test_structures_mongo.json")
+                ) as handle:
+                    data = bson.json_util.loads(handle.read())
+                STRUCTURES_MONGO.collection.insert_many(data)
 
             yield manager
     finally:
@@ -70,7 +91,13 @@ def aiida_profile(top_dir) -> TestManager:
 @pytest.fixture
 def get_valid_id() -> str:
     """Get a currently valid ID/PK from a StructureData Node"""
-    from aiida.orm import QueryBuilder, StructureData
+    from optimade.server.config import CONFIG
 
-    builder = QueryBuilder().append(StructureData, project="id")
-    return builder.first()[0]
+    if CONFIG.use_real_mongo:
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+
+        return STRUCTURES_MONGO.collection.find_one({}, projection=["id"])["id"]
+    else:
+        from aiida.orm import QueryBuilder, StructureData
+
+        return QueryBuilder().append(StructureData, project="id").first()[0]

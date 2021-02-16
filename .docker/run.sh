@@ -10,7 +10,7 @@ cp -n /profiles/${AIIDA_PROFILE}.json ${AIIDA_PATH}/.aiida/config.json
 # echo -e "`/sbin/ip route|awk '/default/ { print $3 }'`\tdocker.host.internal" | tee -a /etc/hosts > /dev/null
 
 # Initialize database
-aiida-optimade --profile ${AIIDA_PROFILE} init ${FORCE_INIT}
+aiida-optimade --profile ${AIIDA_PROFILE} init ${FORCE_INIT} ${USE_MONGO}
 
 # Run (uvicorn) server
 aiida-optimade --profile ${AIIDA_PROFILE} run --host 0.0.0.0 --port 80
