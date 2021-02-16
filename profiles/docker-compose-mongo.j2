@@ -4,6 +4,8 @@ services:
 
   aiida-optimade-{{ aiida_profile }}:
     restart: always
+    depends_on:
+      - mongo
     build:
       context: ..
       dockerfile: Dockerfile
@@ -22,3 +24,14 @@ services:
      - '{{ config_folder }}:/profiles'
     ports:
       - '{{ port }}:80'
+    networks:
+      - optimade
+
+  mongo:
+    restart: always
+    image: mongo:4.2
+    networks:
+      - optimade
+
+networks:
+  optimade:
