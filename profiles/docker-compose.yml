@@ -16,6 +16,7 @@ services:
       AIIDA_PROFILE: test_django
       FORCE_INIT:
       USE_MONGO:
+      OPTIMADE_CI_FORCE_MONGO: 1
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
