@@ -185,7 +185,7 @@ jobs:
         fi
 
     - name: Build docker image
-      if: matrix.database == mongo
+      if: matrix.database == 'mongo'
       run: docker-compose -f profiles/docker-compose.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
 
     - name: Start the Docker image
