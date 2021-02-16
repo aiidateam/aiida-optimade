@@ -242,15 +242,9 @@ jobs:
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Build and start the Docker image
-      env:
-        OPTIMADE_MONGO_URI: mongodb://mongodb:27017
-        OPTIMADE_MONGO_DATABASE: aiida-optimade
-        OPTIMADE_USE_REAL_MONGO: "true"
-        OPTIMADE_ALIASES: '{"structures":{"type":"node_type"}}'
-        USE_MONGO: --mongo
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose -f profiles/docker-compose.yml up &
+        docker-compose --env-file .github/static/.env.ci -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 
