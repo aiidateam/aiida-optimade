@@ -144,7 +144,7 @@ async def startup():
         LOGGER.info("Loading links")
         if CONFIG.use_real_mongo:
             LOGGER.info("  Using real MongoDB.")
-            if links.LINKS.count(
+            if links.LINKS.collection.count_documents(
                 filter={"id": {"$in": [_["id"] for _ in processed]}}
             ) != len(links.LINKS):
                 LOGGER.info(
