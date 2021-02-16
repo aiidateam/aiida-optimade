@@ -2,7 +2,7 @@
     "page_limit": 15,
     "page_limit_max": 500,
     "base_url": null,
-    "mongo_uri": "mongodb://mongodb:27017",
+    "mongo_uri": "mongodb://localhost:27017",
     "use_real_mongo": true,
     "mongo_database": "aiida-optimade",
     "provider": {
