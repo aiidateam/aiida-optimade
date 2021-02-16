@@ -144,12 +144,12 @@ async def startup():
         LOGGER.info("Loading links")
         if CONFIG.use_real_mongo:
             LOGGER.info("  Using real MongoDB.")
+            all_documents = len(links.LINKS)
+            LOGGER.info("  all_documents: %s", all_documents)
             existing_documents = links.LINKS.collection.count_documents(
                 filter={"id": {"$in": [_["id"] for _ in processed]}}
             )
             LOGGER.info("  existing_documents: %s", existing_documents)
-            all_documents = len(links.LINKS)
-            LOGGER.info("  all_documents: %s", all_documents)
             if existing_documents != all_documents:
                 LOGGER.info(
                     "  Will drop and reinsert links data in %s",
