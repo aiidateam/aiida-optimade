@@ -2,20 +2,29 @@ version: '3'
 
 services:
 
+  mongodb:
+    restart: always
+    image: mongo:4
+    networks:
+      - optimade
+
   aiida-optimade:
     restart: always
+    depends_on:
+      - mongodb
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
       args:
         OPTIMADE_TOOLS_VERSION: 0.12.9
         AIIDA_VERSION: 1.5.2
-        CONFIG_FILE: /aiida_optimade/config.json
+        CONFIG_FILE: .github/static/ci_config.json
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: test_django
       FORCE_INIT:
-      USE_MONGO:
+      USE_MONGO: '--mongo'
+      OPTIMADE_MONGO_URI: "mongodb://mongodb:27017"
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
@@ -24,3 +33,8 @@ services:
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
       - "docker.host.internal:$DOCKER_HOST_IP"
+    networks:
+      - optimade
+
+networks:
+  optimade:
