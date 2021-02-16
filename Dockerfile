@@ -22,7 +22,7 @@ EXPOSE 80
 
 ARG CONFIG_FILE=aiida_optimade/config.json
 COPY ${CONFIG_FILE} ./config.json
-RUN cat ${CONFIG_FILE}
+RUN cat /app/config.json
 ENV OPTIMADE_CONFIG_FILE /app/config.json
 
 CMD ["/app/run.sh"]
