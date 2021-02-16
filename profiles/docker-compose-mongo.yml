@@ -19,6 +19,7 @@ services:
       FORCE_INIT:
       USE_MONGO:
       AIIDA_OPTIMADE_LOG_LEVEL:
+      OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
