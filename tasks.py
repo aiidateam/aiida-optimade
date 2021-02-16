@@ -48,6 +48,14 @@ def setver(_, patch=False, version=""):
         "tests/static/test_config.json",
         ('"version": ([^,]+),', f'"version": "{version}",'),
     )
+    update_file(
+        "tests/static/test_mongo_config.json",
+        ('"version": ([^,]+),', f'"version": "{version}",'),
+    )
+    update_file(
+        ".github/mongo/ci_config.json",
+        ('"version": ([^,]+),', f'"version": "{version}",'),
+    )
 
     print(f"Bumped version to {version}")
 
@@ -104,10 +112,11 @@ def optimade_req(_, ver=""):
         "Dockerfile", ("OPTIMADE_TOOLS_VERSION=.*", f"OPTIMADE_TOOLS_VERSION={ver}")
     )
     for file_format in ("j2", "yml"):
-        update_file(
-            f"profiles/docker-compose.{file_format}",
-            ("OPTIMADE_TOOLS_VERSION: .*", f"OPTIMADE_TOOLS_VERSION: {ver}"),
-        )
+        for docker_compose_file in ("", "-mongo"):
+            update_file(
+                f"profiles/docker-compose{docker_compose_file}.{file_format}",
+                ("OPTIMADE_TOOLS_VERSION: .*", f"OPTIMADE_TOOLS_VERSION: {ver}"),
+            )
     for regex, version in (
         (r"[0-9]+", api_version.split("-")[0].split("+")[0].split(".")[0]),
         (
@@ -134,9 +143,10 @@ def aiida_req(_, ver=""):
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):
-        update_file(
-            f"profiles/docker-compose.{file_format}",
-            ("AIIDA_VERSION: .*", f"AIIDA_VERSION: {ver}"),
-        )
+        for docker_compose_file in ("", "-mongo"):
+            update_file(
+                f"profiles/docker-compose{docker_compose_file}.{file_format}",
+                ("AIIDA_VERSION: .*", f"AIIDA_VERSION: {ver}"),
+            )
 
     print(f"Bumped AiiDA Core version requirement to {ver}")
