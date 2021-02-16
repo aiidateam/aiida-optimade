@@ -141,12 +141,14 @@ async def startup():
             link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
             processed.append(link)
 
+        LOGGER.info("Loading links")
         if CONFIG.use_real_mongo:
+            LOGGER.info("  Using real MongoDB.")
             if links.LINKS.count(
                 filter={"id": {"$in": [_["id"] for _ in processed]}}
             ) != len(links.LINKS):
-                LOGGER.debug(
-                    "Will drop and reinsert links data in %s",
+                LOGGER.info(
+                    "  Will drop and reinsert links data in %s",
                     links.LINKS.collection.full_name,
                 )
                 links.LINKS.collection.drop()
@@ -154,6 +156,7 @@ async def startup():
                     bson.json_util.loads(bson.json_util.dumps(processed)),
                 )
         else:
+            LOGGER.info("  Using mock MongoDB.")
             links.LINKS.collection.insert_many(
                 bson.json_util.loads(bson.json_util.dumps(processed)),
             )
