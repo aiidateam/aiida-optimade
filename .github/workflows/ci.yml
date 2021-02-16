@@ -242,7 +242,7 @@ jobs:
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Build the Docker image
-      run: docker-compose build --build-arg CONFIG_FILE=".github/static/ci_config.json"
+      run: docker-compose -f profiles/docker-compose.yml build --build-arg CONFIG_FILE=".github/static/ci_config.json"
 
     - name: Start the Docker image
       run: |
