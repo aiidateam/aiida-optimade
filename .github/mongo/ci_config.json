@@ -4,7 +4,7 @@
     "base_url": null,
     "mongo_uri": "mongodb://localhost:27017",
     "use_real_mongo": true,
-    "mongo_database": "aiida-optimade",
+    "mongo_database": "aiida_optimade",
     "provider": {
       "prefix": "aiida",
       "name": "AiiDA",
