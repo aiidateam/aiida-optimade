@@ -169,9 +169,11 @@ jobs:
       run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
 
     - name: Build and start the Docker image
+      env:
+        AIIDA_OPTIMADE_LOG_LEVEL: DEBUG
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose -f profiles/docker-compose.yml --env-file ../.github/static/.env up --build &
+        docker-compose -f profiles/docker-compose.yml up --build &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 
@@ -241,9 +243,11 @@ jobs:
       run: docker-compose -f profiles/docker-compose.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
 
     - name: Start the Docker image
+      env:
+        AIIDA_OPTIMADE_LOG_LEVEL: DEBUG
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
-        docker-compose -f profiles/docker-compose.yml --env-file ../.github/static/.env up &
+        docker-compose -f profiles/docker-compose.yml up &
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 
