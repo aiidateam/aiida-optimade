@@ -4,6 +4,7 @@ services:
 
   aiida-optimade:
     restart: always
+    depends_on: mongo
     build:
       context: ..
       dockerfile: Dockerfile
@@ -25,3 +26,14 @@ services:
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
       - "docker.host.internal:${DOCKER_HOST_IP}"
+    networks:
+      - optimade
+
+  mongo:
+    restart: always
+    image: mongo:4.2
+    networks:
+      - optimade
+
+networks:
+  optimade:
