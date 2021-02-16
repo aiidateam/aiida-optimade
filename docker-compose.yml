@@ -4,7 +4,7 @@ services:
 
   mongodb:
     restart: always
-    image: mongo:4
+    image: mongo:4.2
     networks:
       - optimade
 
