@@ -1,0 +1,29 @@
+{
+  "page_limit": 15,
+  "page_limit_max": 100,
+  "base_url": "https://{{ base_url }}/optimade",
+  "use_real_mongo": true,
+  "provider": {
+    "prefix": "mcloud",
+    "name": "Materials Cloud",
+    "description": "A platform for Open Science built for seamless sharing of resources in computational materials science",
+    "homepage": "https://materialscloud.org",
+    "index_base_url": "https://materialscloud.org/optimade"
+  },
+  "implementation": {
+    "name": "aiida-optimade",
+    "version": "0.15.0+mcloud",
+    "source_url": "https://github.com/aiidateam/aiida-optimade",
+    "maintainer": {"email": "casper.andersen@epfl.ch"}
+  },
+  "provider_fields": {
+    "structures": [
+      "ctime"
+    ]
+  },
+  "aliases": {
+    "structures": {
+      "type": "node_type"
+    }
+  }
+}

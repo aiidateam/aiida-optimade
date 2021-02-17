@@ -19,6 +19,7 @@ services:
       MONGO_FILENAME:
       AIIDA_OPTIMADE_LOG_LEVEL:
       OPTIMADE_LOGGING_LEVEL: info
+      OPTIMADE_MONGO_DATABASE: test_django
     volumes:
       - "/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup"
       - ".:/profiles"

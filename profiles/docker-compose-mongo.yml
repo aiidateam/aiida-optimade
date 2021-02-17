@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
 
@@ -20,13 +20,15 @@ services:
       USE_MONGO:
       MONGO_FILENAME:
       AIIDA_OPTIMADE_LOG_LEVEL:
-      OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
+      OPTIMADE_LOGGING_LEVEL:
+      OPTIMADE_MONGO_URI: "mongodb://mongo:27017"
+      OPTIMADE_MONGO_DATABASE: test_django
     volumes:
-     - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
-     - '.:/profiles'
-     - '../.github/mongo:/app/.mongo'
+     - "/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup"
+     - ".:/profiles"
+     - "../.github/mongo:/app/.mongo"
     ports:
-      - '3253:80'
+      - "3253:80"
     # Extra field ONLY for use with GitHub Actions CI
     extra_hosts:
       - "docker.host.internal:${DOCKER_HOST_IP}"

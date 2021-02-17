@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
 
@@ -12,21 +12,23 @@ services:
       args:
         OPTIMADE_TOOLS_VERSION: 0.16.3
         AIIDA_VERSION: 1.6.5
-        CONFIG_FILE: aiida_optimade/config.json
+        CONFIG_FILE: "mcloud/{{ aiida_profile }}.json"
     environment:
       AIIDA_PATH: /app
       AIIDA_PROFILE: {{ aiida_profile }}
       FORCE_INIT: {{ force_init }}
       USE_MONGO: {{ use_mongo }}
       MONGO_FILENAME: {{ mongo_filename }}
-      AIIDA_OPTIMADE_LOG_LEVEL:
-      OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
+      AIIDA_OPTIMADE_LOG_LEVEL: {{ log_level }}
+      OPTIMADE_LOGGING_LEVEL: {{ log_level }}
+      OPTIMADE_MONGO_URI: "mongodb://mongo:27017"
+      OPTIMADE_MONGO_DATABASE: {{ aiida_profile }}
     volumes:
-     - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
-     - '{{ config_folder }}:/profiles'
-     - '{{ mongo_folder }}:/app/.mongo'
+     - "{{ repo_folder }}:/app/.aiida/repository-quicksetup"
+     - "{{ config_folder }}:/profiles"
+     - "{{ mongo_folder }}:/app/.mongo"
     ports:
-      - '{{ port }}:80'
+      - "{{ port }}:80"
     networks:
       - optimade
 
