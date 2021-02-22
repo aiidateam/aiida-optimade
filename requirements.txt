@@ -4,5 +4,5 @@ click-completion~=0.5.2
 optimade[mongo]~=0.13.0
 pymatgen==2021.2.14 ; python_version > '3.6'
 pymatgen==2021.2.8 ; python_version < '3.7'
-tqdm~=4.56
+tqdm~=4.57
 uvicorn~=0.13.3
