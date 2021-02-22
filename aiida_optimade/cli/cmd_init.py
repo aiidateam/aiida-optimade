@@ -125,9 +125,14 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool):
             entries=entries if mongo else None,
         )
     except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%r", exc)
+        import traceback
+
+        exception = traceback.format_exc()
+
+        LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%s", exception)
         echo.echo_critical(
-            f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
+            f"An exception happened while trying to initialize {profile!r} (see log "
+            f"for more details):\n{exc!r}"
         )
 
     if not silent:

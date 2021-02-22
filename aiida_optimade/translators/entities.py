@@ -1,5 +1,6 @@
 from typing import Any, List, Union
-from aiida.orm import Node, QueryBuilder
+from aiida.orm.nodes import Node
+from aiida.orm.querybuilder import QueryBuilder
 
 from aiida_optimade.common import AiidaEntityNotFound, AiidaError, LOGGER
 

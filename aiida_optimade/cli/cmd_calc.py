@@ -129,9 +129,14 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
         echo.echo_warning("Aborted!")
         return
     except Exception as exc:  # pylint: disable=broad-except
-        LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%r", exc)
+        import traceback
+
+        exception = traceback.format_exc()
+
+        LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%s", exception)
         echo.echo_critical(
-            f"An exception happened while trying to initialize {profile!r}:\n{exc!r}"
+            f"An exception happened while trying to initialize {profile!r} (see log "
+            f"for more details):\n{exc!r}"
         )
 
     if not silent:

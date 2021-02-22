@@ -4,7 +4,8 @@ import warnings
 from fastapi import HTTPException
 from tqdm import tqdm
 
-from aiida.orm import Node, QueryBuilder
+from aiida.orm.nodes import Node
+from aiida.orm.querybuilder import QueryBuilder
 
 from optimade.filterparser import LarkParser
 from optimade.models import EntryResource
@@ -335,7 +336,10 @@ class AiidaCollection:
             and params.response_format != "json"
         ):
             raise BadRequest(
-                detail=f'Response format {params.response_format} is not supported, please use response_format="json"'
+                detail=(
+                    f"Response format {params.response_format} is not supported, please"
+                    ' use response_format="json"'
+                )
             )
 
         # page_limit

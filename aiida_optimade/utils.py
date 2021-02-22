@@ -61,7 +61,7 @@ def get_custom_base_url_path():
     else:
         res = urllib.parse.urlparse(CONFIG.base_url).path.decode()
 
-    if res.endswith("/"):
+    while res.endswith("/"):
         res = res[:-1]
 
     return res

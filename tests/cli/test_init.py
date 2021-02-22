@@ -187,8 +187,8 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     options.append("--force")
     result = run_cli_command(cmd_init.init, options)
     assert (
-        f"About to drop structures collection {STRUCTURES_MONGO.collection.full_name!r} in MongoDB."
-        in result.stdout
+        f"About to drop structures collection {STRUCTURES_MONGO.collection.full_name!r}"
+        " in MongoDB." in result.stdout
     ), result.stdout
     assert (
         f"Done dropping {STRUCTURES_MONGO.collection.full_name!r} collection."

@@ -3,7 +3,7 @@ import itertools
 from math import fsum
 
 from typing import Any, List, Union
-from aiida.orm import StructureData
+from aiida.orm.nodes.data.structure import StructureData
 
 from aiida_optimade.common import OptimadeIntegrityError, AiidaError
 from aiida_optimade.translators.entities import AiidaEntityTranslator

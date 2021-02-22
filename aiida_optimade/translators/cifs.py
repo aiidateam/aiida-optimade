@@ -1,6 +1,7 @@
 from typing import Union
 
-from aiida.orm import CifData, StructureData
+from aiida.orm.nodes.data.cif import CifData
+from aiida.orm.nodes.data.structure import StructureData
 
 from aiida_optimade.translators.structures import StructureDataTranslator
 

@@ -55,6 +55,13 @@ If you wish to contribute, please install the git pre-commit hook:
 
 This will automatically update the formatting when running `git commit`, as well as check the validity of various repository JSON and YAML files.
 
+For testing run `pytest`, which will run with an AiiDA backend as standard.
+The tests can also be run with the MongoDB backend by setting the environment variable `PYTEST_OPTIMADE_CONFIG_FILE`, the value being a path to the config file to be used:
+
+```shell
+$ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_structures_mongo.json pytest
+```
+
 ## Initialization
 
 You should first initialize your AiiDA profile.
