@@ -413,13 +413,15 @@ class StructureDataTranslator(AiidaEntityTranslator):
                 "name": name,
                 "chemical_symbols": list(kind["symbols"]),
                 "concentration": list(kind["weights"]),
-                "mass": kind.get("mass", 0),
+                "mass": [kind.get("mass", 0.0)] if len(kind["symbols"]) <= 1 else None,
                 "original_name": name,
             }
 
             if re.match(r".*X(?!e).*", name):
                 # Species includes/is a vacancy
                 species["chemical_symbols"].append("vacancy")
+                if species["mass"]:
+                    species["mass"].append(0.0)
 
                 # Calculate vacancy concentration
                 if 0.0 <= kind_weight_sum <= 1.0:
