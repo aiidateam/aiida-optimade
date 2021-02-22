@@ -5,4 +5,4 @@ optimade[mongo]~=0.13.0
 pymatgen==2021.2.16 ; python_version > '3.6'
 pymatgen==2021.2.8 ; python_version < '3.7'
 tqdm~=4.57
-uvicorn~=0.13.3
+uvicorn~=0.13.4
