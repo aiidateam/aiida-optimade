@@ -16,10 +16,12 @@ services:
       AIIDA_PROFILE: test_django
       FORCE_INIT:
       USE_MONGO:
+      MONGO_FILENAME:
       AIIDA_OPTIMADE_LOG_LEVEL:
     volumes:
      - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
+     - '../.github/mongo:/app/.mongo'
     ports:
       - '3253:80'
     # Extra field ONLY for use with GitHub Actions CI

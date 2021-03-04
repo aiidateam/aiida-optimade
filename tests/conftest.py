@@ -97,7 +97,7 @@ def get_valid_id() -> str:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         return STRUCTURES_MONGO.collection.find_one({}, projection=["id"])["id"]
-    else:
-        from aiida.orm import QueryBuilder, StructureData
 
-        return QueryBuilder().append(StructureData, project="id").first()[0]
+    from aiida.orm import QueryBuilder, StructureData
+
+    return QueryBuilder().append(StructureData, project="id").first()[0]

@@ -18,11 +18,13 @@ services:
       AIIDA_PROFILE: {{ aiida_profile }}
       FORCE_INIT: {{ force_init }}
       USE_MONGO: {{ use_mongo }}
+      MONGO_FILENAME: {{ mongo_filename }}
       AIIDA_OPTIMADE_LOG_LEVEL:
       OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
     volumes:
      - '{{ repo_folder }}:/app/.aiida/repository-quicksetup'
      - '{{ config_folder }}:/profiles'
+     - '{{ mongo_folder }}:/app/.mongo'
     ports:
       - '{{ port }}:80'
     networks:

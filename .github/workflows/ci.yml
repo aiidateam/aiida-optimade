@@ -92,7 +92,7 @@ jobs:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
         AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
         AIIDA_PROFILE: test_${{ matrix.backend }}
-      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml
+      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml --durations=20
 
     - name: Test with pytest (MongoDB)
       env:
@@ -102,7 +102,7 @@ jobs:
         PYTEST_OPTIMADE_CONFIG_FILE: ./tests/static/test_mongo_config.json
         OPTIMADE_MONGO_URI: mongodb://localhost:27017
         OPTIMADE_CI_FORCE_MONGO: 1
-      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml:mongo_cov.xml
+      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml:mongo_cov.xml --durations=20
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
@@ -266,6 +266,74 @@ jobs:
         .github/workflows/wait_for_it.sh localhost:3253 -t 360
         # Long sleep, because the initialization is needed
         sleep 150
+
+    - name: Test server with OPTIMADE Validator
+      uses: Materials-Consortia/optimade-validator-action@v2
+      with:
+        port: 3253
+        all versioned paths: yes
+        validate unversioned path: yes
+        validator version: latest
+
+  docker-mongo-filename:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_DB: test_django
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U setuptools
+
+        while IFS="" read -r line || [ -n "${line}" ]; do
+            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
+                aiida_core="${line}"
+            fi
+        done < requirements.txt
+
+        pip install ${aiida_core}
+        reentry scan
+
+    - name: Setup up environment for AiiDA
+      env:
+        AIIDA_TEST_BACKEND: django
+      run: .github/aiida/setup_aiida.sh
+
+    - name: Build docker image
+      run: docker-compose -f profiles/docker-compose-mongo.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
+
+    - name: Start the Docker image
+      env:
+        AIIDA_OPTIMADE_LOG_LEVEL: INFO
+        USE_MONGO: '--mongo'
+        MONGO_FILENAME: test_structures_mongo.json
+      run: |
+        export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
+        docker-compose -f profiles/docker-compose-mongo.yml up &
+        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        # Longer sleep, because the initialization is needed
+        sleep 30
 
     - name: Test server with OPTIMADE Validator
       uses: Materials-Consortia/optimade-validator-action@v2
