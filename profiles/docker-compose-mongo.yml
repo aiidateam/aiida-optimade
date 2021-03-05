@@ -35,7 +35,7 @@ services:
 
   mongo:
     restart: always
-    image: mongo:4.2
+    image: mongo:4
     networks:
       - optimade
 
