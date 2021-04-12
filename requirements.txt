@@ -1,8 +1,8 @@
-aiida-core~=1.5.2
+aiida-core~=1.6.1
 click~=7.1
 click-completion~=0.5.2
 optimade[mongo]~=0.14.0
 pymatgen~=2021.3 ; python_version > '3.6'
 pymatgen==2021.2.8 ; python_version < '3.7'
-tqdm~=4.59
+tqdm~=4.60
 uvicorn~=0.13.4
