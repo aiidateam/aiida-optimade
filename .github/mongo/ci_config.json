@@ -1,9 +1,10 @@
 {
+    "debug": true,
     "page_limit": 15,
     "page_limit_max": 500,
     "base_url": null,
     "mongo_uri": "mongodb://docker.host.internal:27017",
-    "use_real_mongo": true,
+    "database_backend": "mongodb",
     "mongo_database": "aiida_optimade",
     "provider": {
       "prefix": "aiida",
@@ -14,7 +15,7 @@
     },
     "implementation": {
       "name": "aiida-optimade",
-      "version": "0.14.1",
+      "version": "0.17.0",
       "source_url": "https://github.com/aiidateam/aiida-optimade",
       "maintainer": {"email": "casper.andersen@epfl.ch"}
     },

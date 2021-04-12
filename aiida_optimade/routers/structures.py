@@ -9,7 +9,7 @@ from optimade.models import (
     StructureResponseOne,
 )
 from optimade.server.config import CONFIG
-from optimade.server.entry_collections.mongo import MongoCollection, client
+from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.mappers.structures import (
     StructureMapper as OptimadeStructureMapper,
 )
@@ -29,7 +29,7 @@ STRUCTURES = AiidaCollection(
     resource_mapper=StructureMapper,
 )
 STRUCTURES_MONGO = MongoCollection(
-    collection=client[CONFIG.mongo_database][CONFIG.structures_collection],
+    name=CONFIG.structures_collection,
     resource_cls=StructureResource,
     resource_mapper=OptimadeStructureMapper,
 )
