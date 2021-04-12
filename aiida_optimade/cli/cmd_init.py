@@ -178,7 +178,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
                 entries = [[_] for _ in entries]
 
             STRUCTURES._filter_fields = {
-                STRUCTURES.resource_mapper.alias_for(_)
+                STRUCTURES.resource_mapper.get_backend_field(_)
                 for _ in STRUCTURES.resource_mapper.ALL_ATTRIBUTES
             }
             updated_pks = STRUCTURES._check_and_calculate_entities(

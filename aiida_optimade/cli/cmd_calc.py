@@ -122,7 +122,7 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
             )
 
         STRUCTURES._filter_fields = {
-            STRUCTURES.resource_mapper.alias_for(_) for _ in fields
+            STRUCTURES.resource_mapper.get_backend_field(_) for _ in fields
         }
         updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except click.Abort:

@@ -478,7 +478,7 @@ def test_aliases():
     mapper = MyStructureMapper()
     transformer = AiidaTransformer(mapper=mapper)
 
-    assert mapper.alias_for("elements") == "my_elements"
+    assert mapper.get_backend_field("elements") == "my_elements"
 
     test_filter = {"elements": {"contains": ["A", "B", "C"]}}
     assert transformer.postprocess(test_filter) == (
