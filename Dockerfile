@@ -3,8 +3,8 @@ FROM python:3.8
 WORKDIR /app
 
 # Install specific optimade and aiida-core versions
-ARG OPTIMADE_TOOLS_VERSION=0.13.3
-ARG AIIDA_VERSION=1.5.2
+ARG OPTIMADE_TOOLS_VERSION=0.14.0
+ARG AIIDA_VERSION=1.6.1
 
 # Copy repo contents
 COPY setup.py setup.json README.md requirements*.txt ./
