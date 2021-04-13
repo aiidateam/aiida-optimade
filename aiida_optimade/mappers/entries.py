@@ -31,20 +31,6 @@ class ResourceMapper(OptimadeResourceMapper):
         )
 
     @classmethod
-    def alias_of(cls, field: str) -> str:
-        """Return de-aliased field name, if it exists,
-        otherwise return the input field name.
-
-        Args:
-            field: Field name to be de-aliased.
-
-        Returns:
-            De-aliased field name, falling back to returning `field`.
-
-        """
-        return {alias: real for real, alias in cls.all_aliases()}.get(field, field)
-
-    @classmethod
     def map_back(cls, entity_properties: Dict[str, Any]) -> dict:
         """Map properties from AiiDA to OPTIMADE
 
@@ -64,9 +50,9 @@ class ResourceMapper(OptimadeResourceMapper):
                 )
 
         new_object = {
-            field: entity_properties[cls.alias_for(field)]
+            field: entity_properties[cls.get_backend_field(field)]
             for field in cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
-            if cls.alias_for(field) in entity_properties
+            if cls.get_backend_field(field) in entity_properties
         }
 
         new_object["attributes"] = cls.build_attributes(

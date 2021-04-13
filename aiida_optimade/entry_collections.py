@@ -304,7 +304,7 @@ class AiidaCollection:
                 new_value = value
                 if isinstance(value, (dict, list)):
                     new_value = self._alias_filter(value)
-                aliased_key = self.resource_mapper.alias_for(key)
+                aliased_key = self.resource_mapper.get_backend_field(key)
                 res[aliased_key] = new_value
                 self._filter_fields.add(aliased_key)
         elif isinstance(filters, list):
@@ -362,7 +362,7 @@ class AiidaCollection:
         fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
         cursor_kwargs["fields"] = fields
         cursor_kwargs["project"] = list(
-            {self.resource_mapper.alias_for(f) for f in fields}
+            {self.resource_mapper.get_backend_field(f) for f in fields}
         )
 
         # sort
@@ -377,7 +377,7 @@ class AiidaCollection:
                 if entity_property.startswith("-"):
                     field = field[1:]
                     sort_direction = "desc"
-                aliased_field = self.resource_mapper.alias_for(field)
+                aliased_field = self.resource_mapper.get_backend_field(field)
 
                 _, properties = retrieve_queryable_properties(
                     self.resource_cls.schema(), {"id", "type", "attributes"}
@@ -431,7 +431,9 @@ class AiidaCollection:
 
         def _update_entities(entities: list, fields: list):
             """Utility function to update entities within this method"""
-            optimade_fields = [self.resource_mapper.alias_of(_) for _ in fields]
+            optimade_fields = [
+                self.resource_mapper.get_optimade_field(_) for _ in fields
+            ]
             for entity in entities:
                 field_to_entity_value = dict(zip(optimade_fields, entity))
                 retrieved_attributes = field_to_entity_value.copy()
@@ -473,7 +475,7 @@ class AiidaCollection:
             fields = {"id", "type"}
             fields |= self.get_attribute_fields()
             fields |= {f"_{self.provider}_" + _ for _ in self.provider_fields}
-            fields = list({self.resource_mapper.alias_for(_) for _ in fields})
+            fields = list({self.resource_mapper.get_backend_field(_) for _ in fields})
 
             entities = self._find_all(
                 filters={"id": {"in": necessary_entity_ids}}, project=fields

@@ -17,7 +17,11 @@ from aiida import load_profile
 from optimade import __api_version__
 
 with warnings.catch_warnings(record=True) as w:
-    from optimade.server.config import CONFIG
+    from optimade.server.config import (
+        CONFIG,
+        DEFAULT_CONFIG_FILE_PATH,
+        SupportedBackend,
+    )
 
     config_warnings = w
 
@@ -41,7 +45,7 @@ from aiida_optimade.routers import (
 from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
 
 
-if CONFIG.config_file is None:
+if not Path(os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH)).exists():
     LOGGER.warning(  # pragma: no cover
         "Invalid config file or no config file provided, running server with "
         "default settings. Errors: %s",
@@ -51,7 +55,10 @@ if CONFIG.config_file is None:
         ],
     )
 else:
-    LOGGER.info("Loaded settings from %s.", CONFIG.config_file)
+    LOGGER.info(
+        "Loaded settings from %s.",
+        os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH),
+    )
 
 if CONFIG.debug:
     LOGGER.info("DEBUG MODE")
@@ -142,7 +149,7 @@ async def startup():
             processed.append(link)
 
         LOGGER.info("Loading links")
-        if CONFIG.use_real_mongo:
+        if CONFIG.database_backend == SupportedBackend.MONGODB:
             LOGGER.info("  Using real MongoDB.")
             if links.LINKS.count(
                 filter={"id": {"$in": [_["id"] for _ in processed]}}

@@ -5,7 +5,7 @@
     "default_db": "aiida_optimade",
     "base_url": null,
     "mongo_uri": "mongodb://192.168.178.40:27017",
-    "use_real_mongo": true,
+    "database_backend": "mongodb",
     "mongo_database": "test_aiida",
     "provider": {
       "prefix": "aiida",

@@ -11,13 +11,13 @@ def fmt_datetime(object_: datetime) -> str:
 
 def test_int_asc(get_good_response):
     """Ascending sort (integer)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
 
     request = f"/structures?sort=nelements&page_limit={limit}"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_nelements = [
@@ -52,13 +52,13 @@ def test_int_asc(get_good_response):
 
 def test_int_desc(get_good_response):
     """Descending sort (integer)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
 
     request = f"/structures?sort=-nelements&page_limit={limit}"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_nelements = [
@@ -93,11 +93,11 @@ def test_int_desc(get_good_response):
 
 def test_str_asc(check_response):
     """Ascending sort (string)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=immutable_id&page_limit=5"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_ids = [
@@ -126,11 +126,11 @@ def test_str_asc(check_response):
 
 def test_str_desc(check_response):
     """Descending sort (string)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-immutable_id&page_limit=5"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_ids = [
@@ -159,11 +159,11 @@ def test_str_desc(check_response):
 
 def test_datetime_asc(get_good_response):
     """Ascending sort (datetime)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=last_modified&page_limit=5"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_mtime = [
@@ -192,11 +192,11 @@ def test_datetime_asc(get_good_response):
 
 def test_datetime_desc(get_good_response):
     """Descending sort (datetime)"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-last_modified&page_limit=5"
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         expected_mtime = [

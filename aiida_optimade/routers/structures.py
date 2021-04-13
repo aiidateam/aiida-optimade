@@ -8,8 +8,8 @@ from optimade.models import (
     StructureResponseMany,
     StructureResponseOne,
 )
-from optimade.server.config import CONFIG
-from optimade.server.entry_collections.mongo import MongoCollection, client
+from optimade.server.config import CONFIG, SupportedBackend
+from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.mappers.structures import (
     StructureMapper as OptimadeStructureMapper,
 )
@@ -29,7 +29,7 @@ STRUCTURES = AiidaCollection(
     resource_mapper=StructureMapper,
 )
 STRUCTURES_MONGO = MongoCollection(
-    collection=client[CONFIG.mongo_database][CONFIG.structures_collection],
+    name=CONFIG.structures_collection,
     resource_cls=StructureResource,
     resource_mapper=OptimadeStructureMapper,
 )
@@ -45,7 +45,9 @@ STRUCTURES_MONGO = MongoCollection(
 @close_session
 def get_structures(request: Request, params: EntryListingQueryParams = Depends()):
     return get_entries(
-        collection=STRUCTURES_MONGO if CONFIG.use_real_mongo else STRUCTURES,
+        collection=STRUCTURES_MONGO
+        if CONFIG.database_backend == SupportedBackend.MONGODB
+        else STRUCTURES,
         response=StructureResponseMany,
         request=request,
         params=params,
@@ -64,7 +66,9 @@ def get_single_structure(
     request: Request, entry_id: int, params: SingleEntryQueryParams = Depends()
 ):
     return get_single_entry(
-        collection=STRUCTURES_MONGO if CONFIG.use_real_mongo else STRUCTURES,
+        collection=STRUCTURES_MONGO
+        if CONFIG.database_backend == SupportedBackend.MONGODB
+        else STRUCTURES,
         entry_id=entry_id,
         response=StructureResponseOne,
         request=request,

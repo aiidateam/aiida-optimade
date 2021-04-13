@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Request
 
 from optimade.models import ErrorResponse, LinksResponse, LinksResource
 from optimade.server.config import CONFIG
-from optimade.server.entry_collections import MongoCollection, client
+from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.mappers import LinksMapper
 from optimade.server.query_params import EntryListingQueryParams
 from optimade.server.routers.utils import get_entries
@@ -14,7 +14,7 @@ from optimade.server.routers.utils import get_entries
 ROUTER = APIRouter(redirect_slashes=True)
 
 LINKS = MongoCollection(
-    collection=client[CONFIG.mongo_database][CONFIG.links_collection],
+    name=CONFIG.links_collection,
     resource_cls=LinksResource,
     resource_mapper=LinksMapper,
 )
