@@ -5,6 +5,7 @@
     "base_url": null,
     "mongo_uri": "mongodb://docker.host.internal:27017",
     "database_backend": "mongodb",
+    "insert_test_data": false,
     "mongo_database": "aiida_optimade",
     "provider": {
       "prefix": "aiida",

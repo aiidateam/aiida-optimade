@@ -64,7 +64,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
             from aiida_optimade.routers.structures import STRUCTURES
 
             if mongo:
-                from optimade.server.config import CONFIG
+                from optimade.server.config import CONFIG, SupportedBackend
                 from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         if force:
@@ -167,7 +167,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
             updated_pks = range(len(STRUCTURES_MONGO) - len(updated_pks))
         else:
             if mongo:
-                CONFIG.use_real_mongo = True
+                CONFIG.database_backend = SupportedBackend.MONGODB
                 entries = {_[0] for _ in STRUCTURES._find_all(project="id")}
                 entries -= {
                     int(_["id"])

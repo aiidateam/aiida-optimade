@@ -91,9 +91,9 @@ def aiida_profile(top_dir, setup_config) -> TestManager:
 @pytest.fixture
 def get_valid_id() -> str:
     """Get a currently valid ID/PK from a StructureData Node"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
-    if CONFIG.use_real_mongo:
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         return STRUCTURES_MONGO.collection.find_one({}, projection=["id"])["id"]

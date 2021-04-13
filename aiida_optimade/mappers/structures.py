@@ -1,7 +1,7 @@
 from typing import Dict
 import warnings
 
-from optimade.server.config import CONFIG
+from optimade.server.config import CONFIG, SupportedBackend
 
 from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.models import StructureResourceAttributes
@@ -76,7 +76,7 @@ class StructureMapper(ResourceMapper):
                 try:
                     create_attribute = getattr(translator, attribute)
                 except AttributeError as exc:
-                    if not CONFIG.use_real_mongo:
+                    if CONFIG.database_backend != SupportedBackend.MONGODB:
                         if attribute in cls.REQUIRED_ATTRIBUTES:
                             translator = None
                             raise NotImplementedError(
@@ -102,7 +102,9 @@ class StructureMapper(ResourceMapper):
                 else:
                     res[attribute] = create_attribute()
             # Store new attributes in Node extras or MongoDB collection
-            translator.store_attributes(mongo=CONFIG.use_real_mongo)
+            translator.store_attributes(
+                mongo=CONFIG.database_backend == SupportedBackend.MONGODB
+            )
             del translator
 
         return res

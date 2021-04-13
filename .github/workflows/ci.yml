@@ -101,7 +101,6 @@ jobs:
         AIIDA_PROFILE: test_${{ matrix.backend }}
         PYTEST_OPTIMADE_CONFIG_FILE: ./tests/static/test_mongo_config.json
         OPTIMADE_MONGO_URI: mongodb://localhost:27017
-        OPTIMADE_CI_FORCE_MONGO: 1
         OPTIMADE_DATABASE_BACKEND: mongodb
       run: pytest -v --cov=./aiida_optimade/ --cov-report=xml:mongo_cov.xml --durations=20
 

@@ -171,14 +171,14 @@ def test_list_length_operators(check_response):
 def test_list_length_bad_operators(check_error_response):
     """Check NonImplementedError is raised when using a valid,
     but not-supported operator"""
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     bad_valid_operator = "!="
     request = f"/structures?filter=elements LENGTH {bad_valid_operator} 2"
 
     expected_detail = (
         f"Operator {bad_valid_operator} not implemented for LENGTH filter."
-        if CONFIG.use_real_mongo
+        if CONFIG.database_backend == SupportedBackend.MONGODB
         else f"Operator {bad_valid_operator} has not been implemented for the LENGTH filter."
     )
 
@@ -230,7 +230,7 @@ def test_saved_extras_is_known(check_response):
 
 
 def test_node_columns_is_known(check_response):
-    from optimade.server.config import CONFIG
+    from optimade.server.config import CONFIG, SupportedBackend
 
     request = (
         f"/structures?filter=_{CONFIG.provider.prefix}_"
@@ -242,7 +242,7 @@ def test_node_columns_is_known(check_response):
     ]
     check_response(request, expected_uuids)
 
-    if not CONFIG.use_real_mongo:
+    if CONFIG.database_backend != SupportedBackend.MONGODB:
         # Does not work with the Mongo filtertransformer (datetime and IS KNOWN)
         request = "/structures?filter=last_modified IS KNOWN AND nsites>=5280"
         expected_uuids = [
