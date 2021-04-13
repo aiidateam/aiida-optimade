@@ -208,8 +208,16 @@ def test_list_has_only(check_error_response):
 def test_list_correlated(check_error_response):
     # Zipped lists are not yet implemented
     request = '/structures?filter=elements:elements_ratios HAS "Ag":"0.2"'
+    expected_detail = (
+        "Correlated list queries are not supported."
+        if os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None
+        else None
+    )
     check_error_response(
-        request, expected_status=501, expected_title="NotImplementedError"
+        request,
+        expected_status=501,
+        expected_title="NotImplementedError",
+        expected_detail=expected_detail,
     )
 
 
