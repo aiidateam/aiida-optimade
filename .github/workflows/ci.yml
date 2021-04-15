@@ -108,7 +108,6 @@ jobs:
       if: matrix.python-version == 3.8
       uses: codecov/codecov-action@v1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         flags: aiida
         file: ./coverage.xml
 
@@ -116,7 +115,6 @@ jobs:
       if: matrix.python-version == 3.8
       uses: codecov/codecov-action@v1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         flags: mongo
         file: ./mongo_cov.xml
 
