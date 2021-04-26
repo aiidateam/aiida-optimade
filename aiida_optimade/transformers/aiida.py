@@ -47,7 +47,7 @@ class AiidaTransformer(Transformer):
 
     @v_args(inline=True)
     def non_string_value(self, value):
-        """ non_string_value: number | property """
+        """non_string_value: number | property"""
         # NOTE: Do nothing!
         return value
 
