@@ -106,14 +106,14 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1.5.0
       with:
         flags: aiida
         file: ./coverage.xml
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1.5.0
       with:
         flags: mongo
         file: ./mongo_cov.xml
