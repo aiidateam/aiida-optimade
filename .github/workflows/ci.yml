@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 2
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -66,7 +66,7 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
       with:
         fetch-depth: 2
 
@@ -106,14 +106,14 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1.5.0
       with:
         flags: aiida
         file: ./coverage.xml
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1.5.0
       with:
         flags: mongo
         file: ./mongo_cov.xml
@@ -146,7 +146,7 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -196,7 +196,7 @@ jobs:
         sleep 15
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2
+      uses: Materials-Consortia/optimade-validator-action@v2.5.0
       with:
         port: 3253
         all versioned paths: yes
@@ -222,7 +222,7 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -266,7 +266,7 @@ jobs:
         sleep 150
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2
+      uses: Materials-Consortia/optimade-validator-action@v2.5.0
       with:
         port: 3253
         all versioned paths: yes
@@ -292,7 +292,7 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -334,7 +334,7 @@ jobs:
         sleep 30
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2
+      uses: Materials-Consortia/optimade-validator-action@v2.5.0
       with:
         port: 3253
         all versioned paths: yes
@@ -346,7 +346,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Check build and install source distribution
-        uses: CasperWA/check-sdist-action@v1
+        uses: CasperWA/check-sdist-action@v1.1.0
