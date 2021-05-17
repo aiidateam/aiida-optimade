@@ -3,7 +3,11 @@ optimade[mongo]~=0.14.0
 pymatgen~=2021.3
 uvicorn~=0.13.4
 
-# Dependencies included through `aiida-core`:
+# Dependencies used directly in this package, but included through other dependencies:
+# aiida-core:
 #   click
 #   click-completion
 #   tqdm
+# optimade:
+#   pydantic
+#   fastapi
