@@ -74,7 +74,7 @@ $ aiida-optimade -p <PROFILE> init
 
 Where `<PROFILE>` is the AiiDA profile.
 
-> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is now specified.
 > This will be changed in the future to use the default AiiDA profile.
 
 Initialization goes through your profile's `StructureData` nodes, adding an `optimade` extra, wherein all OPTIMADE-specific fields that do not have an equivalent AiiDA property are stored.
@@ -94,7 +94,7 @@ $ aiida-optimade -p <PROFILE> run
 
 Where `<PROFILE>` is the AiiDA profile you wish to serve.
 
-> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is now specified.
 > This will be changed in the future to use the default AiiDA profile.
 
 You also have the opportunity to specify the AiiDA profile via the environment variable `AIIDA_PROFILE`.

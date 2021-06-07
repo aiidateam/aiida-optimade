@@ -48,6 +48,9 @@ def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bo
     import os
     import uvicorn
 
+    if obj.get("dev", False):
+        debug = True
+
     log_level = log_level.lower()
     if debug and log_level == "info":
         log_level = "debug"
