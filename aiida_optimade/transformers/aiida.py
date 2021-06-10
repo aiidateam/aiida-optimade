@@ -1,22 +1,17 @@
 # pylint: disable=no-self-use,too-many-public-methods
-from lark import Transformer, v_args
+from lark import v_args
+from optimade.filtertransformers import BaseTransformer, Quantity
 
 
 __all__ = ("AiidaTransformer",)
 
-# Conversion map from the OPTIMADE operators to the QueryBuilder operators
-OPERATOR_CONVERSION = {"=": "==", "!=": "!==", "in": "contains"}
 
-
-def op_conv_map(operator):
-    """Convert operator or return same operator"""
-    return OPERATOR_CONVERSION.get(operator, operator)
-
-
-class AiidaTransformer(Transformer):
+class AiidaTransformer(BaseTransformer):
     """Transform OPTIMADE query to AiiDA QueryBuilder queryhelp query"""
 
-    reversed_operator_map = {
+    # Conversion map from the OPTIMADE operators to the QueryBuilder operators
+    operator_map = {"=": "==", "!=": "!==", "in": "contains"}
+    _reversed_operator_map = {
         "<": ">",
         "<=": ">=",
         ">": "<",
@@ -26,53 +21,18 @@ class AiidaTransformer(Transformer):
     }
     list_operator_map = {"<": "shorter", ">": "longer", "=": "of_length"}
 
-    def __init__(self):
-        super().__init__()
-
-    def filter(self, arg):
-        """filter: expression*"""
-        return arg[0] if arg else None
-
-    @v_args(inline=True)
-    def constant(self, value):
-        """constant: string | number"""
-        # NOTE: Do nothing!
-        return value
-
-    @v_args(inline=True)
-    def value(self, value):
-        """value: string | number | property"""
-        # NOTE: Do nothing!
-        return value
-
-    @v_args(inline=True)
-    def non_string_value(self, value):
-        """non_string_value: number | property"""
-        # NOTE: Do nothing!
-        return value
-
-    @v_args(inline=True)
-    def not_implemented_string(self, value):
-        """not_implemented_string: value
-
-        Raise NotImplementedError.
-        For further information, see Materials-Consortia/OPTIMADE issue 157:
-        https://github.com/Materials-Consortia/OPTIMADE/issues/157
-        """
-        raise NotImplementedError("Comparing strings is not yet implemented.")
-
-    def value_list(self, args):
+    def value_list(self, arg):
         """value_list: [ OPERATOR ] value ( "," [ OPERATOR ] value )*"""
-        for value in args:
-            if str(value) in self.reversed_operator_map:
+        for value in arg:
+            if str(value) in self._reversed_operator_map:
                 # value is OPERATOR
                 # This is currently not supported
                 raise NotImplementedError(
-                    f"OPERATOR {value} inside value_list {args} has not been "
+                    f"OPERATOR {value} inside value_list {arg} has not been "
                     "implemented."
                 )
 
-        return args
+        return arg
 
     def value_zip(self, arg):
         """
@@ -111,14 +71,6 @@ class AiidaTransformer(Transformer):
         # with NOT
         return {"!and": [arg[1]]}
 
-    @v_args(inline=True)
-    def comparison(self, value):
-        """
-        comparison: constant_first_comparison | property_first_comparison
-        """
-        # NOTE: Do nothing!
-        return value
-
     def property_first_comparison(self, arg):
         """
         property_first_comparison: property ( value_op_rhs |
@@ -135,14 +87,14 @@ class AiidaTransformer(Transformer):
         constant_first_comparison: constant OPERATOR ( non_string_value |
                                                        not_implemented_string )
         """
-        return {arg[2]: {self.reversed_operator_map[arg[1]]: arg[0]}}
+        return {arg[2]: {self._reversed_operator_map[arg[1]]: arg[0]}}
 
     @v_args(inline=True)
     def value_op_rhs(self, operator, value):
         """
         value_op_rhs: OPERATOR value
         """
-        return {op_conv_map(operator.value): value}
+        return {self.operator_map.get(operator.value, operator.value): value}
 
     def known_op_rhs(self, arg):
         """
@@ -244,25 +196,15 @@ class AiidaTransformer(Transformer):
         """
         raise NotImplementedError
 
-    def property(self, arg):
+    def property(self, args):
         """
         property: IDENTIFIER ( "." IDENTIFIER )*
         """
-        return ".".join(arg)
+        quantity = super().property(args)
+        if isinstance(quantity, Quantity):
+            quantity = quantity.backend_field
 
-    @v_args(inline=True)
-    def string(self, string):
-        """
-        string: ESCAPED_STRING
-        """
-        return string.strip('"')
-
-    @v_args(inline=True)
-    def signed_int(self, number):
-        """
-        signed_int: SIGNED_INT
-        """
-        return int(number)
+        return ".".join([quantity] + args[1:])
 
     @v_args(inline=True)
     def signed_float(self, number):
@@ -288,10 +230,4 @@ class AiidaTransformer(Transformer):
         raise NotImplementedError(
             f"number: {number} (type: {number.type}) does not seem to be a SIGNED_INT "
             "or SIGNED_FLOAT"
-        )
-
-    def __default__(self, data, children, meta):  # pragma: no cover
-        raise NotImplementedError(
-            "Calling __default__, i.e., unknown grammar concept. "
-            f"data: {data}, children: {children}, meta: {meta}"
         )

@@ -42,7 +42,7 @@ class AiidaCollection:
         self.resource_cls = resource_cls
         self.resource_mapper = resource_mapper
 
-        self.transformer = AiidaTransformer()
+        self.transformer = AiidaTransformer(mapper=resource_mapper)
         self.provider = CONFIG.provider.prefix
         self.provider_fields = CONFIG.provider_fields.get(resource_mapper.ENDPOINT, [])
         self.parser = LarkParser()

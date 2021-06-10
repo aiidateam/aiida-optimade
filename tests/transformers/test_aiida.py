@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 import pytest
 
 from lark.exceptions import VisitError
@@ -362,7 +363,6 @@ def test_not_implemented():
         )
 
 
-@pytest.mark.skip("AiidaTransformer does not implement custom mapper")
 def test_list_length_aliases():
     """Check LENGTH aliases for lists"""
     from optimade.server.mappers import StructureMapper
@@ -370,7 +370,9 @@ def test_list_length_aliases():
     transformer = AiidaTransformer(mapper=StructureMapper())
     parser = LarkParser(version=VERSION, variant=VARIANT)
 
-    assert transformer.transform(parser.parse("elements LENGTH 3")) == {"nelements": 3}
+    assert transformer.transform(parser.parse("elements LENGTH 3")) == {
+        "nelements": {"==": 3}
+    }
 
     assert transformer.transform(
         parser.parse('elements HAS "Li" AND elements LENGTH = 3')
@@ -413,7 +415,6 @@ def test_unaliased_length_operator():
     )
 
 
-@pytest.mark.skip("AiidaTransformer does not implement custom mapper")
 def test_aliased_length_operator():
     """Test LENGTH operator alias"""
     from optimade.server.mappers import StructureMapper
@@ -460,7 +461,6 @@ def test_aliased_length_operator():
     assert transformer.transform(parser.parse("chemsys LENGTH 3")) == {"nelem": 3}
 
 
-@pytest.mark.skip("AiidaTransformer does not implement custom mapper")
 def test_aliases():
     """Test that valid aliases are allowed, but do not affect r-values"""
     from optimade.server.mappers import BaseResourceMapper
