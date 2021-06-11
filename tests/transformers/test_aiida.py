@@ -3,7 +3,8 @@ import pytest
 
 from lark.exceptions import VisitError
 
-from optimade.filterparser import LarkParser, ParserError
+from optimade.filterparser import LarkParser
+from optimade.server.exceptions import BadRequest
 
 from aiida_optimade.transformers import AiidaTransformer
 
@@ -31,13 +32,13 @@ def test_property_names():
     assert transform("cell_length_a = 1") == {"cell_length_a": {"==": 1}}
     assert transform("cell_volume = 1") == {"cell_volume": {"==": 1}}
 
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("0_kvak IS KNOWN")  # starts with a number
 
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform('"foo bar" IS KNOWN')  # contains space; contains quotes
 
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("BadLuck IS KNOWN")  # contains upper-case letters
 
     # database-provider-specific prefixes
@@ -76,19 +77,19 @@ def test_number_values():
     assert transform("l = -.1e-12") == {"l": {"==": (-1e-13).hex()}}
     assert transform("m = 1000000000.E1000000000") == {"m": {"==": float("inf").hex()}}
 
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=1.234D12")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=.e1")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number= -.E1")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=+.E2")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=1.23E+++")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=+-123")
-    with pytest.raises(ParserError):
+    with pytest.raises(BadRequest):
         transform("number=0.0.1")
 
 
@@ -363,38 +364,6 @@ def test_not_implemented():
         )
 
 
-def test_list_length_aliases():
-    """Check LENGTH aliases for lists"""
-    from optimade.server.mappers import StructureMapper
-
-    transformer = AiidaTransformer(mapper=StructureMapper())
-    parser = LarkParser(version=VERSION, variant=VARIANT)
-
-    assert transformer.transform(parser.parse("elements LENGTH 3")) == {
-        "nelements": {"==": 3}
-    }
-
-    assert transformer.transform(
-        parser.parse('elements HAS "Li" AND elements LENGTH = 3')
-    ) == {"and": [{"elements": {"contains": ["Li"]}}, {"nelements": 3}]}
-
-    assert transformer.transform(parser.parse("elements LENGTH > 3")) == (
-        {"nelements": {">": 3}}
-    )
-    assert transformer.transform(parser.parse("elements LENGTH < 3")) == (
-        {"nelements": {"<": 3}}
-    )
-    assert transformer.transform(parser.parse("elements LENGTH = 3")) == {
-        "nelements": 3
-    }
-    assert transformer.transform(
-        parser.parse("cartesian_site_positions LENGTH <= 3")
-    ) == {"nsites": {"<=": 3}}
-    assert transformer.transform(
-        parser.parse("cartesian_site_positions LENGTH >= 3")
-    ) == {"nsites": {">=": 3}}
-
-
 def test_unaliased_length_operator():
     """Check unaliased LENGTH lists"""
 
@@ -413,91 +382,6 @@ def test_unaliased_length_operator():
     assert transform("cartesian_site_positions LENGTH >= 10") == (
         {"cartesian_site_positions": {"or": [{"longer": 10}, {"of_length": 10}]}}
     )
-
-
-def test_aliased_length_operator():
-    """Test LENGTH operator alias"""
-    from optimade.server.mappers import StructureMapper
-
-    class MyMapper(StructureMapper):
-        """Test mapper with LENGTH_ALIASES"""
-
-        ALIASES = (("elements", "my_elements"), ("nelements", "nelem"))
-        LENGTH_ALIASES = (
-            ("chemsys", "nelements"),
-            ("cartesian_site_positions", "nsites"),
-            ("elements", "nelements"),
-        )
-        PROVIDER_FIELDS = ("chemsys",)
-
-    transformer = AiidaTransformer(mapper=MyMapper())
-    parser = LarkParser(version=VERSION, variant=VARIANT)
-
-    assert transformer.transform(
-        parser.parse("cartesian_site_positions LENGTH <= 3")
-    ) == {"nsites": {"<=": 3}}
-    assert transformer.transform(
-        parser.parse("cartesian_site_positions LENGTH < 3")
-    ) == {"nsites": {"<": 3}}
-    assert transformer.transform(parser.parse("cartesian_site_positions LENGTH 3")) == (
-        {"nsites": 3}
-    )
-    assert transformer.transform(parser.parse("cartesian_site_positions LENGTH 3")) == (
-        {"nsites": 3}
-    )
-    assert transformer.transform(
-        parser.parse("cartesian_site_positions LENGTH >= 10")
-    ) == {"nsites": {">=": 10}}
-    assert transformer.transform(parser.parse("structure_features LENGTH > 10")) == (
-        {"structure_features": {"longer": 10}}
-    )
-    assert transformer.transform(parser.parse("nsites LENGTH > 10")) == (
-        {"nsites": {"longer": 10}}
-    )
-    assert transformer.transform(parser.parse("elements LENGTH 3")) == {"nelem": 3}
-    assert transformer.transform(parser.parse('elements HAS "Ag"')) == (
-        {"my_elements": {"contains": ["Ag"]}}
-    )
-    assert transformer.transform(parser.parse("chemsys LENGTH 3")) == {"nelem": 3}
-
-
-def test_aliases():
-    """Test that valid aliases are allowed, but do not affect r-values"""
-    from optimade.server.mappers import BaseResourceMapper
-
-    class MyStructureMapper(BaseResourceMapper):
-        """Test mapper with ALIASES"""
-
-        ALIASES = (
-            ("elements", "my_elements"),
-            ("A", "D"),
-            ("B", "E"),
-            ("C", "F"),
-        )
-
-    mapper = MyStructureMapper()
-    transformer = AiidaTransformer(mapper=mapper)
-
-    assert mapper.get_backend_field("elements") == "my_elements"
-
-    test_filter = {"elements": {"contains": ["A", "B", "C"]}}
-    assert transformer.postprocess(test_filter) == (
-        {"my_elements": {"contains": ["A", "B", "C"]}}
-    )
-
-    test_filter = {"and": [{"elements": {"contains": ["A", "B", "C"]}}]}
-    assert transformer.postprocess(test_filter) == (
-        {"and": [{"my_elements": {"contains": ["A", "B", "C"]}}]}
-    )
-
-    test_filter = {"elements": "A"}
-    assert transformer.postprocess(test_filter) == {"my_elements": "A"}
-
-    test_filter = ["A", "B", "C"]
-    assert transformer.postprocess(test_filter) == ["A", "B", "C"]
-
-    test_filter = ["A", "elements", "C"]
-    assert transformer.postprocess(test_filter) == ["A", "elements", "C"]
 
 
 def test_list_properties():

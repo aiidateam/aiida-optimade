@@ -4,7 +4,7 @@ import warnings
 from optimade.server.config import CONFIG, SupportedBackend
 
 from aiida_optimade.common import NotImplementedWarning
-from aiida_optimade.models import StructureResourceAttributes
+from aiida_optimade.models import StructureResourceAttributes, StructureResource
 from aiida_optimade.translators import (
     hex_to_floats,
     AiidaEntityTranslator,
@@ -27,9 +27,9 @@ class StructureMapper(ResourceMapper):
         "data.cif.CifData.": CifDataTranslator,
         "data.structure.StructureData.": StructureDataTranslator,
     }
-    ALL_ATTRIBUTES = set(StructureResourceAttributes.schema().get("properties").keys())
     REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
+    ENTRY_RESOURCE_CLASS = StructureResource
 
     @classmethod
     def build_attributes(
@@ -63,7 +63,11 @@ class StructureMapper(ResourceMapper):
         # Add existing attributes
         existing_attributes = set(retrieved_attributes.keys())
         if missing_attributes is None:
-            missing_attributes = cls.ALL_ATTRIBUTES - existing_attributes
+            missing_attributes = (
+                cls.ALL_ATTRIBUTES
+                - cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
+                - existing_attributes
+            )
         for field in float_fields:
             if field in existing_attributes and retrieved_attributes.get(field):
                 retrieved_attributes[field] = hex_to_floats(retrieved_attributes[field])

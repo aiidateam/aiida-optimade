@@ -179,7 +179,10 @@ def test_list_length_bad_operators(check_error_response):
     expected_detail = (
         f"Operator {bad_valid_operator} not implemented for LENGTH filter."
         if CONFIG.database_backend == SupportedBackend.MONGODB
-        else f"Operator {bad_valid_operator} has not been implemented for the LENGTH filter."
+        else (
+            f"Operator {bad_valid_operator} has not been implemented for the LENGTH "
+            "filter."
+        )
     )
 
     check_error_response(

@@ -15,7 +15,6 @@ class ResourceMapper(OptimadeResourceMapper):
     PROJECT_PREFIX: str = "extras.optimade."
 
     TRANSLATORS: Dict[str, AiidaEntityTranslator]
-    ALL_ATTRIBUTES: set = set()
     REQUIRED_ATTRIBUTES: set = set()
 
     @classmethod
@@ -26,7 +25,8 @@ class ResourceMapper(OptimadeResourceMapper):
         res = super(ResourceMapper, cls).all_aliases()
         return res + tuple(
             (field, f"{cls.PROJECT_PREFIX}{field}")
-            for field in cls.ALL_ATTRIBUTES
+            for field in set(cls.ENTRY_RESOURCE_ATTRIBUTES.keys())
+            - cls.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
             if field not in dict(res)
         )
 
