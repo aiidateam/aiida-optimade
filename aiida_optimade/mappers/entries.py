@@ -1,5 +1,5 @@
 # pylint: disable=arguments-differ
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Set, Tuple
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
@@ -15,7 +15,14 @@ class ResourceMapper(OptimadeResourceMapper):
     PROJECT_PREFIX: str = "extras.optimade."
 
     TRANSLATORS: Dict[str, AiidaEntityTranslator]
-    REQUIRED_ATTRIBUTES: set = set()
+    REQUIRED_ATTRIBUTES: Set[str] = set()
+    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: Set[str] = {
+        "id",
+        "type",
+        "relationships",
+        "links",
+        "meta",
+    }
 
     @classmethod
     def all_aliases(cls) -> Tuple[Tuple[str, str]]:
