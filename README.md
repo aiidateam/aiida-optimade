@@ -59,7 +59,7 @@ For testing run `pytest`, which will run with an AiiDA backend as standard.
 The tests can also be run with the MongoDB backend by setting the environment variable `PYTEST_OPTIMADE_CONFIG_FILE`, the value being a path to the config file to be used:
 
 ```shell
-$ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_structures_mongo.json pytest
+$ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_mongo_config.json pytest
 ```
 
 ## Initialization
