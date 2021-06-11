@@ -293,6 +293,36 @@ class AiidaCollection:
             all_fields - fields,
         )
 
+    def _set_filter_fields(self, filters: Union[dict, list]) -> None:
+        """Set all properties to be found in AiiDA Nodes."""
+        from copy import deepcopy
+
+        def __filter_fields_util(_filters: Union[dict, list]):
+            if isinstance(_filters, dict):
+                res = {}
+                for key, value in _filters.items():
+                    new_value = value
+                    if isinstance(value, (dict, list)):
+                        new_value = __filter_fields_util(value)
+                    aliased_key = self.resource_mapper.get_backend_field(key)
+                    res[aliased_key] = new_value
+                    self._filter_fields.add(aliased_key)
+            elif isinstance(_filters, list):
+                res = []
+                for item in _filters:
+                    new_value = item
+                    if isinstance(item, (dict, list)):
+                        new_value = __filter_fields_util(item)
+                    res.append(new_value)
+            else:
+                raise NotImplementedError(
+                    "_alias_filter can only handle dict and list objects"
+                )
+            return res
+
+        self._filter_fields = set()
+        __filter_fields_util(deepcopy(filters))
+
     def _parse_params(self, params: EntryListingQueryParams) -> dict:
         """Parse query parameters and transform them into AiiDA QueryBuilder concepts"""
         cursor_kwargs = {}
@@ -302,7 +332,7 @@ class AiidaCollection:
             cursor_kwargs["filters"] = self.transformer.transform(
                 self.parser.parse(params.filter)
             )
-            self._filter_fields = set()
+            self._set_filter_fields(cursor_kwargs["filters"])
 
         # response_format
         if (

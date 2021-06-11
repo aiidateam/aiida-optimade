@@ -1,6 +1,7 @@
 # pylint: disable=no-self-use,too-many-public-methods
 from lark import v_args
 from optimade.filtertransformers import BaseTransformer, Quantity
+from optimade.server.exceptions import BadRequest
 
 
 __all__ = ("AiidaTransformer",)
@@ -201,10 +202,23 @@ class AiidaTransformer(BaseTransformer):
         property: IDENTIFIER ( "." IDENTIFIER )*
         """
         quantity = super().property(args)
-        if isinstance(quantity, Quantity):
-            quantity = quantity.backend_field
 
-        return ".".join([quantity] + args[1:])
+        if isinstance(quantity, str):
+            # The quantity is either an entry type (indicating a relationship filter)
+            # or a provider-specific property that does not match any known provider.
+            # In any case, this will be treated as UNKNOWN.
+            quantity = "attributes.something.non.existing"
+        elif isinstance(quantity, Quantity):
+            quantity = ".".join([quantity.backend_field] + args[1:])
+        else:
+            raise BadRequest(
+                detail=(
+                    "Cannot properly serialize property in filter transformer: "
+                    f"{args!r}"
+                )
+            )
+
+        return quantity
 
     @v_args(inline=True)
     def signed_float(self, number):
