@@ -1,4 +1,4 @@
-from typing import Tuple, List, Union, Any
+from typing import Tuple, List, Union
 import warnings
 
 from fastapi import HTTPException
@@ -293,42 +293,16 @@ class AiidaCollection:
             all_fields - fields,
         )
 
-    def _alias_filter(self, filters: Any) -> Union[dict, list]:
-        """Get aliased field names in nested filter query.
-
-        I.e. turn OPTIMADE field names into AiiDA field names
-        """
-        if isinstance(filters, dict):
-            res = {}
-            for key, value in filters.items():
-                new_value = value
-                if isinstance(value, (dict, list)):
-                    new_value = self._alias_filter(value)
-                aliased_key = self.resource_mapper.get_backend_field(key)
-                res[aliased_key] = new_value
-                self._filter_fields.add(aliased_key)
-        elif isinstance(filters, list):
-            res = []
-            for item in filters:
-                new_value = item
-                if isinstance(item, (dict, list)):
-                    new_value = self._alias_filter(item)
-                res.append(new_value)
-        else:
-            raise NotImplementedError(
-                "_alias_filter can only handle dict and list objects"
-            )
-        return res
-
     def _parse_params(self, params: EntryListingQueryParams) -> dict:
         """Parse query parameters and transform them into AiiDA QueryBuilder concepts"""
         cursor_kwargs = {}
 
         # filter
         if getattr(params, "filter", False):
-            aiida_filter = self.transformer.transform(self.parser.parse(params.filter))
+            cursor_kwargs["filters"] = self.transformer.transform(
+                self.parser.parse(params.filter)
+            )
             self._filter_fields = set()
-            cursor_kwargs["filters"] = self._alias_filter(aiida_filter)
 
         # response_format
         if (
