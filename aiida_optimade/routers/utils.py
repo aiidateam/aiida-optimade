@@ -1,20 +1,19 @@
 import functools
 import urllib
 
-from typing import Union, List
+from typing import Union
 
 from fastapi import HTTPException, Request
 
 from optimade.models import (
     EntryResponseMany,
     EntryResponseOne,
-    EntryResource,
     ToplevelLinks,
 )
 from optimade.server.config import CONFIG
 from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
-from optimade.server.routers.utils import meta_values
+from optimade.server.routers.utils import handle_response_fields, meta_values
 
 from aiida_optimade.entry_collections import AiidaCollection
 
@@ -64,32 +63,6 @@ def handle_pagination(
     return pagination
 
 
-def handle_response_fields(
-    results: Union[List[EntryResource], EntryResource],
-    fields: set,
-    collection: AiidaCollection,
-) -> dict:
-    """Prune results to only include queried fields (from `response_fields`)"""
-    if not isinstance(results, list):
-        results = [results]
-    non_attribute_fields = collection.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
-    top_level = {_ for _ in non_attribute_fields if _ in fields}
-    attribute_level = fields - non_attribute_fields
-    new_results = []
-    while results:
-        entry = results.pop(0)
-        new_entry = entry.dict(
-            exclude=top_level, exclude_unset=True, exclude_none=False, by_alias=True
-        )
-        for field in attribute_level:
-            if field in new_entry["attributes"]:
-                del new_entry["attributes"][field]
-        if not new_entry["attributes"]:
-            del new_entry["attributes"]
-        new_results.append(new_entry)
-    return new_results
-
-
 def get_entries(
     collection: Union[AiidaCollection, MongoCollection],
     response: EntryResponseMany,
@@ -102,14 +75,17 @@ def get_entries(
         data_returned,
         more_data_available,
         fields,
+        include_fields,
     ) = collection.find(params)
 
     pagination = handle_pagination(
         request=request, more_data_available=more_data_available, nresults=len(results)
     )
 
-    if fields:
-        results = handle_response_fields(results, fields, collection)
+    if fields or include_fields:
+        results = handle_response_fields(
+            results=results, exclude_fields=fields, include_fields=include_fields
+        )
 
     return response(
         links=ToplevelLinks(**pagination),
@@ -137,6 +113,7 @@ def get_single_entry(
         data_returned,
         more_data_available,
         fields,
+        include_fields,
     ) = collection.find(params)
 
     if more_data_available:
@@ -146,8 +123,10 @@ def get_single_entry(
             f"however it is {more_data_available}",
         )
 
-    if fields and results is not None:
-        results = handle_response_fields(results, fields, collection)[0]
+    if fields or include_fields and results is not None:
+        results = handle_response_fields(
+            results=results, exclude_fields=fields, include_fields=include_fields
+        )[0]
 
     return response(
         links=ToplevelLinks(next=None),

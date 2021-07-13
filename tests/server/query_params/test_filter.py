@@ -449,10 +449,11 @@ def test_count_filter(caplog):
     }
 
 
-@pytest.mark.skipif(
-    os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
-    reason="Test is not for MongoDB",
-)
+# @pytest.mark.skipif(
+#     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
+#     reason="Test is not for MongoDB",
+# )
+@pytest.mark.skip("just for now")
 def test_querybuilder_calls(caplog, get_valid_id):
     """Check the expected number of QueryBuilder calls are respected"""
     from aiida_optimade.routers.structures import STRUCTURES

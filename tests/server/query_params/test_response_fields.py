@@ -31,15 +31,18 @@ def test_non_provider_fields(get_good_response):
     }
 
 
-def test_wrong_alias_provider_fields(get_good_response):
-    """Ensure wrongly aliased provider fields are disregarded as unknown field"""
+def test_wrong_alias_provider_fields(check_error_response):
+    """Ensure wrongly aliased provider fields raise a 400 Bad Request"""
     from optimade.server.config import CONFIG
 
     wrongly_aliased_provider_field = CONFIG.provider_fields.get("structures", [])
     request = f"/structures?response_fields={','.join(wrongly_aliased_provider_field)}"
-    response = get_good_response(request)
-
-    returned_attributes = set()
-    for _ in response.get("data", []):
-        returned_attributes |= set(_.get("attributes", {}).keys())
-    assert returned_attributes == set()
+    check_error_response(
+        request,
+        expected_status=400,
+        expected_title="Bad Request",
+        expected_detail=(
+            "Unrecognised OPTIMADE field(s) in requested `response_fields`: "
+            f"{set(wrongly_aliased_provider_field)}."
+        ),
+    )
