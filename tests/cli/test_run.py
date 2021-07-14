@@ -10,17 +10,17 @@ import requests
 
 
 @pytest.fixture
-def run_server():
+def run_server(aiida_test_profile: str):
     """Run the server using `aiida-optimade run`
 
     :param options: the list of command line options to pass to `aiida-optimade run`
         invocation
     :param raises: whether `aiida-optimade run` is expected to raise an exception
     """
-    profile = os.getenv("AIIDA_PROFILE", "optimade_sqla")
+    profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
     if profile == "test_profile":
         # This is for local tests only
-        profile = "optimade_sqla"
+        profile = aiida_test_profile
 
     args = ["aiida-optimade", "-p", profile, "run"]
     env = dict(os.environ)
@@ -41,7 +41,8 @@ def run_server():
         assert result is not None
 
 
-def test_run(run_server):
+@pytest.mark.usefixtures("run_server")
+def test_run():
     """Test running `aiida-optimade run`"""
     from optimade import __api_version__
     from optimade.models import InfoResponse
@@ -112,7 +113,7 @@ def test_logging_precedence(run_and_terminate_server):
     ), f"output: {output!r}, errors: {errors!r}"
 
 
-def test_env_var_is_set(run_and_terminate_server):
+def test_env_var_is_set(run_and_terminate_server, aiida_test_profile: str):
     """Test the AIIDA_PROFILE env var is set
 
     The issue with this test, is that the set "AIIDA_PROFILE" environment variable
@@ -128,12 +129,13 @@ def test_env_var_is_set(run_and_terminate_server):
     assert fixture_profile is not None
     if fixture_profile == "test_profile":
         # This is for local tests only
-        fixture_profile = "optimade_sqla"
+        fixture_profile = aiida_test_profile
     output, errors = run_and_terminate_server(command="run")
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
 
 
-def test_last_modified(run_server, caplog):
+@pytest.mark.usefixtures("run_server")
+def test_last_modified():
     """Ensure last_modified does not change upon requests"""
     from optimade import __api_version__
 
@@ -160,3 +162,19 @@ def test_last_modified(run_server, caplog):
     assert [_["attributes"]["last_modified"] for _ in first_response["data"]] == [
         _["attributes"]["last_modified"] for _ in second_response["data"]
     ]
+
+
+@pytest.mark.skip(
+    "Cannot handle reloading the server with the run_and_terminate_server fixture."
+)
+def test_dev_option(run_and_terminate_server):
+    """Test --dev flag
+
+    This should be equivalent to running with the `--debug` option for
+    `aiida-optimade run`, however, the profile should also be fixed to
+    `aiida-optimade_test`.
+    """
+    options = ["--dev"]
+    output, errors = run_and_terminate_server(command="run", options=options)
+    assert "DEBUG MODE" in output, f"output: {output!r}, errors: {errors!r}"
+    assert "DEBUG:" in output, f"output: {output!r}, errors: {errors!r}"

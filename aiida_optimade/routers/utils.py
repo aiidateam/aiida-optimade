@@ -1,14 +1,14 @@
 import functools
 import urllib
 
-from typing import Union, List
+from typing import Any, Dict, List, Set, Union
 
 from fastapi import HTTPException, Request
 
 from optimade.models import (
+    EntryResource,
     EntryResponseMany,
     EntryResponseOne,
-    EntryResource,
     ToplevelLinks,
 )
 from optimade.server.config import CONFIG
@@ -66,27 +66,46 @@ def handle_pagination(
 
 def handle_response_fields(
     results: Union[List[EntryResource], EntryResource],
-    fields: set,
-    collection: AiidaCollection,
-) -> dict:
-    """Prune results to only include queried fields (from `response_fields`)"""
+    exclude_fields: Set[str],
+    include_fields: Set[str],
+) -> List[Dict[str, Any]]:
+    """Handle query parameter `response_fields`.
+
+    It is assumed that all fields are under `attributes`.
+    This is due to all other top-level fields are REQUIRED in the response.
+
+    TODO: Import this function from `optimade` instead once the `by_alias=True` version
+        has been released.
+
+    Parameters:
+        exclude_fields: Fields under `attributes` to be excluded from the response.
+        include_fields: Fields under `attributes` that were requested that should be
+            set to null if missing in the entry.
+
+    Returns:
+        List of resulting resources as dictionaries after pruning according to
+        the `response_fields` OPTIMADE URL query parameter.
+
+    """
     if not isinstance(results, list):
         results = [results]
-    non_attribute_fields = collection.resource_mapper.TOP_LEVEL_NON_ATTRIBUTES_FIELDS
-    top_level = {_ for _ in non_attribute_fields if _ in fields}
-    attribute_level = fields - non_attribute_fields
+
     new_results = []
     while results:
-        entry = results.pop(0)
-        new_entry = entry.dict(
-            exclude=top_level, exclude_unset=True, exclude_none=False, by_alias=True
-        )
-        for field in attribute_level:
+        new_entry = results.pop(0).dict(exclude_unset=True, by_alias=True)
+
+        # Remove fields excluded by their omission in `response_fields`
+        for field in exclude_fields:
             if field in new_entry["attributes"]:
                 del new_entry["attributes"][field]
-        if not new_entry["attributes"]:
-            del new_entry["attributes"]
+
+        # Include missing fields that were requested in `response_fields`
+        for field in include_fields:
+            if field not in new_entry["attributes"]:
+                new_entry["attributes"][field] = None
+
         new_results.append(new_entry)
+
     return new_results
 
 
@@ -102,14 +121,17 @@ def get_entries(
         data_returned,
         more_data_available,
         fields,
+        include_fields,
     ) = collection.find(params)
 
     pagination = handle_pagination(
         request=request, more_data_available=more_data_available, nresults=len(results)
     )
 
-    if fields:
-        results = handle_response_fields(results, fields, collection)
+    if fields or include_fields:
+        results = handle_response_fields(
+            results=results, exclude_fields=fields, include_fields=include_fields
+        )
 
     return response(
         links=ToplevelLinks(**pagination),
@@ -137,6 +159,7 @@ def get_single_entry(
         data_returned,
         more_data_available,
         fields,
+        include_fields,
     ) = collection.find(params)
 
     if more_data_available:
@@ -146,8 +169,10 @@ def get_single_entry(
             f"however it is {more_data_available}",
         )
 
-    if fields and results is not None:
-        results = handle_response_fields(results, fields, collection)[0]
+    if fields or include_fields and results is not None:
+        results = handle_response_fields(
+            results=results, exclude_fields=fields, include_fields=include_fields
+        )[0]
 
     return response(
         links=ToplevelLinks(next=None),

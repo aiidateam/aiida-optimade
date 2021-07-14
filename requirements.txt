@@ -1,7 +1,7 @@
-aiida-core~=1.6.3
-optimade[mongo]~=0.14.1
+aiida-core~=1.6.4
+optimade[mongo]~=0.16.0
 pymatgen~=2021.3
-uvicorn~=0.13.4
+uvicorn~=0.14.0
 
 # Dependencies used directly in this package, but included through other dependencies:
 # aiida-core:

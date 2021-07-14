@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 import re
-from typing import List
+from typing import Any, Dict, List
 
 import pytest
 
@@ -25,7 +25,7 @@ def remote_client():
 def get_good_response(client, caplog):
     """Get OPTIMADE response with some sanity checks"""
 
-    def inner(request):
+    def inner(request: str) -> Dict[str, Any]:
         try:
             response = client.get(request)
 

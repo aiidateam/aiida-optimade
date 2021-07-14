@@ -2,7 +2,7 @@
 
 | Latest release | Build status | Activity |
 |:--------------:|:------------:|:--------:|
-| [![AiiDA](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/aiidateam/aiida-optimade/develop/.ci/aiida-version.json)](https://github.com/aiidateam/aiida-core/)<br>[![PyPI](https://img.shields.io/pypi/v/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![OPTIMADE](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools/v0.14.1/optimade-version.json)](https://github.com/Materials-Consortia/OPTIMADE/) | [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/aiidateam/aiida-optimade/aiida-optimade)](https://github.com/aiidateam/aiida-optimade/actions/)<br>[![Codecov](https://img.shields.io/codecov/c/gh/aiidateam/aiida-optimade)](https://codecov.io/gh/aiidateam/aiida-optimade) | [![GitHub last commit](https://img.shields.io/github/last-commit/aiidateam/aiida-optimade)](https://github.com/aiidateam/aiida-optimade) |
+| [![AiiDA](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/aiidateam/aiida-optimade/develop/.ci/aiida-version.json)](https://github.com/aiidateam/aiida-core/)<br>[![PyPI](https://img.shields.io/pypi/v/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/aiida-optimade)](https://pypi.org/project/aiida-optimade/)<br>[![OPTIMADE](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools/v0.16.0/optimade-version.json)](https://github.com/Materials-Consortia/OPTIMADE/) | [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/aiidateam/aiida-optimade/aiida-optimade)](https://github.com/aiidateam/aiida-optimade/actions/)<br>[![Codecov](https://img.shields.io/codecov/c/gh/aiidateam/aiida-optimade)](https://codecov.io/gh/aiidateam/aiida-optimade) | [![GitHub last commit](https://img.shields.io/github/last-commit/aiidateam/aiida-optimade)](https://github.com/aiidateam/aiida-optimade) |
 
 This is a RESTful API server created with [FastAPI](https://fastapi.tiangolo.com/) that exposes an AiiDA database according to the [OPTIMADE specification](https://github.com/Materials-Consortia/OPTIMADE/blob/develop/optimade.rst).
 
@@ -59,7 +59,7 @@ For testing run `pytest`, which will run with an AiiDA backend as standard.
 The tests can also be run with the MongoDB backend by setting the environment variable `PYTEST_OPTIMADE_CONFIG_FILE`, the value being a path to the config file to be used:
 
 ```shell
-$ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_structures_mongo.json pytest
+$ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_mongo_config.json pytest
 ```
 
 ## Initialization
@@ -74,7 +74,7 @@ $ aiida-optimade -p <PROFILE> init
 
 Where `<PROFILE>` is the AiiDA profile.
 
-> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is now specified.
 > This will be changed in the future to use the default AiiDA profile.
 
 Initialization goes through your profile's `StructureData` nodes, adding an `optimade` extra, wherein all OPTIMADE-specific fields that do not have an equivalent AiiDA property are stored.
@@ -94,7 +94,7 @@ $ aiida-optimade -p <PROFILE> run
 
 Where `<PROFILE>` is the AiiDA profile you wish to serve.
 
-> **Note**: Currently, the default is `optimade_sqla`, if the `-p / --profile` option is now specified.
+> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is now specified.
 > This will be changed in the future to use the default AiiDA profile.
 
 You also have the opportunity to specify the AiiDA profile via the environment variable `AIIDA_PROFILE`.
