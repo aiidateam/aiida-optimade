@@ -172,7 +172,7 @@ class AiidaCollection(EntryCollection):
 
         return self._count.get("count", 0)
 
-    def find(
+    def find(  # pylint: disable=too-many-branches
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
     ) -> Tuple[
         Union[List[EntryResource], EntryResource, None], int, bool, Set[str], Set[str]
