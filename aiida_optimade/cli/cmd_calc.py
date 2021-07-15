@@ -121,8 +121,14 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
                 " This may take several minutes!"
             )
 
-        STRUCTURES._filter_fields = {
-            STRUCTURES.resource_mapper.get_backend_field(_) for _ in fields
+        STRUCTURES._extras_fields = {
+            STRUCTURES.resource_mapper.get_backend_field(_)[
+                len(STRUCTURES.resource_mapper.PROJECT_PREFIX) :
+            ]
+            for _ in fields
+            if STRUCTURES.resource_mapper.get_backend_field(_).startswith(
+                STRUCTURES.resource_mapper.PROJECT_PREFIX
+            )
         }
         updated_pks = STRUCTURES._check_and_calculate_entities(cli=not silent)
     except click.Abort:
