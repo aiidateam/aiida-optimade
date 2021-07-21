@@ -1,12 +1,11 @@
 import functools
-import urllib
+import urllib.parse
 
-from typing import Any, Dict, List, Set, Union
+from typing import Union
 
 from fastapi import HTTPException, Request
 
 from optimade.models import (
-    EntryResource,
     EntryResponseMany,
     EntryResponseOne,
     ToplevelLinks,
@@ -14,7 +13,7 @@ from optimade.models import (
 from optimade.server.config import CONFIG
 from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
-from optimade.server.routers.utils import meta_values
+from optimade.server.routers.utils import handle_response_fields, meta_values
 
 from aiida_optimade.entry_collections import AiidaCollection
 
@@ -62,51 +61,6 @@ def handle_pagination(
         pagination["next"] = None
 
     return pagination
-
-
-def handle_response_fields(
-    results: Union[List[EntryResource], EntryResource],
-    exclude_fields: Set[str],
-    include_fields: Set[str],
-) -> List[Dict[str, Any]]:
-    """Handle query parameter `response_fields`.
-
-    It is assumed that all fields are under `attributes`.
-    This is due to all other top-level fields are REQUIRED in the response.
-
-    TODO: Import this function from `optimade` instead once the `by_alias=True` version
-        has been released.
-
-    Parameters:
-        exclude_fields: Fields under `attributes` to be excluded from the response.
-        include_fields: Fields under `attributes` that were requested that should be
-            set to null if missing in the entry.
-
-    Returns:
-        List of resulting resources as dictionaries after pruning according to
-        the `response_fields` OPTIMADE URL query parameter.
-
-    """
-    if not isinstance(results, list):
-        results = [results]
-
-    new_results = []
-    while results:
-        new_entry = results.pop(0).dict(exclude_unset=True, by_alias=True)
-
-        # Remove fields excluded by their omission in `response_fields`
-        for field in exclude_fields:
-            if field in new_entry["attributes"]:
-                del new_entry["attributes"][field]
-
-        # Include missing fields that were requested in `response_fields`
-        for field in include_fields:
-            if field not in new_entry["attributes"]:
-                new_entry["attributes"][field] = None
-
-        new_results.append(new_entry)
-
-    return new_results
 
 
 def get_entries(
