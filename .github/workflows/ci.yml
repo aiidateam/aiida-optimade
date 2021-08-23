@@ -196,7 +196,7 @@ jobs:
         sleep 15
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2.5.0
+      uses: Materials-Consortia/optimade-validator-action@v2.6.0
       with:
         port: 3253
         all versioned paths: yes
@@ -266,7 +266,7 @@ jobs:
         sleep 150
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2.5.0
+      uses: Materials-Consortia/optimade-validator-action@v2.6.0
       with:
         port: 3253
         all versioned paths: yes
@@ -334,7 +334,7 @@ jobs:
         sleep 30
 
     - name: Test server with OPTIMADE Validator
-      uses: Materials-Consortia/optimade-validator-action@v2.5.0
+      uses: Materials-Consortia/optimade-validator-action@v2.6.0
       with:
         port: 3253
         all versioned paths: yes
