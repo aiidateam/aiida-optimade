@@ -62,6 +62,8 @@ The tests can also be run with the MongoDB backend by setting the environment va
 $ PYTEST_OPTIMADE_CONFIG_FILE=/path/to/aiida-optimade/tests/static/test_mongo_config.json pytest
 ```
 
+However, note that the `mongo_uri` value will have to be updated according to your local setup.
+
 ## Initialization
 
 You should first initialize your AiiDA profile.

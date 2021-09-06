@@ -21,8 +21,6 @@ __all__ = ("StructureMapper",)
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
-    ENDPOINT = "structures"
-
     TRANSLATORS: Dict[str, AiidaEntityTranslator] = {
         "data.cif.CifData.": CifDataTranslator,
         "data.structure.StructureData.": StructureDataTranslator,

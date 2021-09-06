@@ -4,7 +4,7 @@
     "page_limit_max": 500,
     "default_db": "aiida_optimade",
     "base_url": null,
-    "mongo_uri": "mongodb://192.168.178.40:27017",
+    "mongo_uri": "mongodb://192.168.50.124:27017",
     "database_backend": "mongodb",
     "mongo_database": "test_aiida",
     "provider": {

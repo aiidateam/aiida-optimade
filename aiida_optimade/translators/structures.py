@@ -4,6 +4,7 @@ from math import fsum
 
 from typing import Any, List, Union
 from aiida.orm.nodes.data.structure import StructureData
+from optimade.models.utils import ANONYMOUS_ELEMENTS
 
 from aiida_optimade.common import OptimadeIntegrityError, AiidaError
 from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -215,20 +216,13 @@ class StructureDataTranslator(AiidaEntityTranslator):
         occupation = self.get_symbol_weights()
         for symbol, weight in occupation.items():
             rounded_weight = round(weight)
-            if rounded_weight in {0, 1}:
-                occupation[symbol] = ""
-            else:
-                occupation[symbol] = rounded_weight
+            occupation[symbol] = "" if rounded_weight in (0, 1) else rounded_weight
         values = [_ for _ in occupation.values() if _]
+        min_occupation = min(values) if values else None
         if len(values) == len(occupation.values()):
-            min_occupation = min(values)
             for symbol, weight in occupation.items():
-                weight = weight / min_occupation
-                rounded_weight = round(weight)
-                if rounded_weight in {0, 1}:
-                    occupation[symbol] = ""
-                else:
-                    occupation[symbol] = rounded_weight
+                rounded_weight = round(weight / min_occupation)
+                occupation[symbol] = "" if rounded_weight in (0, 1) else rounded_weight
         res = "".join([f"{symbol}{occupation[symbol]}" for symbol in self.elements()])
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
@@ -267,8 +261,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         and then, in order left to right, replaced by anonymous symbols:
         A, B, C, ..., Z, Aa, Ba, ..., Za, Ab, Bb, ... and so on.
         """
-        from optimade.models.utils import ANONYMOUS_ELEMENTS
-
         attribute = "chemical_formula_anonymous"
 
         if attribute in self.new_attributes:
@@ -281,9 +273,10 @@ class StructureDataTranslator(AiidaEntityTranslator):
         ), f"Not enough generated anonymous elements to create `chemical_formula_anonymous` for Node <PK={self._pk}>. Found elements: {len(self.elements())}. Generated anonymous elements: {len(ANONYMOUS_ELEMENTS)}."
 
         res = ""
+        min_occupation = min(weights) if weights else None
         for index, occupation in enumerate(sorted(weights, reverse=True)):
-            rounded_weight = "" if round(occupation) == 1 else round(occupation)
-            res += f"{ANONYMOUS_ELEMENTS[index]}{rounded_weight}"
+            rounded_weight = round(occupation / min_occupation)
+            res += f"{ANONYMOUS_ELEMENTS[index]}{'' if rounded_weight in (0, 1) else rounded_weight}"
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
         self.new_attributes[attribute] = res

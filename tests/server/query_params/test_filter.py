@@ -277,12 +277,13 @@ def test_node_column_fields(check_response, get_valid_id):
 
 
 def test_saved_extras_fields(check_response):
-    request = '/structures?filter=chemical_formula_anonymous CONTAINS "A96B48"'
+    request = '/structures?filter=chemical_formula_anonymous CONTAINS "A7B4"'
     expected_uuids = [
-        "f9df8f2c-72c1-4126-8836-0f5de82b0bbd",
-        "4848804c-dace-45a1-8333-143af8b9124f",
-        "f886828a-3b75-4fd0-acf1-caf69cdb4b27",
-        "545fa514-8dee-41d4-aac9-8a40871de53f",
+        "2ebd7c96-cadd-464b-aeda-58e3b86f1347",
+        "bf20f3d8-3be9-4336-bbfe-fc13382c61c3",
+        "c7b0261c-ed47-48fa-be8a-794ae4e8ce4c",
+        "cb40e3b7-067b-4ee4-839d-084824a395e4",
+        "fc5a08ae-1026-405f-9fb7-30536cdfc61b",
     ]
     check_response(request, expected_uuids)
 
