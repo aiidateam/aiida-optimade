@@ -35,7 +35,7 @@ jobs:
         pip install ${pre_commit}
 
     - name: Test with pre-commit
-      run: SKIP=codecov-validator pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+      run: SKIP=codecov-validator pre-commit run --all-files --show-diff-on-failure
 
   pytest:
     runs-on: ubuntu-latest
