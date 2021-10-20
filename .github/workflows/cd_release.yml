@@ -40,7 +40,7 @@ jobs:
         release_branch: ${{ env.PUBLISH_UPDATE_BRANCH }}
 
     - name: Update version - Commit changes and update tag
-      run: .github/static/update_version.sh
+      run: .github/utils/update_version.sh
 
     - name: Update '${{ env.PUBLISH_UPDATE_BRANCH }}'
       uses: CasperWA/push-protected@v2
