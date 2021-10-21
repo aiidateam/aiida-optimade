@@ -125,7 +125,6 @@ def optimade_req(_, ver=""):
         ),
         (r"[0-9]+\.[0-9]+\.[0-9]+", api_version.split("-")[0].split("+")[0]),
     ):
-        update_file(".github/workflows/ci.yml", (f"/v{regex}", f"/v{version}"))
         update_file("README.md", (f"/v{regex}/info", f"/v{version}/info"), strip="\n")
 
     print(f"Bumped OPTIMADE Python Tools version requirement to {ver}")
