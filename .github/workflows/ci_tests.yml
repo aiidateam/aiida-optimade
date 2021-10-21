@@ -1,4 +1,4 @@
-name: CI
+name: CI - Tests
 
 on:
   pull_request:
@@ -35,7 +35,7 @@ jobs:
         pip install ${pre_commit}
 
     - name: Test with pre-commit
-      run: SKIP=codecov-validator pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+      run: SKIP=codecov-validator pre-commit run --all-files --show-diff-on-failure
 
   pytest:
     runs-on: ubuntu-latest
@@ -192,7 +192,7 @@ jobs:
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose.yml up &
-        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        .github/utils/wait_for_it.sh localhost:3253 -t 360
         sleep 15
 
     - name: Test server with OPTIMADE Validator
@@ -261,7 +261,7 @@ jobs:
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose-mongo.yml up &
-        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        .github/utils/wait_for_it.sh localhost:3253 -t 360
         # Long sleep, because the initialization is needed
         sleep 150
 
@@ -329,7 +329,7 @@ jobs:
       run: |
         export DOCKER_HOST_IP=$(ip route | grep docker0 | awk '{print $9}')
         docker-compose -f profiles/docker-compose-mongo.yml up &
-        .github/workflows/wait_for_it.sh localhost:3253 -t 360
+        .github/utils/wait_for_it.sh localhost:3253 -t 360
         # Longer sleep, because the initialization is needed
         sleep 30
 

@@ -1,0 +1,6 @@
+### Update dependencies
+
+Automatically created PR from [`ci/dependabot-updates`](https://github.com/aiidateam/aiida-optimade/tree/ci/dependabot-updates).
+It should be automagically merged into `main` upon CI success.
+
+For more information see the ["Dependabot updates" workflow](https://github.com/aiidateam/aiida-optimade/blob/develop/.github/workflows/ci_dependabot.yml).
