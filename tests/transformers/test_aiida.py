@@ -8,7 +8,7 @@ from optimade.server.exceptions import BadRequest
 
 from aiida_optimade.transformers import AiidaTransformer
 
-VERSION = (0, 10, 1)
+VERSION = (1, 1, 0)
 VARIANT = "default"
 
 PARSER = LarkParser(version=VERSION, variant=VARIANT)
