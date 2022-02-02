@@ -66,14 +66,14 @@ def test_number_values():
     assert transform("a = 12345") == {"a": {"==": 12345}}
     assert transform("b = +12") == {"b": {"==": 12}}
     assert transform("c = -34") == {"c": {"==": -34}}
-    assert transform("d = 1.2") == {"d": {"==": 1.2 .hex()}}
-    assert transform("e = .2E7") == {"e": {"==": 2000000.0 .hex()}}
+    assert transform("d = 1.2") == {"d": {"==": (1.2).hex()}}
+    assert transform("e = .2E7") == {"e": {"==": (2000000.0).hex()}}
     assert transform("f = -.2E+7") == {"f": {"==": (-2000000.0).hex()}}
-    assert transform("g = +10.01E-10") == {"g": {"==": 1.001e-09 .hex()}}
-    assert transform("h = 6.03e23") == {"h": {"==": 6.03e23 .hex()}}
-    assert transform("i = .1E1") == {"i": {"==": 1.0 .hex()}}
+    assert transform("g = +10.01E-10") == {"g": {"==": (1.001e-09).hex()}}
+    assert transform("h = 6.03e23") == {"h": {"==": (6.03e23).hex()}}
+    assert transform("i = .1E1") == {"i": {"==": (1.0).hex()}}
     assert transform("j = -.1e1") == {"j": {"==": (-1.0).hex()}}
-    assert transform("k = 1.e-12") == {"k": {"==": 1e-12 .hex()}}
+    assert transform("k = 1.e-12") == {"k": {"==": (1e-12).hex()}}
     assert transform("l = -.1e-12") == {"l": {"==": (-1e-13).hex()}}
     assert transform("m = 1000000000.E1000000000") == {"m": {"==": float("inf").hex()}}
 
@@ -160,7 +160,7 @@ def test_operators():
         'NOT ( _exmpl_x != "Some string" OR NOT _exmpl_a = 7)'
     ) == {
         "or": [
-            {"_exmpl_aax": {"<=": 10000000.0 .hex()}},
+            {"_exmpl_aax": {"<=": (10000000.0).hex()}},
             {
                 "and": [
                     {"nelements": {">=": 10}},
@@ -180,12 +180,12 @@ def test_operators():
     }
     assert transform('_exmpl_spacegroup="P2"') == {"_exmpl_spacegroup": {"==": "P2"}}
     assert transform("_exmpl_cell_volume<100.0") == {
-        "_exmpl_cell_volume": {"<": 100.0 .hex()}
+        "_exmpl_cell_volume": {"<": (100.0).hex()}
     }
     assert transform("_exmpl_bandgap > 5.0 AND _exmpl_molecular_weight < 350") == (
         {
             "and": [
-                {"_exmpl_bandgap": {">": 5.0 .hex()}},
+                {"_exmpl_bandgap": {">": (5.0).hex()}},
                 {"_exmpl_molecular_weight": {"<": 350}},
             ]
         }
@@ -469,12 +469,12 @@ def test_special_cases():
     assert transform("te < st") == {"te": {"<": "st"}}
     assert transform('spacegroup="P2"') == {"spacegroup": {"==": "P2"}}
     assert transform("_cod_cell_volume<100.0") == {
-        "_cod_cell_volume": {"<": 100.0 .hex()}
+        "_cod_cell_volume": {"<": (100.0).hex()}
     }
     assert transform("_mp_bandgap > 5.0 AND _cod_molecular_weight < 350") == (
         {
             "and": [
-                {"_mp_bandgap": {">": 5.0 .hex()}},
+                {"_mp_bandgap": {">": (5.0).hex()}},
                 {"_cod_molecular_weight": {"<": 350}},
             ]
         }
@@ -495,13 +495,13 @@ def test_special_cases():
         "number=0e1ANDnumber=0e-1ANDnumber=0e+1"
     ) == {
         "and": [
-            {"number": {"==": 0.0 .hex()}},
-            {"number": {"==": 0.0 .hex()}},
-            {"number": {"==": 0.0 .hex()}},
+            {"number": {"==": (0.0).hex()}},
+            {"number": {"==": (0.0).hex()}},
+            {"number": {"==": (0.0).hex()}},
             {"number": {"==": 0}},
             {"_n_u_m_b_e_r_": {"==": 0}},
-            {"number": {"==": 0.0 .hex()}},
-            {"number": {"==": 0.0 .hex()}},
-            {"number": {"==": 0.0 .hex()}},
+            {"number": {"==": (0.0).hex()}},
+            {"number": {"==": (0.0).hex()}},
+            {"number": {"==": (0.0).hex()}},
         ]
     }
