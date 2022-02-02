@@ -300,7 +300,7 @@ def test_get_documents(top_dir):
 
     all_loaded_documents = []
     with open(archive) as handle:
-        for documents in get_documents(read_chunks(handle, chunk_size=2 ** 24)):
+        for documents in get_documents(read_chunks(handle, chunk_size=2**24)):
             loaded_documents = bson.json_util.loads(documents)
             assert isinstance(loaded_documents, list)
             all_loaded_documents.extend(loaded_documents)
