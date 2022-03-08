@@ -1,10 +1,5 @@
-from optimade.models import LinksResponse
+def test_links(get_good_response):
+    """Check /links for successful response"""
+    response = get_good_response("/links")
 
-from ..utils import EndpointTests
-
-
-class TestLinksEndpoint(EndpointTests):
-    """Tests for /links"""
-
-    request_str = "/links"
-    response_cls = LinksResponse
+    assert "data" in response

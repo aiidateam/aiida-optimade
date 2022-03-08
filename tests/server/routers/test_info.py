@@ -3,24 +3,7 @@ import pytest
 from optimade.models import (
     BaseInfoAttributes,
     EntryInfoResource,
-    ResponseMeta,
 )
-
-
-def test_info_meta(get_good_response, check_keys):
-    """Check `meta` property in response"""
-    response = get_good_response("/info")
-
-    assert "meta" in response
-    meta_required_keys = ResponseMeta.schema()["required"]
-    meta_optional_keys = list(
-        set(ResponseMeta.schema()["properties"].keys()) - set(meta_required_keys)
-    )
-    implemented_optional_keys = ["data_available", "implementation"]
-
-    check_keys(meta_required_keys, response["meta"])
-    check_keys(implemented_optional_keys, meta_optional_keys)
-    check_keys(implemented_optional_keys, response["meta"])
 
 
 def test_info_endpoint_attributes(get_good_response, check_keys):
@@ -33,22 +16,6 @@ def test_info_endpoint_attributes(get_good_response, check_keys):
     assert "attributes" in response["data"]
     attributes = list(BaseInfoAttributes.schema()["properties"].keys())
     check_keys(attributes, response["data"]["attributes"])
-
-
-def test_info_structure_meta(get_good_response, check_keys):
-    """Check `meta` property in response"""
-    response = get_good_response("/info/structures")
-
-    assert "meta" in response
-    meta_required_keys = ResponseMeta.schema()["required"]
-    meta_optional_keys = list(
-        set(ResponseMeta.schema()["properties"].keys()) - set(meta_required_keys)
-    )
-    implemented_optional_keys = ["data_available", "implementation"]
-
-    check_keys(meta_required_keys, response["meta"])
-    check_keys(implemented_optional_keys, meta_optional_keys)
-    check_keys(implemented_optional_keys, response["meta"])
 
 
 def test_info_structures_endpoint_data(get_good_response, check_keys):
@@ -127,23 +94,6 @@ def test_provider_fields(get_good_response):
             assert static_key in response.get("data", {}).get("properties", {}).get(
                 updated_field_name, {}
             )
-
-
-@pytest.mark.skip("References has not yet been implemented")
-def test_info_references_meta(get_good_response, check_keys):
-    """Check `meta` property in response"""
-    response = get_good_response("/info/reference")
-
-    assert "meta" in response
-    meta_required_keys = ResponseMeta.schema()["required"]
-    meta_optional_keys = list(
-        set(ResponseMeta.schema()["properties"].keys()) - set(meta_required_keys)
-    )
-    implemented_optional_keys = ["data_available", "implementation"]
-
-    check_keys(meta_required_keys, response["meta"])
-    check_keys(implemented_optional_keys, meta_optional_keys)
-    check_keys(implemented_optional_keys, response["meta"])
 
 
 @pytest.mark.skip("References has not yet been implemented")

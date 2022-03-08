@@ -38,7 +38,11 @@ def get_good_response(client, caplog):
             ), caplog.text
 
             assert response.status_code == 200, f"Request failed: {response.json()}"
-            response = response.json()
+
+            try:
+                response = response.json()
+            except Exception:
+                response = response
         except Exception:
             print("Request attempted:")
             print(f"{client.base_url}{client.version}{request}")
