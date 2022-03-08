@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Iterable
 
 import pytest
 
@@ -45,6 +45,22 @@ def get_good_response(client, caplog):
             raise
         else:
             return response
+
+    return inner
+
+
+@pytest.fixture
+def check_keys():
+    """Utility function to help validate dict keys"""
+
+    def inner(
+        keys: list,
+        response_subset: Iterable,
+    ):
+        for key in keys:
+            assert (
+                key in response_subset
+            ), f"{key} missing from response {response_subset}"
 
     return inner
 
