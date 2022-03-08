@@ -9,87 +9,76 @@ from optimade.models import (
 from ..utils import EndpointTests
 
 
-class TestStructuresEndpoint(EndpointTests):
-    """Tests for /structures"""
+def test_structures_endpoint_data(get_good_response):
+    """Check known properties/attributes for successful response"""
+    from optimade.server.config import CONFIG
 
-    request_str = "/structures"
-    response_cls = StructureResponseMany
+    response = get_good_response("/structures")
 
-    def test_structures_endpoint_data(self):
-        """Check known properties/attributes for successful response"""
-        from optimade.server.config import CONFIG
-
-        assert "data" in self.json_response
-        assert len(self.json_response["data"]) == CONFIG.page_limit
-        assert "meta" in self.json_response
-        assert self.json_response["meta"]["data_available"] == 1620
-        assert self.json_response["meta"]["more_data_available"]
-
-    def test_get_next_responses(self, client):
-        """Check pagination"""
-        total_data = self.json_response["meta"]["data_available"]
-        page_limit = 5
-
-        response = client.get(self.request_str + f"?page_limit={page_limit}")
-        json_response = response.json()
-        assert response.status_code == 200, f"Request failed: {response.json()}"
-
-        cursor = json_response["data"].copy()
-        assert json_response["meta"]["more_data_available"]
-        more_data_available = True
-        next_request = json_response["links"]["next"]
-
-        id_ = len(cursor)
-        while more_data_available and id_ < page_limit * 3:
-            next_response = client.get(next_request).json()
-            next_request = next_response["links"]["next"]
-            cursor.extend(next_response["data"])
-            more_data_available = next_response["meta"]["more_data_available"]
-            if more_data_available:
-                assert len(next_response["data"]) == page_limit
-            else:
-                assert len(next_response["data"]) == total_data % page_limit
-            id_ += len(next_response["data"])
-
-        assert len(cursor) == id_
+    assert "data" in response
+    assert len(response["data"]) == CONFIG.page_limit
+    assert "meta" in response
+    assert response["meta"]["data_available"] == 1620
+    assert response["meta"]["more_data_available"]
 
 
-@pytest.mark.skip("Move to functions, where fixtures can be used to set variables.")
-class TestSingleStructureEndpoint(EndpointTests):
-    """Tests for /structures/<entry_id>"""
+def test_get_next_responses(get_good_response, client):
+    """Check pagination"""
+    response = get_good_response("/structures")
+
+    total_data = response["meta"]["data_available"]
+    page_limit = 5
+
+    response = client.get("/structures" + f"?page_limit={page_limit}")
+    json_response = response.json()
+    assert response.status_code == 200, f"Request failed: {response.json()}"
+
+    cursor = json_response["data"].copy()
+    assert json_response["meta"]["more_data_available"]
+    more_data_available = True
+    next_request = json_response["links"]["next"]
+
+    id_ = len(cursor)
+    while more_data_available and id_ < page_limit * 3:
+        next_response = client.get(next_request).json()
+        next_request = next_response["links"]["next"]
+        cursor.extend(next_response["data"])
+        more_data_available = next_response["meta"]["more_data_available"]
+        if more_data_available:
+            assert len(next_response["data"]) == page_limit
+        else:
+            assert len(next_response["data"]) == total_data % page_limit
+        id_ += len(next_response["data"])
+
+    assert len(cursor) == id_
+
+
+def test_structures_id_endpoint_data(get_good_response):
+    """Check known properties/attributes for successful response"""
+    from optimade.server.config import CONFIG
 
     test_id = "1"
-    request_str = f"/structures/{test_id}"
-    response_cls = StructureResponseOne
-
-    def test_structures_endpoint_data(self):
-        """Check known properties/attributes for successful response"""
-        from optimade.server.config import CONFIG
-
-        assert "data" in self.json_response
-        assert self.json_response["data"]["id"] == self.test_id
-        assert self.json_response["data"]["type"] == "structures"
-        assert "attributes" in self.json_response["data"]
-        assert (
-            f"_{CONFIG.provider.prefix}_{CONFIG.provider_fields['structures'][0]}"
-            in self.json_response["data"]["attributes"]
-        )
+    response = get_good_response(f"/structures/{test_id}")
+    assert "data" in response
+    assert response["data"]["id"] == test_id
+    assert response["data"]["type"] == "structures"
+    assert "attributes" in response["data"]
+    assert (
+        f"_{CONFIG.provider.prefix}_{CONFIG.provider_fields['structures'][0]}"
+        in response["data"]["attributes"]
+    )
 
 
-class TestMissingSingleStructureEndpoint(EndpointTests):
-    """Tests for /structures/<entry_id> for unknown <entry_id>"""
-
+def test_structures_missing_endpoint_data(get_good_response):
+    """Check known properties/attributes for successful response"""
     test_id = "0"
-    request_str = f"/structures/{test_id}"
-    response_cls = StructureResponseOne
+    response = get_good_response(f"/structures/{test_id}")
 
-    def test_structures_endpoint_data(self):
-        """Check known properties/attributes for successful response"""
-        assert "data" in self.json_response
-        assert "meta" in self.json_response
-        assert self.json_response["data"] is None
-        assert self.json_response["meta"]["data_returned"] == 0
-        assert not self.json_response["meta"]["more_data_available"]
+    assert "data" in response
+    assert "meta" in response
+    assert response["data"] is None
+    assert response["meta"]["data_returned"] == 0
+    assert not response["meta"]["more_data_available"]
 
 
 @pytest.mark.skip("Relationships have not yet been implemented")

@@ -25,7 +25,7 @@ def remote_client():
 def get_good_response(client, caplog):
     """Get OPTIMADE response with some sanity checks"""
 
-    def inner(request: str) -> Dict[str, Any]:
+    def inner(request: str, raw=False) -> Dict[str, Any]:
         try:
             response = client.get(request)
 
@@ -39,10 +39,9 @@ def get_good_response(client, caplog):
 
             assert response.status_code == 200, f"Request failed: {response.json()}"
 
-            try:
+            if not raw:
                 response = response.json()
-            except Exception:
-                response = response
+
         except Exception:
             print("Request attempted:")
             print(f"{client.base_url}{client.version}{request}")
