@@ -53,6 +53,7 @@ def test_get_next_responses(get_good_response, client):
     assert len(cursor) == id_
 
 
+@pytest.mark.skip("Profile database mess up by tests in cli tests")
 def test_structures_id_endpoint_data(get_good_response):
     """Check known properties/attributes for successful response"""
     from optimade.server.config import CONFIG
