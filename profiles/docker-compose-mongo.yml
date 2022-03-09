@@ -10,19 +10,19 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        OPTIMADE_TOOLS_VERSION: 0.17.2
-        AIIDA_VERSION: 1.6.8
+        OPTIMADE_TOOLS_VERSION: 0.16.12
+        AIIDA_VERSION: 2.0.1
         CONFIG_FILE: aiida_optimade/config.json
     environment:
       AIIDA_PATH: /app
-      AIIDA_PROFILE: test_django
+      AIIDA_PROFILE: test_psql_dos
       FORCE_INIT:
       USE_MONGO:
       MONGO_FILENAME:
       AIIDA_OPTIMADE_LOG_LEVEL:
       OPTIMADE_MONGO_URI: 'mongodb://mongo:27017'
     volumes:
-     - '/tmp/test_repository_test_django:/app/.aiida/repository-quicksetup'
+     - '/tmp/test_repository_test_psql_dos:/app/.aiida/repository-quicksetup'
      - '.:/profiles'
      - '../.github/mongo:/app/.mongo'
     ports:

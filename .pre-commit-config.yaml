@@ -6,6 +6,13 @@ repos:
     exclude: README.md
   - id: check-yaml
   - id: check-json
+  - id: end-of-file-fixer
+    exclude: |
+      (?x)^(
+        .github/aiida/profile.yaml  |
+        .github/mongo/test_structures_mongo.json |
+        .github/workflows/ci_dependabot.yml
+      )$
 
 - repo: https://github.com/ambv/black
   rev: 22.3.0

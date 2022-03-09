@@ -1,8 +1,9 @@
 from typing import Any, List, Union
+from aiida import orm
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
 
-from aiida_optimade.common import AiidaEntityNotFound, AiidaError, LOGGER
+from aiida_optimade.common import AiidaEntityNotFound, LOGGER
 
 
 __all__ = ("AiidaEntityTranslator",)
@@ -138,41 +139,12 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
 
     def _store_attributes_node_extra(self) -> None:
         """Store new attributes in Node extras"""
-        from aiida.manage.manager import get_manager
-
         optimade = self._get_optimade_extras()
         if optimade:
             optimade.update(self.new_attributes)
         else:
             optimade = self.new_attributes
-        extras = (
-            self._get_unique_node_property("extras")
-            if self._get_unique_node_property("extras")
-            else {}
-        )
-        extras[self.EXTRAS_KEY] = optimade
 
-        profile = get_manager().get_profile()
-        LOGGER.debug(
-            "(%s) Updating Node %s in AiiDA DB!", profile.database_backend, self._pk
-        )
-        if profile.database_backend == "django":
-            from aiida.backends.djsite.db.models import DbNode
-
-            with get_manager().get_backend().transaction():
-                DbNode.objects.filter(pk=self._pk).update(extras=extras)
-        elif profile.database_backend == "sqlalchemy":
-            from aiida.backends.sqlalchemy.models.node import DbNode
-
-            with get_manager().get_backend().transaction() as session:
-                session.query(DbNode).filter(DbNode.id == self._pk).update(
-                    values={"extras": extras}
-                )
-        else:
-            raise AiidaError(
-                f'Unknown AiiDA backend "{profile.database_backend}" for profile'
-                f"{profile}"
-            )
-
-        # For posterity, this is how to do the same, going through AiiDA's API:
-        # self._node.set_extra(self.EXTRAS_KEY, optimade)
+        LOGGER.debug("Updating Node %s in AiiDA DB!", self._pk)
+        node = orm.load_node(self._pk)
+        node.set_extra(self.EXTRAS_KEY, optimade)

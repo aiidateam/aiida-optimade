@@ -17,7 +17,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     any Nodes.
     """
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -25,7 +25,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     fields = ["elements", "chemical_formula_hill"]
 
@@ -98,7 +98,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_data(original_data)
+    import_archive(original_data)
 
 
 @pytest.mark.skipif(
@@ -108,7 +108,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
 def test_calc(run_cli_command, aiida_profile, top_dir):
     """Test `aiida-optimade -p profile_name calc` works."""
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -116,7 +116,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     fields = ["elements", "chemical_formula_hill"]
 
@@ -160,7 +160,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_data(original_data)
+    import_archive(original_data)
 
 
 @pytest.mark.skipif(
@@ -170,7 +170,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
 def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_calc
     from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -178,7 +178,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     extras_key = AiidaEntityTranslator.EXTRAS_KEY
     original_data = orm.QueryBuilder().append(
@@ -257,4 +257,4 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_data(original_data)
+    import_archive(original_data)

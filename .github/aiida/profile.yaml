@@ -18,3 +18,4 @@ broker_password: guest
 broker_host: 127.0.0.1
 broker_port: 5672
 broker_virtual_host: ''
+test_profile: true
