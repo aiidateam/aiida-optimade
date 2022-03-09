@@ -1,6 +1,6 @@
 {
   "debug": true,
-  "query_group": null,
+  "query_group": "all_cifdata",
   "page_limit": 15,
   "page_limit_max": 500,
   "default_db": "aiida_optimade",
@@ -14,7 +14,7 @@
   },
   "implementation": {
     "name": "aiida-optimade",
-    "version": "1.0.1",
+    "version": "0.19.0",
     "source_url": "https://github.com/aiidateam/aiida-optimade",
     "maintainer": {"email": "casper.andersen@epfl.ch"}
   },

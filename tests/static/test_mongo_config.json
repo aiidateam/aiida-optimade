@@ -1,5 +1,6 @@
 {
     "debug": true,
+    "query_group": null,
     "page_limit": 15,
     "page_limit_max": 500,
     "default_db": "aiida_optimade",

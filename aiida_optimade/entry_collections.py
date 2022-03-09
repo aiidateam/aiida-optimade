@@ -1,8 +1,11 @@
+from typing import Any, Dict, Tuple, List, Set, Union, Optional
 import warnings
 from typing import Any, Dict, List, Set, Tuple, Union
 
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
+from aiida.orm import Group
+
 from optimade.models import EntryResource
 from optimade.server.entry_collections import EntryCollection
 from optimade.server.exceptions import BadRequest, NotFound
@@ -31,6 +34,7 @@ class AiidaCollection(EntryCollection):
     def __init__(
         self,
         entities: Union[str, List[str]],
+        group: Optional[str],
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
     ):
@@ -41,6 +45,7 @@ class AiidaCollection(EntryCollection):
         )
 
         self.entities = entities if isinstance(entities, list) else [entities]
+        self.group = group
 
         # "Cache"
         self._data_available: int = None
@@ -292,7 +297,9 @@ class AiidaCollection(EntryCollection):
         return results, more_data_available
 
     @staticmethod
-    def _prepare_query(node_types: List[str], **kwargs) -> QueryBuilder:
+    def _prepare_query(
+        node_types: List[str], group: Optional[str] = None, **kwargs
+    ) -> QueryBuilder:
         """Workhorse function to prepare an AiiDA QueryBuilder query"""
         for key in kwargs:
             if key not in {"filters", "order_by", "limit", "project", "offset"}:
@@ -310,7 +317,11 @@ class AiidaCollection(EntryCollection):
         project = kwargs.get("project", [])
 
         query = QueryBuilder(limit=limit, offset=offset)
-        query.append(Node, project=project, filters=filters)
+        if group:
+            query.append(Group, filters={"label": group}, tag="group")
+            query.append(Node, with_group="group", project=project, filters=filters)
+        else:
+            query.append(Node, project=project, filters=filters)
         query.order_by(order_by)
 
         return query
@@ -320,7 +331,7 @@ class AiidaCollection(EntryCollection):
         LOGGER.debug(
             "Using QueryBuilder to get ALL projected values from found entries."
         )
-        query = self._prepare_query(self.entities, **kwargs)
+        query = self._prepare_query(self.entities, self.group, **kwargs)
         res = query.all()
         del query
         return res
@@ -328,7 +339,7 @@ class AiidaCollection(EntryCollection):
     def _perform_count(self, **kwargs) -> int:
         """Instantiate new QueryBuilder object and perform count()"""
         LOGGER.debug("Using QueryBuilder to COUNT all found entries.")
-        query = self._prepare_query(self.entities, **kwargs)
+        query = self._prepare_query(self.entities, self.group, **kwargs)
         res = query.count()
         del query
         return res
