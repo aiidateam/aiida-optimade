@@ -48,6 +48,10 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
     from aiida import load_profile
     from aiida.cmdline.utils import echo
 
+    # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
+    # Here we use INFO loglevel for the operations
+    echo.CMDLINE_LOGGER.setLevel("INFO")
+
     filename: Path = Path(filename) if filename else filename
 
     if mongo and filename:

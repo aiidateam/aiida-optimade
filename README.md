@@ -122,7 +122,7 @@ Navigate to `http://localhost:5000/v1/info`
 
 ### With Docker
 
-Adapt `profiles/test_django.json` and `profiles/docker-compose.yml` appropriately.
+Adapt `profiles/test_psql_dos.json` and `profiles/docker-compose.yml` appropriately.
 
 ```shell
 $ docker-compose -f profiles/docker-compose.yml up --build

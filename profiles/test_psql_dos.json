@@ -1,0 +1,37 @@
+{
+    "CONFIG_VERSION": {
+        "CURRENT": 8,
+        "OLDEST_COMPATIBLE": 8
+    },
+    "default_profile": "test_psql_dos",
+    "profiles": {
+        "test_psql_dos": {
+            "storage": {
+                "backend": "psql_dos",
+                "config": {
+                    "database_engine": "postgresql_psycopg2",
+                    "database_hostname": "docker.host.internal",
+                    "database_port": 5432,
+                    "database_name": "test_psql_dos",
+                    "database_username": "postgres",
+                    "database_password": "test",
+                    "repository_uri": "file:///app/.aiida/repository-quicksetup"
+                }
+            },
+            "process_control": {
+                "backend": "rabbitmq",
+                "config": {
+                    "broker_protocol": "amqp",
+                    "broker_username": "guest",
+                    "broker_password": "guest",
+                    "broker_host": "127.0.0.1",
+                    "broker_port": 5672,
+                    "broker_virtual_host": ""
+                }
+            },
+            "options": {},
+            "test_profile": true,
+            "default_user_email": "aiida@localhost"
+        }
+    }
+}
