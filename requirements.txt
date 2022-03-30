@@ -1,5 +1,5 @@
-aiida-core~=1.6.7
-optimade[mongo]~=0.16.11
+aiida-core~=1.6.8
+optimade[mongo]~=0.16.12
 pymatgen~=2021.3
 uvicorn~=0.17.6
 
