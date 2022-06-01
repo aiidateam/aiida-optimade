@@ -2,6 +2,7 @@
   "page_limit": 15,
   "page_limit_max": 500,
   "base_url": null,
+  "root_path": null,
   "provider": {
     "prefix": "aiida",
     "name": "AiiDA",

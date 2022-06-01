@@ -64,6 +64,7 @@ if CONFIG.debug:
     LOGGER.info("DEBUG MODE")
 
 APP = FastAPI(
+    root_path=CONFIG.root_path,
     title="OPTIMADE API for AiiDA",
     description=(
         "The [Open Databases Integration for Materials Design (OPTIMADE) consortium]"
