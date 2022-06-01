@@ -42,7 +42,7 @@ from aiida_optimade.routers import (
     links,
     structures,
 )
-from aiida_optimade.utils import get_custom_base_url_path, OPEN_API_ENDPOINTS
+from aiida_optimade.utils import OPEN_API_ENDPOINTS
 
 
 if not Path(os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH)).exists():
@@ -63,7 +63,6 @@ else:
 if CONFIG.debug:
     LOGGER.info("DEBUG MODE")
 
-DOCS_ENDPOINT_PREFIX = f"{get_custom_base_url_path()}{BASE_URL_PREFIXES['major']}"
 APP = FastAPI(
     title="OPTIMADE API for AiiDA",
     description=(
@@ -75,9 +74,9 @@ APP = FastAPI(
         "reproducible."
     ),
     version=__api_version__,
-    docs_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['docs']}",
-    redoc_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['redoc']}",
-    openapi_url=f"{DOCS_ENDPOINT_PREFIX}{OPEN_API_ENDPOINTS['openapi']}",
+    docs_url=f"{BASE_URL_PREFIXES['major']}{OPEN_API_ENDPOINTS['docs']}",
+    redoc_url=f"{BASE_URL_PREFIXES['major']}{OPEN_API_ENDPOINTS['redoc']}",
+    openapi_url=f"{BASE_URL_PREFIXES['major']}{OPEN_API_ENDPOINTS['openapi']}",
 )
 
 
