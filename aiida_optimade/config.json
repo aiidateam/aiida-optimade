@@ -27,7 +27,7 @@
       "type": "node_type",
       "relationships": "attributes.something.non.existing",
       "links": "attributes.something.non.existing",
-      "meta": "attributes.someting.non.existing"
+      "meta": "attributes.something.non.existing"
     }
   }
 }
