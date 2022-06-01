@@ -1,8 +1,6 @@
 from typing import Tuple
-import urllib.parse
 
 from optimade.models import DataType
-from optimade.server.config import CONFIG
 
 
 OPEN_API_ENDPOINTS = {
