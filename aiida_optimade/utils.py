@@ -1,8 +1,6 @@
 from typing import Tuple
-import urllib.parse
 
 from optimade.models import DataType
-from optimade.server.config import CONFIG
 
 
 OPEN_API_ENDPOINTS = {
@@ -52,16 +50,3 @@ def retrieve_queryable_properties(
                 )
 
     return properties, all_properties
-
-
-def get_custom_base_url_path():
-    """Return path part of custom base URL"""
-    if CONFIG.base_url is not None:
-        res = urllib.parse.urlparse(CONFIG.base_url).path
-    else:
-        res = urllib.parse.urlparse(CONFIG.base_url).path.decode()
-
-    while res.endswith("/"):
-        res = res[:-1]
-
-    return res
