@@ -2,6 +2,7 @@
   "page_limit": 15,
   "page_limit_max": 500,
   "base_url": null,
+  "root_path": null,
   "provider": {
     "prefix": "aiida",
     "name": "AiiDA",
@@ -27,7 +28,7 @@
       "type": "node_type",
       "relationships": "attributes.something.non.existing",
       "links": "attributes.something.non.existing",
-      "meta": "attributes.someting.non.existing"
+      "meta": "attributes.something.non.existing"
     }
   }
 }
