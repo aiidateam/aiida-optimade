@@ -34,15 +34,21 @@ def retrieve_queryable_properties(
             else:
                 all_properties[name] = value
                 properties[name] = {"description": value.get("description", "")}
-                for extra_key in ["unit"]:
-                    if extra_key in value:
-                        properties[name][extra_key] = value[extra_key]
+                for extra_key in (
+                    "x-optimade-unit",
+                    "x-optimade-queryable",
+                    "x-optimade-support",
+                ):
+                    if value.get(extra_key) is not None:
+                        properties[name][extra_key.replace("x-optimade-", "")] = value[
+                            extra_key
+                        ]
                 # AiiDA's QueryBuilder can sort everything that isn't a list (array)
                 # or dict (object)
                 properties[name]["sortable"] = value.get("type", "") not in [
                     "array",
                     "object",
-                ]
+                ] and value.get("x-optimade-sortable", True)
                 # Try to get OpenAPI-specific "format" if possible,
                 # else get "type"; a mandatory OpenAPI key.
                 properties[name]["type"] = DataType.from_json_type(
