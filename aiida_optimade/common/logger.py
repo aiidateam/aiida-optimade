@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import sys
 
-from uvicorn.logging import DefaultFormatter
+from uvicorn._logging import DefaultFormatter
 
 
 @contextmanager
