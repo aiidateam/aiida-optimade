@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Iterable
 
 import pytest
 
@@ -25,7 +25,7 @@ def remote_client():
 def get_good_response(client, caplog):
     """Get OPTIMADE response with some sanity checks"""
 
-    def inner(request: str) -> Dict[str, Any]:
+    def inner(request: str, raw=False) -> Dict[str, Any]:
         try:
             response = client.get(request)
 
@@ -38,13 +38,32 @@ def get_good_response(client, caplog):
             ), caplog.text
 
             assert response.status_code == 200, f"Request failed: {response.json()}"
-            response = response.json()
+
+            if not raw:
+                response = response.json()
+
         except Exception:
             print("Request attempted:")
             print(f"{client.base_url}{client.version}{request}")
             raise
         else:
             return response
+
+    return inner
+
+
+@pytest.fixture
+def check_keys():
+    """Utility function to help validate dict keys"""
+
+    def inner(
+        keys: list,
+        response_subset: Iterable,
+    ):
+        for key in keys:
+            assert (
+                key in response_subset
+            ), f"{key} missing from response {response_subset}"
 
     return inner
 
