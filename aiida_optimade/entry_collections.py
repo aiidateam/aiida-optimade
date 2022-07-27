@@ -373,7 +373,7 @@ class AiidaCollection(EntryCollection):
             cursor_kwargs["order_by"] = cursor_kwargs.pop("sort")
 
         # page_offset
-        if cursor_kwargs.get("skip", False):
+        if "skip" in cursor_kwargs:
             cursor_kwargs["offset"] = cursor_kwargs.pop("skip")
 
         return cursor_kwargs
