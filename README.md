@@ -150,3 +150,8 @@ To learn more about this, see the [`optimade-python-tools`](https://github.com/M
 
 **Q: Why create an individual `config.json` file instead of just mounting an existing `.aiida` directory and using that directly?**  
 **A:** This, currently, wouldn't work because the `REPOSITORY_URI` needs to point to the right path *inside* the container, not on the host. Furthermore, storing all configurations in the same file can be fragile.
+
+## For mantainers
+
+To release the new version, go to GitHub release API of the repo create a new release and update the release information. 
+The release action will be triggered by newly created release.
