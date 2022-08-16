@@ -155,3 +155,5 @@ To learn more about this, see the [`optimade-python-tools`](https://github.com/M
 
 To release the new version, go to GitHub release API of the repo create a new release and update the release information. 
 The release action will be triggered by newly created release.
+Note, the tag should start with a `v` and be followed by a full semantic version (see [SemVer](https://semver.org)).
+For example: `v2.3.12`.
