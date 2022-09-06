@@ -417,7 +417,7 @@ def test_count_filter(caplog):
     }
 
     # Changing filters' "node_type" shouldn't result in a new QueryBuilder call
-    filters["node_type"] = {"==": "data.structure.StructureData."}
+    filters["node_type"] = {"==": "data.core.structure.StructureData."}
     count_two = STRUCTURES.count(filters=filters)
     assert "self._count is None" not in caplog.text
     assert "was not the same as was found in self._count" not in caplog.text
@@ -425,7 +425,7 @@ def test_count_filter(caplog):
     caplog.clear()
     # _find method is not called, so the updated node_type shouldn't change after
     # count()
-    assert filters["node_type"] == {"==": "data.structure.StructureData."}
+    assert filters["node_type"] == {"==": "data.core.structure.StructureData."}
     assert count_one == count_two
     assert STRUCTURES._count == {
         "count": count_two,

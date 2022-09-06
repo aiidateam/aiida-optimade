@@ -24,7 +24,7 @@ from aiida_optimade.routers.utils import get_entries, get_single_entry, close_se
 ROUTER = APIRouter(redirect_slashes=True)
 
 STRUCTURES = AiidaCollection(
-    entities=["data.cif.CifData.", "data.structure.StructureData."],
+    entities=["data.core.cif.CifData.", "data.core.structure.StructureData."],
     resource_cls=StructureResource,
     resource_mapper=StructureMapper,
 )
