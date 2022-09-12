@@ -6,6 +6,7 @@ repos:
     exclude: README.md
   - id: check-yaml
   - id: check-json
+  - id: end-of-file-fixer
 
 - repo: https://github.com/ambv/black
   rev: 22.6.0

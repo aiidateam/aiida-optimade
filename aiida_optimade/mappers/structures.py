@@ -22,8 +22,8 @@ class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
     TRANSLATORS: Dict[str, AiidaEntityTranslator] = {
-        "data.cif.CifData.": CifDataTranslator,
-        "data.structure.StructureData.": StructureDataTranslator,
+        "data.core.cif.CifData.": CifDataTranslator,
+        "data.core.structure.StructureData.": StructureDataTranslator,
     }
     REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`

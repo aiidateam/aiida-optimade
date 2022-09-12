@@ -40,6 +40,10 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
     from aiida import load_profile
     from aiida.cmdline.utils import echo
 
+    # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
+    # Here we use INFO loglevel for the operations
+    echo.CMDLINE_LOGGER.setLevel("INFO")
+
     try:
         profile: str = obj.get("profile").name
     except AttributeError:

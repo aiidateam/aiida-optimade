@@ -44,8 +44,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
-        backend: ['django', 'sqlalchemy']
+        python-version: ['3.8', '3.9', '3.10']
+        backend: ['psql_dos']
 
     services:
       mongo:
@@ -53,7 +53,7 @@ jobs:
         ports:
           - 27017:27017
       postgres:
-        image: postgres:10
+        image: postgres:12
         env:
           POSTGRES_DB: test_${{ matrix.backend }}
           POSTGRES_PASSWORD: test
@@ -80,7 +80,6 @@ jobs:
         python -m pip install -U pip
         pip install -U setuptools
         pip install -e .[testing]
-        reentry scan
 
     - name: Setup up environment for AiiDA
       env:
@@ -133,9 +132,9 @@ jobs:
         ports:
         - 27017:27017
       postgres:
-        image: postgres:10
+        image: postgres:12
         env:
-          POSTGRES_DB: test_django
+          POSTGRES_DB: test_psql_dos
           POSTGRES_PASSWORD: test
         options: >-
           --health-cmd pg_isready
@@ -165,19 +164,18 @@ jobs:
         done < requirements.txt
 
         pip install ${aiida_core}
-        reentry scan
 
         pip install pymongo
 
     - name: Setup up environment for AiiDA
       env:
-        AIIDA_TEST_BACKEND: django
+        AIIDA_TEST_BACKEND: psql_dos
       run: .github/aiida/setup_aiida.sh
 
     - name: Load test data
       run: |
         if [ "${{ matrix.database }}" == "aiida" ]; then
-          verdi import --migration --non-interactive .github/aiida/optimade.aiida
+          verdi archive import --migration .github/aiida/optimade.aiida
         else
             .github/mongo/load_data.py
         fi
@@ -209,9 +207,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:10
+        image: postgres:12
         env:
-          POSTGRES_DB: test_django
+          POSTGRES_DB: test_psql_dos
           POSTGRES_PASSWORD: test
         options: >-
           --health-cmd pg_isready
@@ -241,15 +239,14 @@ jobs:
         done < requirements.txt
 
         pip install ${aiida_core}
-        reentry scan
 
     - name: Setup up environment for AiiDA
       env:
-        AIIDA_TEST_BACKEND: django
+        AIIDA_TEST_BACKEND: psql_dos
       run: .github/aiida/setup_aiida.sh
 
     - name: Load test data (AiiDA)
-      run: verdi import --migration --non-interactive .github/aiida/optimade.aiida
+      run: verdi archive import --migration .github/aiida/optimade.aiida
 
     - name: Build docker image
       run: docker-compose -f profiles/docker-compose-mongo.yml build --build-arg CONFIG_FILE=".github/mongo/ci_config.json"
@@ -279,9 +276,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:10
+        image: postgres:12
         env:
-          POSTGRES_DB: test_django
+          POSTGRES_DB: test_psql_dos
           POSTGRES_PASSWORD: test
         options: >-
           --health-cmd pg_isready
@@ -311,11 +308,10 @@ jobs:
         done < requirements.txt
 
         pip install ${aiida_core}
-        reentry scan
 
     - name: Setup up environment for AiiDA
       env:
-        AIIDA_TEST_BACKEND: django
+        AIIDA_TEST_BACKEND: psql_dos
       run: .github/aiida/setup_aiida.sh
 
     - name: Build docker image

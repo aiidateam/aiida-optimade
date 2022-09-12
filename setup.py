@@ -20,7 +20,7 @@ setup(
     long_description=open(MODULE_DIR.joinpath("README.md")).read(),
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["tests", "profiles"]),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=REQUIREMENTS,
     extras_require={"dev": DEV, "testing": TESTING},
     entry_points={

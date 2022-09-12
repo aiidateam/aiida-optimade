@@ -83,10 +83,12 @@ def test_log_level_warning(run_and_terminate_server):
 
 def test_non_valid_log_level(run_and_terminate_server):
     """Test passing a non-valid log level to `aiida-optimade run`"""
-    options = ["--log-level", "test"]
+    options = ["--log-level", "novalidloglevel"]
     output, errors = run_and_terminate_server(command="run", options=options)
     assert not output, f"output: {output!r}, errors: {errors!r}"
-    assert "invalid choice: test" in errors, f"output: {output!r}, errors: {errors!r}"
+    assert (
+        "Invalid value for '--log-level': 'novalidloglevel' is not one of" in errors
+    ), f"output: {output!r}, errors: {errors!r}"
 
 
 @pytest.mark.skip(
