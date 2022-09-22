@@ -1,14 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/aiidateam/aiida-optimade/tree/HEAD)
+## [v1.0.0](https://github.com/aiidateam/aiida-optimade/tree/v1.0.0) (2022-09-12)
 
-[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v0.20.0...HEAD)
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v0.20.0...v1.0.0)
 
-**Closed issues:**
+**Merged pull requests:**
 
-- Add support to python 3.10  [\#359](https://github.com/aiidateam/aiida-optimade/issues/359)
+- Update dependencies [\#378](https://github.com/aiidateam/aiida-optimade/pull/378) ([CasperWA](https://github.com/CasperWA))
+- Update readme with how to release [\#374](https://github.com/aiidateam/aiida-optimade/pull/374) ([unkcpz](https://github.com/unkcpz))
+- Migrate to aiida-core 2.0 [\#331](https://github.com/aiidateam/aiida-optimade/pull/331) ([unkcpz](https://github.com/unkcpz))
 
-## [v0.20.0](https://github.com/aiidateam/aiida-optimade/tree/v0.20.0) (2022-07-27)
+## [v0.20.0](https://github.com/aiidateam/aiida-optimade/tree/v0.20.0) (2022-08-12)
 
 [Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v0.19.0...v0.20.0)
 
@@ -20,6 +22,7 @@
 
 **Closed issues:**
 
+- Add support to python 3.10  [\#359](https://github.com/aiidateam/aiida-optimade/issues/359)
 - Update CI/CD to be more automatic [\#288](https://github.com/aiidateam/aiida-optimade/issues/288)
 
 **Merged pull requests:**

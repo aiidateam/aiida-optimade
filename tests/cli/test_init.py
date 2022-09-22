@@ -16,7 +16,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     Also, check the `-f/--force` option.
     """
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_init
     from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -25,7 +25,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     aiida_profile.reset_db()
 
     archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
@@ -84,7 +84,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_data(original_data)
+    import_archive(original_data)
 
 
 @pytest.mark.skipif(
@@ -94,7 +94,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
 def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_init
     from aiida_optimade.translators.entities import AiidaEntityTranslator
@@ -103,7 +103,7 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     aiida_profile.reset_db()
 
     archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     n_cif_data = orm.QueryBuilder().append(orm.CifData).count()
 
@@ -138,7 +138,7 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_data(original_data)
+    import_archive(original_data)
 
 
 @pytest.mark.skipif(
@@ -151,7 +151,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     """
     import bson.json_util
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_init
     from aiida_optimade.routers.structures import STRUCTURES_MONGO
@@ -162,7 +162,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     STRUCTURES_MONGO.collection.drop()
 
     archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
@@ -223,7 +223,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 
     # Repopulate databases with the "proper" test data
     aiida_profile.reset_db()
-    import_data(top_dir.joinpath("tests/static/test_structures.aiida"))
+    import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
     STRUCTURES_MONGO.collection.drop()
     with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
         data = bson.json_util.loads(handle.read())
@@ -237,7 +237,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
     import bson.json_util
     from aiida import orm
-    from aiida.tools.importexport import import_data
+    from aiida.tools.archive.imports import import_archive
 
     from aiida_optimade.cli import cmd_init
     from aiida_optimade.routers.structures import STRUCTURES_MONGO
@@ -248,7 +248,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     STRUCTURES_MONGO.collection.drop()
 
     archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
-    import_data(archive)
+    import_archive(archive)
 
     n_cif_data = orm.QueryBuilder().append(orm.CifData).count()
 
@@ -284,7 +284,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    import_data(top_dir.joinpath("tests/static/test_structures.aiida"))
+    import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
     STRUCTURES_MONGO.collection.drop()
     with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
         data = bson.json_util.loads(handle.read())

@@ -6,9 +6,10 @@ repos:
     exclude: README.md
   - id: check-yaml
   - id: check-json
+  - id: end-of-file-fixer
 
 - repo: https://github.com/ambv/black
-  rev: 22.6.0
+  rev: 22.8.0
   hooks:
   - id: black
     name: Blacken
