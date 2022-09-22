@@ -11,6 +11,7 @@ from optimade.models import (
     EntryInfoResponse,
 )
 from optimade.server.routers.utils import meta_values
+from optimade.server.config import CONFIG
 
 from aiida_optimade.models import StructureResource
 from aiida_optimade.utils import retrieve_queryable_properties
@@ -36,7 +37,9 @@ def get_info(request: Request):
     base_url = get_base_url(parse_result)
 
     return InfoResponse(
-        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
+        meta=meta_values(
+            str(request.url), 1, 1, more_data_available=False, schema=CONFIG.schema_url
+        ),
         data=BaseInfoResource(
             id=BaseInfoResource.schema()["properties"]["id"]["default"],
             type=BaseInfoResource.schema()["properties"]["type"]["default"],
@@ -89,7 +92,9 @@ def get_info_entry(request: Request, entry: str):
     output_fields_by_format = {"json": list(properties.keys())}
 
     return EntryInfoResponse(
-        meta=meta_values(str(request.url), 1, 1, more_data_available=False),
+        meta=meta_values(
+            str(request.url), 1, 1, more_data_available=False, schema=CONFIG.schema_url
+        ),
         data=EntryInfoResource(
             formats=list(output_fields_by_format.keys()),
             description=schema.get(
