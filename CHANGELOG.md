@@ -1,6 +1,14 @@
 # Changelog
 
-## [v1.0.0](https://github.com/aiidateam/aiida-optimade/tree/v1.0.0) (2022-09-12)
+## [v1.0.1](https://github.com/aiidateam/aiida-optimade/tree/v1.0.1) (2022-09-22)
+
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.0.0...v1.0.1)
+
+**Merged pull requests:**
+
+- Update optimade\[mongo\] requirement from ~=0.18.0 to ~=0.19.2 \(\#375\) [\#383](https://github.com/aiidateam/aiida-optimade/pull/383) ([unkcpz](https://github.com/unkcpz))
+
+## [v1.0.0](https://github.com/aiidateam/aiida-optimade/tree/v1.0.0) (2022-09-21)
 
 [Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v0.20.0...v1.0.0)
 
