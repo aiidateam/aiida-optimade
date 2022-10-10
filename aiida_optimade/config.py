@@ -1,8 +1,7 @@
 from typing import Optional
 
-from pydantic import Field
-
 from optimade.server.config import ServerConfig
+from pydantic import Field
 
 
 class CustomServerConfig(ServerConfig):

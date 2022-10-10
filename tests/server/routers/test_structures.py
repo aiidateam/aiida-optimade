@@ -1,4 +1,5 @@
 import os
+
 import pytest
 from optimade.models import (
     ReferenceResource,

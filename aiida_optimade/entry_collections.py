@@ -1,11 +1,9 @@
-from typing import Any, Dict, Tuple, List, Set, Union, Optional
 import warnings
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+from aiida.orm import Group
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
-from aiida.orm import Group
-
 from optimade.models import EntryResource
 from optimade.server.entry_collections import EntryCollection
 from optimade.server.exceptions import BadRequest, NotFound
