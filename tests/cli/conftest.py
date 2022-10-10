@@ -1,8 +1,8 @@
 """Pytest fixtures for command line interface tests."""
 # pylint: disable=redefined-outer-name,import-error
 import os
-from subprocess import Popen, PIPE, TimeoutExpired
 import signal
+from subprocess import PIPE, Popen, TimeoutExpired
 from time import sleep
 from typing import List, Tuple
 

@@ -46,6 +46,7 @@ from aiida_optimade.cli.options import LOGGING_LEVELS
 def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bool):
     """Run AiiDA-OPTIMADE server."""
     import os
+
     import uvicorn
 
     if obj.get("dev", False):

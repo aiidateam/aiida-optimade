@@ -3,7 +3,6 @@ from lark import v_args
 from optimade.filtertransformers import BaseTransformer, Quantity
 from optimade.server.exceptions import BadRequest
 
-
 __all__ = ("AiidaTransformer",)
 
 

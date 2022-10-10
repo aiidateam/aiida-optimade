@@ -2,18 +2,16 @@
 import json
 import re
 import typing
-from urllib.parse import urlparse
 import warnings
+from urllib.parse import urlparse
 
-from requests import Response
-
-from fastapi.testclient import TestClient
-from pydantic import BaseModel
 import pytest
-from starlette import testclient
-
+from fastapi.testclient import TestClient
 from optimade import __api_version__
 from optimade.models import ResponseMeta
+from pydantic import BaseModel
+from requests import Response
+from starlette import testclient
 
 
 class OptimadeTestClient(TestClient):

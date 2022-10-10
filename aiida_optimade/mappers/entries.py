@@ -5,7 +5,6 @@ from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 
-
 __all__ = ("ResourceMapper",)
 
 

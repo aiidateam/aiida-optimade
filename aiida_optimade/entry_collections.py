@@ -1,16 +1,14 @@
-from typing import Any, Dict, Tuple, List, Set, Union
 import warnings
-
-from tqdm import tqdm
+from typing import Any, Dict, List, Set, Tuple, Union
 
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
-
 from optimade.models import EntryResource
 from optimade.server.entry_collections import EntryCollection
 from optimade.server.exceptions import BadRequest, NotFound
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
 from optimade.server.warnings import UnknownProviderProperty
+from tqdm import tqdm
 
 from aiida_optimade.common import CausationError
 from aiida_optimade.common.logger import LOGGER

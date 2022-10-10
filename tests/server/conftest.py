@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 import re
-from typing import Any, Dict, List, Iterable
+from typing import Any, Dict, Iterable, List
 
 import pytest
 

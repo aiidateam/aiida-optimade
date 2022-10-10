@@ -1,9 +1,9 @@
 """Logging to both file and widget"""
-from contextlib import contextmanager
 import logging
 import os
-from pathlib import Path
 import sys
+from contextlib import contextmanager
+from pathlib import Path
 
 from uvicorn.logging import DefaultFormatter
 

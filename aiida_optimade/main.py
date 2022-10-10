@@ -1,20 +1,17 @@
 import json
 import os
-from pathlib import Path
 import warnings
+from pathlib import Path
+
 import bson.json_util
-
-from lark.exceptions import VisitError
-
-from pydantic import ValidationError
+from aiida import load_profile
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
-from aiida import load_profile
-
+from lark.exceptions import VisitError
 from optimade import __api_version__
+from pydantic import ValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 with warnings.catch_warnings(record=True) as w:
     from optimade.server.config import (
@@ -27,23 +24,18 @@ with warnings.catch_warnings(record=True) as w:
 
 import optimade.server.exception_handlers as exc_handlers
 from optimade.server.middleware import (
-    EnsureQueryParamIntegrity,
-    CheckWronglyVersionedBaseUrls,
-    HandleApiHint,
     AddWarnings,
+    CheckWronglyVersionedBaseUrls,
+    EnsureQueryParamIntegrity,
+    HandleApiHint,
 )
 from optimade.server.routers import versions
 from optimade.server.routers.utils import BASE_URL_PREFIXES, mongo_id_for_database
 
 from aiida_optimade.common import LOGGER
 from aiida_optimade.middleware import RedirectOpenApiDocs
-from aiida_optimade.routers import (
-    info,
-    links,
-    structures,
-)
+from aiida_optimade.routers import info, links, structures
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
-
 
 if not Path(os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH)).exists():
     LOGGER.warning(  # pragma: no cover

@@ -1,7 +1,6 @@
 """Test middleware"""
 # pylint: disable=import-error
 import pytest
-
 from optimade import __api_version__
 
 
@@ -21,6 +20,7 @@ def test_redirect_docs(version: str):
     be redirected to vMAJOR urls.
     """
     from urllib.parse import urljoin
+
     from aiida_optimade.utils import OPEN_API_ENDPOINTS
 
     from .utils import client_factory

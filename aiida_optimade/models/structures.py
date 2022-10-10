@@ -1,12 +1,11 @@
 # pylint: disable=missing-class-docstring,too-few-public-methods
 from datetime import datetime
 
-from pydantic import Field
-
+from optimade.models import StructureResource as OptimadeStructureResource
 from optimade.models import (
-    StructureResource as OptimadeStructureResource,
     StructureResourceAttributes as OptimadeStructureResourceAttributes,
 )
+from pydantic import Field
 
 
 def prefix_provider(string: str) -> str:

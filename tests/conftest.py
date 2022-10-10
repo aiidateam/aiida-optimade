@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 import pytest
-
 from aiida.manage.tests import TestManager
 
 
@@ -72,6 +71,7 @@ def aiida_profile(top_dir, setup_config) -> TestManager:
                     f"set to {test_env_var}"
                 )
                 import bson.json_util
+
                 from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
                 STRUCTURES_MONGO.collection.drop()

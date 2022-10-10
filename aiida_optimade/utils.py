@@ -2,7 +2,6 @@ from typing import Tuple
 
 from optimade.models import DataType
 
-
 OPEN_API_ENDPOINTS = {
     "docs": "/extensions/docs",
     "redoc": "/extensions/redoc",

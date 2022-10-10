@@ -1,10 +1,10 @@
 from typing import Any, List, Union
+
 from aiida import orm
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
 
-from aiida_optimade.common import AiidaEntityNotFound, LOGGER
-
+from aiida_optimade.common import LOGGER, AiidaEntityNotFound
 
 __all__ = ("AiidaEntityTranslator",)
 
@@ -81,6 +81,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
     def _store_attributes_mongo(self) -> None:
         """Store new attributes in MongoDB collection"""
         import bson.json_util
+
         from aiida_optimade.routers.structures import STRUCTURES_MONGO
         from aiida_optimade.translators.utils import hex_to_floats
 

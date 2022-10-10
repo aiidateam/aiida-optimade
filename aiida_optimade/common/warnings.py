@@ -1,6 +1,5 @@
 from optimade.server.warnings import OptimadeWarning
 
-
 __all__ = ("AiidaOptimadeWarning", "NotImplementedWarning")
 
 
