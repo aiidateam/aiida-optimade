@@ -30,3 +30,8 @@ repos:
   rev: '3.9.2'
   hooks:
   - id: flake8
+
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v3.8.3
+    hooks:
+    -   id: reorder-python-imports
