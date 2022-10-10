@@ -1,12 +1,12 @@
 # pylint: disable=protected-access,too-many-statements
 from pathlib import Path
-from typing import Generator, IO, Iterator, List, Union
+from typing import IO, Generator, Iterator, List, Union
 
 import click
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
-from aiida_optimade.common.logger import disable_logging, LOGGER
+from aiida_optimade.common.logger import LOGGER, disable_logging
 
 
 @cli.command()
@@ -69,6 +69,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
 
             if mongo:
                 from optimade.server.config import CONFIG, SupportedBackend
+
                 from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
         if force:

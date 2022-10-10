@@ -2,7 +2,7 @@
 import json
 import os
 import signal
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import PIPE, Popen, TimeoutExpired
 from time import sleep
 
 import pytest

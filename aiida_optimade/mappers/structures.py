@@ -1,19 +1,17 @@
-from typing import Dict
 import warnings
+from typing import Dict
 
 from optimade.server.config import CONFIG, SupportedBackend
 
 from aiida_optimade.common import NotImplementedWarning
-from aiida_optimade.models import StructureResourceAttributes, StructureResource
+from aiida_optimade.mappers.entries import ResourceMapper
+from aiida_optimade.models import StructureResource, StructureResourceAttributes
 from aiida_optimade.translators import (
-    hex_to_floats,
     AiidaEntityTranslator,
     CifDataTranslator,
     StructureDataTranslator,
+    hex_to_floats,
 )
-
-from aiida_optimade.mappers.entries import ResourceMapper
-
 
 __all__ = ("StructureMapper",)
 

@@ -1,10 +1,9 @@
 import urllib.parse
 
+from optimade.server.routers.utils import BASE_URL_PREFIXES
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
-
-from optimade.server.routers.utils import BASE_URL_PREFIXES
 
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
 

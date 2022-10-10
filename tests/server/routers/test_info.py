@@ -1,9 +1,5 @@
 import pytest
-
-from optimade.models import (
-    BaseInfoAttributes,
-    EntryInfoResource,
-)
+from optimade.models import BaseInfoAttributes, EntryInfoResource
 
 
 def test_info_endpoint_attributes(get_good_response, check_keys):

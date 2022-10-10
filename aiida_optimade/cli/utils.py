@@ -1,8 +1,7 @@
 from typing import List
 
-from aiida.common.exceptions import MissingConfigurationError, ConfigurationError
+from aiida.common.exceptions import ConfigurationError, MissingConfigurationError
 from aiida.manage.configuration import get_config
-
 
 AIIDA_OPTIMADE_TEST_PROFILE = "aiida-optimade_test"
 

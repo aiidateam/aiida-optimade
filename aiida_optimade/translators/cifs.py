@@ -5,7 +5,6 @@ from aiida.orm.nodes.data.structure import StructureData
 
 from aiida_optimade.translators.structures import StructureDataTranslator
 
-
 __all__ = ("CifDataTranslator",)
 
 

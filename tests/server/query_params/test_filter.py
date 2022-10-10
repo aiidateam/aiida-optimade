@@ -1,6 +1,7 @@
 """Test the `filters` query parameter."""
 # pylint: disable=missing-function-docstring,protected-access,import-error,too-many-statements
 import os
+
 import pytest
 
 
@@ -456,9 +457,10 @@ def test_count_filter(caplog):
 )
 def test_querybuilder_calls(caplog, get_valid_id):
     """Check the expected number of QueryBuilder calls are respected"""
-    from aiida_optimade.routers.structures import STRUCTURES
     from fastapi.params import Query
     from optimade.server.query_params import EntryListingQueryParams
+
+    from aiida_optimade.routers.structures import STRUCTURES
 
     def _set_params(params: EntryListingQueryParams) -> EntryListingQueryParams:
         """Utility function to set all query parameter defaults"""

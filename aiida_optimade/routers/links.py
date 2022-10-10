@@ -3,8 +3,7 @@
 from typing import Union
 
 from fastapi import APIRouter, Depends, Request
-
-from optimade.models import ErrorResponse, LinksResponse, LinksResource
+from optimade.models import ErrorResponse, LinksResource, LinksResponse
 from optimade.server.config import CONFIG
 from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.mappers import LinksMapper

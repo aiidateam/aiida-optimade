@@ -1,15 +1,9 @@
 import functools
 import urllib.parse
-
 from typing import Union
 
 from fastapi import HTTPException, Request
-
-from optimade.models import (
-    EntryResponseMany,
-    EntryResponseOne,
-    ToplevelLinks,
-)
+from optimade.models import EntryResponseMany, EntryResponseOne, ToplevelLinks
 from optimade.server.config import CONFIG
 from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams

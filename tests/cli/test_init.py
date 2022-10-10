@@ -294,6 +294,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
 def test_get_documents(top_dir):
     """Test get_documents()"""
     import bson.json_util
+
     from aiida_optimade.cli.cmd_init import get_documents, read_chunks
 
     archive = top_dir.joinpath("tests/static/test_structures_mongo.json").resolve()
@@ -322,6 +323,7 @@ def test_get_documents_bad_file(bad_file):
     def load_documents(handle, all_loaded_documents):
         """Helper function for test"""
         import bson.json_util
+
         from aiida_optimade.cli.cmd_init import get_documents, read_chunks
 
         for documents in get_documents(read_chunks(handle, chunk_size=2)):

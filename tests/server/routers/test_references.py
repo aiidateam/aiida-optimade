@@ -1,5 +1,4 @@
 import pytest
-
 from optimade.models import ReferenceResponseMany, ReferenceResponseOne
 
 from ..utils import EndpointTests

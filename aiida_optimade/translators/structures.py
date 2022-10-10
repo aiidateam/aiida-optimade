@@ -1,19 +1,18 @@
 # pylint: disable=line-too-long,too-many-public-methods
 import itertools
 from math import fsum
-
 from typing import Any, List, Union
+
 from aiida.orm.nodes.data.structure import StructureData
 from optimade.models.utils import ANONYMOUS_ELEMENTS
 
-from aiida_optimade.common import OptimadeIntegrityError, AiidaError
+from aiida_optimade.common import AiidaError, OptimadeIntegrityError
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 from aiida_optimade.translators.utils import (
     check_floating_round_errors,
     floats_to_hex,
     hex_to_floats,
 )
-
 
 __all__ = ("StructureDataTranslator",)
 
@@ -94,7 +93,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def get_formula(self, mode="hill", separator=""):
         """Copy of aiida.orm.StructureData:get_formula()"""
-        from aiida.orm.nodes.data.structure import get_symbols_string, get_formula
+        from aiida.orm.nodes.data.structure import get_formula, get_symbols_string
 
         kind = None
         symbol_list = []

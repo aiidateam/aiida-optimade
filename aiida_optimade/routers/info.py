@@ -3,19 +3,13 @@ import urllib
 from typing import Union
 
 from fastapi import APIRouter, HTTPException, Request
-
 from optimade import __api_version__
-from optimade.models import (
-    ErrorResponse,
-    InfoResponse,
-    EntryInfoResponse,
-)
-from optimade.server.routers.utils import meta_values
+from optimade.models import EntryInfoResponse, ErrorResponse, InfoResponse
 from optimade.server.config import CONFIG
+from optimade.server.routers.utils import meta_values
 
 from aiida_optimade.models import StructureResource
 from aiida_optimade.utils import retrieve_queryable_properties
-
 
 ROUTER = APIRouter(redirect_slashes=True)
 
@@ -30,7 +24,7 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
     tags=["Info"],
 )
 def get_info(request: Request):
-    from optimade.models import BaseInfoResource, BaseInfoAttributes
+    from optimade.models import BaseInfoAttributes, BaseInfoResource
     from optimade.server.routers.utils import get_base_url
 
     parse_result = urllib.parse.urlparse(str(request.url))

@@ -1,15 +1,14 @@
+import pytest
 from optimade.models import (
+    EntryInfoResponse,
     InfoResponse,
     LinksResponse,
-    EntryInfoResponse,
     ReferenceResponseMany,
     ReferenceResponseOne,
+    ResponseMeta,
     StructureResponseMany,
     StructureResponseOne,
 )
-from optimade.models import ResponseMeta
-
-import pytest
 
 
 @pytest.mark.parametrize(

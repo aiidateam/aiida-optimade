@@ -2,10 +2,9 @@ import os
 from pathlib import Path
 
 import click
-
 from aiida.cmdline.params.options import PROFILE as VERDI_PROFILE
 from aiida.cmdline.params.types import ProfileParamType as VerdiProfileParamType
-from aiida.manage.configuration import get_config, Profile
+from aiida.manage.configuration import Profile, get_config
 
 from aiida_optimade.cli.options import AIIDA_PROFILES
 from aiida_optimade.cli.utils import AIIDA_OPTIMADE_TEST_PROFILE
