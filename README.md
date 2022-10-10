@@ -155,12 +155,12 @@ To learn more about this, see the [`optimade-python-tools`](https://github.com/M
 
 ## Design choices
 
-**Q: Why create an individual `config.json` file instead of just mounting an existing `.aiida` directory and using that directly?**  
+**Q: Why create an individual `config.json` file instead of just mounting an existing `.aiida` directory and using that directly?**
 **A:** This, currently, wouldn't work because the `REPOSITORY_URI` needs to point to the right path *inside* the container, not on the host. Furthermore, storing all configurations in the same file can be fragile.
 
 ## For maintainers
 
-To release the new version, go to GitHub release API of the repo create a new release and update the release information. 
+To release the new version, go to GitHub release API of the repo create a new release and update the release information.
 The release action will be triggered by newly created release.
 Note, the tag should start with a `v` and be followed by a full semantic version (see [SemVer](https://semver.org)).
 For example: `v2.3.12`.
