@@ -110,7 +110,7 @@ jobs:
         AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
         AIIDA_PROFILE: test_${{ matrix.backend }}
         PYTEST_OPTIMADE_CONFIG_FILE: ./tests/static/test_data_curation_config.json
-      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml --durations=20 tests/server/routers/test_structures.py::TestStructuresGroupEndpoint
+      run: pytest -v --cov=./aiida_optimade/ --cov-report=xml --durations=20 tests/server/routers/test_structures.py::test_structures_endpoint_data
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == 3.8
