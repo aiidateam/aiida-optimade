@@ -153,11 +153,11 @@ You can configure the server with the `aiida_optimade/config.json` file or set c
 
 To learn more about this, see the [`optimade-python-tools`](https://github.com/Materials-Consortia/optimade-python-tools) repository.
 
-### Using AiiDA group for data curated
+### Using AiiDA group for curated data
 
-The [AiiDA group](https://aiida.readthedocs.io/projects/aiida-core/en/latest/howto/data.html#organizing-data) can be used to curated data and server in bias. 
-By setting the `query_group` in `config.json` can only server the structure data from the group.
-Set the `query_group` parameter to `null` (default) to server all structure data from the database.
+An [AiiDA Group](https://aiida.readthedocs.io/projects/aiida-core/en/latest/howto/data.html#organizing-data) can be used to curate data and server only this curated data through the OPTIMADE server. 
+Setting the `query_group` option in `config.json` will ensure only the valid (`StructureData`, `CifData`) data nodes in the given AiiDA Group will be served.
+Set the `query_group` parameter to `null` (default) to serve all structure data from the database.
 
 ## Design choices
 
