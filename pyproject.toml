@@ -51,7 +51,7 @@ dependencies = [
 #   fastapi
 
 [project.optional-dependencies]
-test = [
+testing = [
     "pytest ~=7.1",
     "pytest-cov ~=4.0",
     "pgtest ~=1.3",
