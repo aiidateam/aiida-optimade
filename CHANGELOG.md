@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased](https://github.com/aiidateam/aiida-optimade/tree/HEAD)
+
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.0...HEAD)
+
+**Implemented enhancements:**
+
+- \[MCLOUD\] Allow for data curation [\#237](https://github.com/aiidateam/aiida-optimade/issues/237)
+
+## [v1.1.0](https://github.com/aiidateam/aiida-optimade/tree/v1.1.0) (2022-10-11)
+
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.0.1...v1.1.0)
+
+**Merged pull requests:**
+
+- Using reorder importers and yaml fmt pre-commit hook [\#388](https://github.com/aiidateam/aiida-optimade/pull/388) ([unkcpz](https://github.com/unkcpz))
+- Update dependencies [\#387](https://github.com/aiidateam/aiida-optimade/pull/387) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#385](https://github.com/aiidateam/aiida-optimade/pull/385) ([CasperWA](https://github.com/CasperWA))
+- Data curation with configure parameter `query_group` [\#327](https://github.com/aiidateam/aiida-optimade/pull/327) ([unkcpz](https://github.com/unkcpz))
+
 ## [v1.0.1](https://github.com/aiidateam/aiida-optimade/tree/v1.0.1) (2022-09-22)
 
 [Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.0.0...v1.0.1)
