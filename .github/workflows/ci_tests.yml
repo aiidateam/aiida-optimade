@@ -25,18 +25,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^pre-commit.*$ ]]; then
-                pre_commit="${line}"
-            fi
-        done < requirements_dev.txt
-
-        pip install ${pre_commit}
+        pip install .[dev]
 
     - name: Test with pre-commit
-      run: SKIP=codecov-validator pre-commit run --all-files --show-diff-on-failure
+      run: SKIP=codecov-validator pre-commit run --all-files
 
   pytest:
     runs-on: ubuntu-latest
@@ -164,17 +158,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
-
-        pip install pymongo
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:
@@ -239,15 +225,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:
@@ -308,15 +288,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:

@@ -38,34 +38,27 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools wheel
+        pip install -U setuptools wheel flit
         pip install requests
-
-        while IFS="" read -r line || [ -n "${line}" ]; do
-          if [[ "${line}" =~ ^invoke.*$ ]]; then
-            invoke="${line}"
-          fi
-        done < requirements_dev.txt
-
-        pip install ${invoke}
+        pip install .[dev]
 
     - name: Run tasks for `optimade` and `aiida-core` dependencies
       run: |
         while IFS="" read -r line || [ -n "${line}" ]; do
-          if [[ "${line}" =~ ^aiida-core~=(.*)$ ]]; then
+          if [[ "${line}" =~ ^\s+"aiida-core ~=(.*)",$ ]]; then
             aiida_core="${BASH_REMATCH[1]}"
-          elif [[ "${line}" =~ ^optimade\[mongo\]~=(.*)$ ]]; then
+          elif [[ "${line}" =~ ^\s+"optimade\[mongo\] ~=(.*)",$ ]]; then
             optimade_mongo="${BASH_REMATCH[1]}"
           fi
-        done < requirements.txt
+        done < pyproject.toml
 
         invoke aiida-req --ver="${aiida_core}"
         invoke optimade-req --ver="${optimade_mongo}"
 
-        git add requirements.txt .ci/aiida-version.json Dockerfile profiles/docker-compose*
-        git add requirements.txt README.md Dockerfile profiles/docker-compose*
+        git add pyproject.toml .ci/aiida-version.json Dockerfile profiles/docker-compose*
+        git add pyproject.toml README.md Dockerfile profiles/docker-compose*
 
-        if [ -n "$(git status --porcelain requirements.txt .ci/aiida-version.json Dockerfile README.md)" ]; then
+        if [ -n "$(git status --porcelain pyproject.toml .ci/aiida-version.json Dockerfile README.md)" ]; then
           # Only commit if there's something to commit (git will return non-zero otherwise)
           echo "Committing update to hard-coded versions (AiiDA/OPTIMADE) !"
           git commit -m "Update AiiDA/OPTIMADE"

@@ -9,7 +9,7 @@ echo -e "\n### Update version ###"
 invoke setver --version="${GITHUB_REF#refs/tags/}"
 
 echo -e "\n### Commit updated files ###"
-git add setup.json aiida_optimade/__init__.py aiida_optimade/config.json tests/static/test_config.json
+git add pyproject.toml aiida_optimade/__init__.py aiida_optimade/config.json tests/static/test_config.json
 git add CHANGELOG.md
 git commit -m "Release ${GITHUB_REF#refs/tags/}"
 

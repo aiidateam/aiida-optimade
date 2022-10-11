@@ -351,7 +351,7 @@ def test_filename_aiida(run_cli_command, top_dir):
     """Ensure init excepts when using --filename without --mongo"""
     from aiida_optimade.cli import cmd_init
 
-    real_existing_file = top_dir.joinpath("setup.py")
+    real_existing_file = top_dir.joinpath("pyproject.toml")
 
     options = ["--filename", str(real_existing_file)]
     result = run_cli_command(cmd_init.init, options, raises=True)

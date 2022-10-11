@@ -39,7 +39,6 @@ def setver(_, patch=False, version=""):
     update_file(
         "aiida_optimade/__init__.py", ("__version__ = .+", f'__version__ = "{version}"')
     )
-    update_file("setup.json", ('"version": ([^,]+),', f'"version": "{version}",'))
     update_file(
         "aiida_optimade/config.json",
         ('"version": ([^,]+),', f'"version": "{version}",'),
@@ -96,9 +95,6 @@ def optimade_req(_, ver=""):
         api_version += f"+{api_version[4]}"
 
     update_file(
-        "requirements.txt", (r"optimade\[mongo\]~=.+", f"optimade[mongo]~={ver}")
-    )
-    update_file(
         "README.md",
         (
             "https://raw.githubusercontent.com/Materials-Consortia/"
@@ -138,7 +134,6 @@ def aiida_req(_, ver=""):
     if ver.startswith("v"):
         ver = ver[1:]
 
-    update_file("requirements.txt", ("aiida-core~=.+", f"aiida-core~={ver}"))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):
