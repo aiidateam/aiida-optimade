@@ -17,49 +17,6 @@ def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
 
 
 @task
-def setver(_, patch=False, version=""):
-    """Update the package version throughout the package"""
-    if (not patch and not version) or (patch and version):
-        raise RuntimeError(
-            "Either use --patch or specify e.g. "
-            '--version="Major.Minor.Patch(a|b|rc)?[0-9]+"'
-        )
-    if patch:
-        from aiida_optimade import __version__
-
-        ver = [int(x) for x in __version__.split(".")]
-        ver[2] += 1
-        version = ".".join(map(str, ver))
-    elif version:
-        if version.startswith("v"):
-            version = version[1:]
-        if re.match(r"[0-9]+(\.[0-9]+){2}", version) is None:
-            raise ValueError("version MUST be specified as 'Major.Minor.Patch'")
-
-    update_file(
-        "aiida_optimade/__init__.py", ("__version__ = .+", f'__version__ = "{version}"')
-    )
-    update_file(
-        "aiida_optimade/config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        "tests/static/test_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        "tests/static/test_mongo_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        ".github/mongo/ci_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-
-    print(f"Bumped version to {version}")
-
-
-@task
 def optimade_req(_, ver=""):
     """Update the optimade-python-tools minimum version requirement"""
     import requests
@@ -94,6 +51,9 @@ def optimade_req(_, ver=""):
     if api_version_tuple[4]:
         api_version += f"+{api_version[4]}"
 
+    update_file(
+        "pyproject.toml", (r'"optimade\[mongo\] ~=.+"', f'"optimade[mongo] ~={ver}"')
+    )
     update_file(
         "README.md",
         (
@@ -134,6 +94,7 @@ def aiida_req(_, ver=""):
     if ver.startswith("v"):
         ver = ver[1:]
 
+    update_file("pyproject.toml", (r'"aiida-core ~=.+"', f'"aiida-core ~={ver}"'))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):
