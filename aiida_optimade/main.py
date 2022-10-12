@@ -1,3 +1,4 @@
+# pylint: disable=ungrouped-imports
 import json
 import os
 import warnings
@@ -117,46 +118,47 @@ async def startup():
     LOGGER.info("AiiDA Profile: %s", profile_name)
 
     # Load links
-    with open(Path(__file__).parent.joinpath("data/links.json").resolve()) as handle:
-        data = json.load(handle)
+    data = json.loads(
+        Path(__file__).parent.joinpath("data/links.json").resolve().read_bytes()
+    )
 
-        if CONFIG.debug:
-            data.append(
-                {
-                    "id": "local",
-                    "type": "links",
-                    "name": "Local server",
-                    "description": (
-                        "Locally running instance of the AiiDA-OPTIMADE server using "
-                        f"AiiDA profile {profile_name!r}."
-                    ),
-                    "base_url": "http://localhost:5000",
-                    "homepage": "https://github.com/aiidateam/aiida-optimade",
-                    "link_type": "child",
-                }
+    if CONFIG.debug:
+        data.append(
+            {
+                "id": "local",
+                "type": "links",
+                "name": "Local server",
+                "description": (
+                    "Locally running instance of the AiiDA-OPTIMADE server using "
+                    f"AiiDA profile {profile_name!r}."
+                ),
+                "base_url": "http://localhost:5000",
+                "homepage": "https://github.com/aiidateam/aiida-optimade",
+                "link_type": "child",
+            }
+        )
+
+    processed = []
+    for link in data:
+        link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
+        processed.append(link)
+
+    LOGGER.info("Loading links")
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
+        LOGGER.info("  Using real MongoDB.")
+        if links.LINKS.count(
+            filter={"id": {"$in": [_["id"] for _ in processed]}}
+        ) != len(links.LINKS):
+            LOGGER.info(
+                "  Will drop and reinsert links data in %s",
+                links.LINKS.collection.full_name,
             )
-
-        processed = []
-        for link in data:
-            link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
-            processed.append(link)
-
-        LOGGER.info("Loading links")
-        if CONFIG.database_backend == SupportedBackend.MONGODB:
-            LOGGER.info("  Using real MongoDB.")
-            if links.LINKS.count(
-                filter={"id": {"$in": [_["id"] for _ in processed]}}
-            ) != len(links.LINKS):
-                LOGGER.info(
-                    "  Will drop and reinsert links data in %s",
-                    links.LINKS.collection.full_name,
-                )
-                links.LINKS.collection.drop()
-                links.LINKS.collection.insert_many(
-                    bson.json_util.loads(bson.json_util.dumps(processed)),
-                )
-        else:
-            LOGGER.info("  Using mock MongoDB.")
+            links.LINKS.collection.drop()
             links.LINKS.collection.insert_many(
                 bson.json_util.loads(bson.json_util.dumps(processed)),
             )
+    else:
+        LOGGER.info("  Using mock MongoDB.")
+        links.LINKS.collection.insert_many(
+            bson.json_util.loads(bson.json_util.dumps(processed)),
+        )

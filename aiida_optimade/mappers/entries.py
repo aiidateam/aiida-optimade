@@ -37,7 +37,9 @@ class ResourceMapper(OptimadeResourceMapper):
         )
 
     @classmethod
-    def map_back(cls, entity_properties: Dict[str, Any]) -> dict:
+    def map_back(  # pylint: disable=arguments-renamed
+        cls, entity_properties: Dict[str, Any]
+    ) -> dict:
         """Map properties from AiiDA to OPTIMADE
 
         Parameters:

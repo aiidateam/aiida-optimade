@@ -1,8 +1,12 @@
 # pylint: disable=protected-access,too-many-statements
+import traceback
 from pathlib import Path
 from typing import IO, Generator, Iterator, List, Union
 
+import bson.json_util
 import click
+from aiida import load_profile
+from aiida.cmdline.utils import echo
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
@@ -43,11 +47,10 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
     help="Filename to load as database (currently only usable for MongoDB).",
 )
 @click.pass_obj
-def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
+def init(
+    obj: dict, force: bool, silent: bool, mongo: bool, filename: str
+):  # pylint: disable=too-many-locals,too-many-branches
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
-    from aiida import load_profile
-    from aiida.cmdline.utils import echo
-
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
@@ -65,6 +68,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
 
     try:
         with disable_logging():
+            # pylint: disable=import-outside-toplevel
             from aiida_optimade.routers.structures import STRUCTURES
 
             if mongo:
@@ -136,8 +140,6 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
                     "Passing a filename currently only works for a MongoDB backend"
                 )
 
-            import bson.json_util
-
             updated_pks = range(len(STRUCTURES_MONGO))
             chunk_size = 2**24  # 16 MB
 
@@ -148,7 +150,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
                     "consider using --force to first drop the collection, if possible."
                 )
 
-            with open(filename, "r") as handle:
+            with open(filename, "r", encoding="utf8") as handle:
                 if silent:
                     all_chunks = read_chunks(handle, chunk_size=chunk_size)
                 else:
@@ -196,8 +198,6 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
                 entries=entries if mongo else None,
             )
     except Exception as exc:  # pylint: disable=broad-except
-        import traceback
-
         exception = traceback.format_exc()
 
         LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%s", exception)

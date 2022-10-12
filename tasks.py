@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import re
 from typing import Tuple
 
@@ -6,12 +7,12 @@ from invoke import task
 
 def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
     """Utility function for tasks to read, update, and write files"""
-    with open(filename, "r") as handle:
+    with open(filename, "r", encoding="utf8") as handle:
         lines = [
             re.sub(sub_line[0], sub_line[1], line.rstrip(strip)) for line in handle
         ]
 
-    with open(filename, "w") as handle:
+    with open(filename, "w", encoding="utf8") as handle:
         handle.write("\n".join(lines))
         handle.write("\n")
 
@@ -30,7 +31,8 @@ def optimade_req(_, ver=""):
 
     optimade_init = requests.get(
         "https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools"
-        f"/v{ver}/optimade/__init__.py"
+        f"/v{ver}/optimade/__init__.py",
+        timeout=30,
     )
     if optimade_init.status_code != 200:
         raise RuntimeError(f"{ver} does not seem to be published on GitHub")

@@ -1,7 +1,10 @@
 # pylint: disable=protected-access,too-many-locals,too-many-branches
+import traceback
 from typing import Tuple
 
 import click
+from aiida import load_profile
+from aiida.cmdline.utils import echo
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
@@ -35,11 +38,10 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
     help="Suppress informational output.",
 )
 @click.pass_obj
-def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
+def calc(
+    obj: dict, fields: Tuple[str], force_yes: bool, silent: bool
+):  # pylint: disable=too-many-statements
     """Calculate OPTIMADE fields in the AiiDA database."""
-    from aiida import load_profile
-    from aiida.cmdline.utils import echo
-
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
@@ -52,6 +54,7 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
 
     try:
         with disable_logging():
+            # pylint: disable=import-outside-toplevel
             from aiida_optimade.routers.structures import STRUCTURES
 
         extras_key = STRUCTURES.resource_mapper.PROJECT_PREFIX.split(".")[1]
@@ -139,8 +142,6 @@ def calc(obj: dict, fields: Tuple[str], force_yes: bool, silent: bool):
         echo.echo_warning("Aborted!")
         return
     except Exception as exc:  # pylint: disable=broad-except
-        import traceback
-
         exception = traceback.format_exc()
 
         LOGGER.error("Full exception from 'aiida-optimade calc' CLI:\n%s", exception)

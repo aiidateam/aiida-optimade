@@ -1,9 +1,15 @@
 # pylint: disable=line-too-long,too-many-public-methods
 import itertools
+import re
 from math import fsum
 from typing import Any, List, Union
 
-from aiida.orm.nodes.data.structure import StructureData
+from aiida.orm.nodes.data.structure import (
+    _SUM_THRESHOLD,
+    StructureData,
+    get_formula,
+    get_symbols_string,
+)
 from optimade.models.utils import ANONYMOUS_ELEMENTS
 
 from aiida_optimade.common import AiidaError, OptimadeIntegrityError
@@ -82,7 +88,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def has_vacancies(self):
         """Copy of aiida.orm.StructureData:has_vacancies"""
-        from aiida.orm.nodes.data.structure import _SUM_THRESHOLD
 
         def kind_has_vacancies(weights):
             """Copy of aiida.orm.Kinds:has_vacancies"""
@@ -93,8 +98,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     def get_formula(self, mode="hill", separator=""):
         """Copy of aiida.orm.StructureData:get_formula()"""
-        from aiida.orm.nodes.data.structure import get_formula, get_symbols_string
-
         kind = None
         symbol_list = []
         for site in self._sites:
@@ -380,8 +383,6 @@ class StructureDataTranslator(AiidaEntityTranslator):
         Species can be pure chemical elements, or virtual-crystal atoms
         representing a statistical occupation of a given site by multiple chemical elements.
         """
-        import re
-
         attribute = "species"
 
         if attribute in self.new_attributes:

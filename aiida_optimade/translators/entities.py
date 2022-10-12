@@ -1,10 +1,13 @@
 from typing import Any, List, Union
 
+import bson.json_util
 from aiida import orm
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
 
 from aiida_optimade.common import LOGGER, AiidaEntityNotFound
+from aiida_optimade.routers.structures import STRUCTURES_MONGO
+from aiida_optimade.translators.utils import hex_to_floats
 
 __all__ = ("AiidaEntityTranslator",)
 
@@ -33,7 +36,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        res = query.first()
+        res: list = query.first()
         del query
         return res if len(res) > 1 else res[0]
 
@@ -80,11 +83,6 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
 
     def _store_attributes_mongo(self) -> None:
         """Store new attributes in MongoDB collection"""
-        import bson.json_util
-
-        from aiida_optimade.routers.structures import STRUCTURES_MONGO
-        from aiida_optimade.translators.utils import hex_to_floats
-
         optimade = STRUCTURES_MONGO.collection.find_one(filter={"id": self._pk})
         if optimade:
             optimade.update(self.new_attributes)

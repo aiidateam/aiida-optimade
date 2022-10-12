@@ -8,8 +8,11 @@ from pymongo import MongoClient
 client = MongoClient("mongodb://localhost:27017")
 collection = client["aiida_optimade"]["structures"]
 
-with open(Path(__file__).parent.joinpath("test_structures_mongo.json")) as handle:
-    data = bson.json_util.loads(handle.read())
+data = bson.json_util.loads(
+    Path(__file__)
+    .parent.joinpath("test_structures_mongo.json")
+    .read_text(encoding="utf8")
+)
 
 try:
     print(f"Inserting {len(data)} structures into {collection.full_name}")

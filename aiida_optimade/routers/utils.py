@@ -2,12 +2,17 @@ import functools
 import urllib.parse
 from typing import Union
 
+from aiida.manage.manager import get_manager
 from fastapi import HTTPException, Request
 from optimade.models import EntryResponseMany, EntryResponseOne, ToplevelLinks
 from optimade.server.config import CONFIG
 from optimade.server.entry_collections.mongo import MongoCollection
 from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
-from optimade.server.routers.utils import handle_response_fields, meta_values
+from optimade.server.routers.utils import (
+    get_base_url,
+    handle_response_fields,
+    meta_values,
+)
 
 from aiida_optimade.entry_collections import AiidaCollection
 
@@ -16,8 +21,6 @@ def handle_pagination(
     request: Request, more_data_available: bool, nresults: int
 ) -> dict:
     """Handle pagination for request with number of results equal nresults"""
-    from optimade.server.routers.utils import get_base_url
-
     pagination = {}
 
     # "prev"
@@ -151,8 +154,6 @@ def close_session(func):
         try:
             value = func(*args, **kwargs)
         finally:
-            from aiida.manage.manager import get_manager
-
             get_manager().get_backend().get_session().close()
         return value
 

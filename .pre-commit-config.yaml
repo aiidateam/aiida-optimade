@@ -29,7 +29,6 @@ repos:
   rev: 22.10.0
   hooks:
   - id: black
-    name: Blacken
 
 - repo: local
   hooks:
@@ -42,3 +41,25 @@ repos:
         .codecov.yml
       )$
     language: system
+  - id: pylint
+    name: pylint
+    entry: pylint
+    args:
+    - --rcfile=pyproject.toml
+    - --extension-pkg-whitelist='pydantic'
+    language: python
+    types: [python]
+    require_serial: true
+    files: ^.*$
+    exclude: ^tests/.*$
+  - id: pylint-tests
+    name: pylint - tests
+    entry: pylint
+    args:
+    - --rcfile=pyproject.toml
+    - --extension-pkg-whitelist='pydantic'
+    - --disable=import-outside-toplevel,redefined-outer-name
+    language: python
+    types: [python]
+    require_serial: true
+    files: ^tests/.*$

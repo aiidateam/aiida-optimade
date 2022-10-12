@@ -1,5 +1,9 @@
 # pylint: disable=too-many-arguments
+import os
+
 import click
+import uvicorn
+from aiida import load_profile
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.cli.options import LOGGING_LEVELS
@@ -45,10 +49,6 @@ from aiida_optimade.cli.options import LOGGING_LEVELS
 @click.pass_obj
 def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bool):
     """Run AiiDA-OPTIMADE server."""
-    import os
-
-    import uvicorn
-
     if obj.get("dev", False):
         debug = True
 
@@ -67,8 +67,6 @@ def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bo
     os.environ["AIIDA_OPTIMADE_LOG_LEVEL"] = log_level.upper()
 
     if os.getenv("AIIDA_PROFILE") is None:
-        from aiida import load_profile
-
         try:
             profile: str = obj.get("profile").name
         except AttributeError:

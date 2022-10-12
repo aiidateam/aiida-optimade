@@ -2,6 +2,8 @@ from typing import Union
 
 from aiida.orm.nodes.data.cif import CifData
 from aiida.orm.nodes.data.structure import StructureData
+from aiida.tools.data.cif import InvalidOccupationsError
+from pymatgen.io.cif import CifParser
 
 from aiida_optimade.translators.structures import StructureDataTranslator
 
@@ -22,9 +24,6 @@ def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
     .. note:: requires pymatgen module.
 
     """
-    from aiida.tools.data.cif import InvalidOccupationsError
-    from pymatgen.io.cif import CifParser
-
     parameters = kwargs.get("parameters", {})
 
     constructor_kwargs = {}

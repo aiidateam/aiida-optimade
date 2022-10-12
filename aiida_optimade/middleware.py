@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 import urllib.parse
 
 from optimade.server.routers.utils import BASE_URL_PREFIXES

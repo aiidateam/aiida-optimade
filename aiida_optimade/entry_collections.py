@@ -1,4 +1,5 @@
 import warnings
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from aiida.orm import Group
@@ -96,7 +97,7 @@ class AiidaCollection(EntryCollection):
             and criteria.get("filters", {}) != self._latest_filter
         ):
             for key in ["limit", "offset"]:
-                if key in list(criteria.keys()):
+                if key in list(criteria):
                     del criteria[key]
             self._latest_filter = criteria.get("filters", {}).copy()
             LOGGER.debug("Setting data_returned using filter: %s", self._latest_filter)
@@ -130,7 +131,7 @@ class AiidaCollection(EntryCollection):
                 "offset": kwargs.get("offset", None),
             }
         else:
-            for limiting_param in {"filters", "limit", "offset"}:
+            for limiting_param in ["filters", "limit", "offset"]:
                 if kwargs.get(limiting_param, None) != self._count.get(
                     limiting_param, None
                 ):
@@ -438,7 +439,6 @@ class AiidaCollection(EntryCollection):
                 parameter.
 
         """
-        from copy import deepcopy
 
         def __filter_fields_util(  # pylint: disable=unused-private-member
             _filters: Union[dict, list]
