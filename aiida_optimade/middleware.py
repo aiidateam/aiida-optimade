@@ -1,12 +1,15 @@
 # pylint: disable=too-few-public-methods
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from optimade.server.routers.utils import BASE_URL_PREFIXES
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 
 class RedirectOpenApiDocs(BaseHTTPMiddleware):
@@ -15,7 +18,7 @@ class RedirectOpenApiDocs(BaseHTTPMiddleware):
     This is relevant for the OpenAPI JSON, Docs, and ReDocs URLs.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: "Request", call_next):
         parsed_url = urllib.parse.urlsplit(str(request.url))
         for endpoint in OPEN_API_ENDPOINTS.values():
             # Important to start with the longest (or full) URL prefix first.

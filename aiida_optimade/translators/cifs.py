@@ -1,13 +1,9 @@
-from typing import Union
-
 from aiida.orm.nodes.data.cif import CifData
 from aiida.orm.nodes.data.structure import StructureData
 from aiida.tools.data.cif import InvalidOccupationsError
 from pymatgen.io.cif import CifParser
 
 from aiida_optimade.translators.structures import StructureDataTranslator
-
-__all__ = ("CifDataTranslator",)
 
 
 def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
@@ -79,7 +75,7 @@ class CifDataTranslator(StructureDataTranslator):
 
     AIIDA_ENTITY = CifData
 
-    def __init__(self, pk: str):
+    def __init__(self, pk: int):
         super().__init__(pk)
 
         self.__kinds = None
@@ -90,9 +86,9 @@ class CifDataTranslator(StructureDataTranslator):
     @property
     def _node(self) -> StructureData:
         if not self._node_loaded:
-            self.__node = self._get_unique_node_property("*")
+            self.__node: StructureData = self._get_unique_node_property("*")
         elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node = self._get_unique_node_property("*")
+            self.__node: StructureData = self._get_unique_node_property("*")
         if isinstance(self.__node, StructureData):
             return self.__node
 
@@ -100,12 +96,6 @@ class CifDataTranslator(StructureDataTranslator):
         self.__node = _get_aiida_structure_pymatgen_inline(cif=self.__node)
         self.__node.set_extra_many(extras)
         return self.__node
-
-    @_node.setter
-    def _node(self, value: Union[None, CifData, StructureData]):
-        if self._node_loaded:
-            del self.__node
-        self.__node = value
 
     @property
     def _kinds(self) -> list:

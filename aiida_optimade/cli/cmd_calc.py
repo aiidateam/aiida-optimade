@@ -1,14 +1,17 @@
 # pylint: disable=protected-access,too-many-locals,too-many-branches
 import traceback
-from typing import Tuple
+from typing import TYPE_CHECKING
 
 import click
-from aiida import load_profile
 from aiida.cmdline.utils import echo
+from aiida.manage.configuration import load_profile
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
+
+if TYPE_CHECKING:
+    from typing import Tuple
 
 
 @cli.command()
@@ -39,7 +42,7 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
 )
 @click.pass_obj
 def calc(
-    obj: dict, fields: Tuple[str], force_yes: bool, silent: bool
+    obj: dict, fields: "Tuple[str]", force_yes: bool, silent: bool
 ):  # pylint: disable=too-many-statements
     """Calculate OPTIMADE fields in the AiiDA database."""
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT

@@ -1,12 +1,3 @@
-__all__ = (
-    "AiidaOptimadeException",
-    "AiidaEntityNotFound",
-    "OptimadeIntegrityError",
-    "CausationError",
-    "AiidaError",
-)
-
-
 class AiidaOptimadeException(Exception):
     """Root Exception for aiida-optimade."""
 

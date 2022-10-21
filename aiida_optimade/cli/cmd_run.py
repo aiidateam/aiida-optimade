@@ -3,7 +3,7 @@ import os
 
 import click
 import uvicorn
-from aiida import load_profile
+from aiida.manage.configuration import load_profile
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.cli.options import LOGGING_LEVELS

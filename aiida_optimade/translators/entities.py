@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import TYPE_CHECKING
 
 import bson.json_util
 from aiida import orm
@@ -9,7 +9,8 @@ from aiida_optimade.common import LOGGER, AiidaEntityNotFound
 from aiida_optimade.routers.structures import STRUCTURES_MONGO
 from aiida_optimade.translators.utils import hex_to_floats
 
-__all__ = ("AiidaEntityTranslator",)
+if TYPE_CHECKING:
+    from typing import Any, List, Optional, Union
 
 
 class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
@@ -25,40 +26,43 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
     def __init__(self, pk: int):
         self._pk = pk
         self.new_attributes = {}
-        self.__node = None
+        self.__node: Node
 
-    def _get_unique_node_property(
-        self, project: Union[List[str], str]
-    ) -> Union[Node, Any]:
+    def _get_unique_node_property(self, project: "Union[List[str], str]") -> "Any":
         query = QueryBuilder(limit=1)
         query.append(self.AIIDA_ENTITY, filters={"id": self._pk}, project=project)
         if query.count() != 1:
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        res: list = query.first()
+        res = query.first(True)
         del query
-        return res if len(res) > 1 else res[0]
+        if res is None:
+            raise RuntimeError(
+                "Query 'count' does not match up with returned result from 'first'"
+            )
+        return res
 
     @property
     def _node(self) -> Node:
         if not self._node_loaded:
-            self.__node = self._get_unique_node_property("*")
+            self.__node: Node = self._get_unique_node_property("*")
         elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node = self._get_unique_node_property("*")
+            self.__node: Node = self._get_unique_node_property("*")
         return self.__node
 
     @_node.setter
-    def _node(self, value: Union[None, Node]):
+    def _node(self, value: "Optional[Node]") -> None:
         if self._node_loaded:
             del self.__node
-        self.__node = value
+        if value:
+            self.__node = value
 
     @property
-    def _node_loaded(self):
+    def _node_loaded(self) -> bool:
         return bool(self.__node)
 
-    def _get_optimade_extras(self) -> Union[None, dict]:
+    def _get_optimade_extras(self) -> "Union[None, dict]":
         if self._node_loaded:
             return self._node.extras.get(self.EXTRAS_KEY, None)
         return self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")

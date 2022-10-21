@@ -5,7 +5,7 @@ import warnings
 from pathlib import Path
 
 import bson.json_util
-from aiida import load_profile
+from aiida.manage.configuration import load_profile
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,7 +58,7 @@ if CONFIG.debug:
 
 APP = FastAPI(
     base_url=CONFIG.base_url,
-    root_path=CONFIG.root_path,
+    root_path=CONFIG.root_path if CONFIG.root_path else "",
     title="OPTIMADE API for AiiDA",
     description=(
         "The [Open Databases Integration for Materials Design (OPTIMADE) consortium]"

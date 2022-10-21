@@ -1,16 +1,19 @@
 # pylint: disable=protected-access,too-many-statements
 import traceback
 from pathlib import Path
-from typing import IO, Generator, Iterator, List, Union
+from typing import TYPE_CHECKING
 
 import bson.json_util
 import click
-from aiida import load_profile
 from aiida.cmdline.utils import echo
+from aiida.manage.configuration import load_profile
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
+
+if TYPE_CHECKING:
+    from typing import IO, Generator, Iterator, Optional, Union
 
 
 @cli.command()
@@ -55,10 +58,10 @@ def init(
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
-    filename: Path = Path(filename) if filename else filename
+    filepath = Path(filename)
 
-    if mongo and filename:
-        profile = f"MongoDB JSON file {filename.name}"
+    if mongo and filepath:
+        profile = f"MongoDB JSON file {filepath.name}"
     else:
         try:
             profile: str = obj.get("profile").name
@@ -129,7 +132,7 @@ def init(
             echo.echo_info(f"Initializing {profile}.")
             echo.echo_warning("This may take several minutes!")
 
-        if filename:
+        if filepath:
             if not mongo:
                 LOGGER.debug(
                     "Passed filename (%s) with AiiDA backend (mongo=%s)",
@@ -150,15 +153,15 @@ def init(
                     "consider using --force to first drop the collection, if possible."
                 )
 
-            with open(filename, "r", encoding="utf8") as handle:
+            with open(filepath, "r", encoding="utf8") as handle:
                 if silent:
                     all_chunks = read_chunks(handle, chunk_size=chunk_size)
                 else:
                     all_chunks = tqdm(
                         read_chunks(handle, chunk_size=chunk_size),
-                        total=(filename.stat().st_size // chunk_size)
-                        + (1 if filename.stat().st_size % chunk_size else 0),
-                        desc=f"Storing entries in {filename.name}",
+                        total=(filepath.stat().st_size // chunk_size)
+                        + (1 if filepath.stat().st_size % chunk_size else 0),
+                        desc=f"Storing entries in {filepath.name}",
                     )
                 if updated_pks:
                     for data in get_documents(all_chunks):
@@ -221,8 +224,8 @@ def init(
 
 
 def read_chunks(
-    file_object: IO, chunk_size: int = None
-) -> Generator[Union[str, bytes], None, None]:
+    file_object: "IO", chunk_size: "Optional[int]" = None
+) -> "Generator[Union[str, bytes], None, None]":
     """Generator to read a file piece by piece
 
     Parameters:
@@ -243,8 +246,8 @@ def read_chunks(
 
 
 def get_documents(
-    chunk_iterator: Union[Generator[str, None, None], Iterator[str]]
-) -> Generator[List[dict], None, None]:
+    chunk_iterator: "Union[Generator[str, None, None], Iterator[str]]",
+) -> "Generator[str, None, None]":
     """Generator to return MongoDB documents from file"""
     rest_chunk = ""
 

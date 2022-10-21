@@ -19,4 +19,4 @@ class CustomServerConfig(ServerConfig):
     )
 
 
-CONFIG: ServerConfig = CustomServerConfig()
+CONFIG = CustomServerConfig()
