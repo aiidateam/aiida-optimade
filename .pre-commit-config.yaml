@@ -6,7 +6,9 @@ repos:
   - id: trailing-whitespace
     args: [--markdown-linebreak-ext=md]
   - id: check-yaml
+    name: Check YAML
   - id: check-json
+    name: Check JSON
   - id: end-of-file-fixer
 
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
