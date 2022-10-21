@@ -1,12 +1,21 @@
 """Test the `page_offset` query parameter"""
-# pylint: disable=import-error,protected-access
+# pylint: disable=protected-access
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict, Union
+
+    from pytest import LogCaptureFixture
+    from requests import Response
 
 
-def test_offset(get_good_response):
+def test_offset(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Apply low offset, comparing two requests with and without offset"""
     page_limit = 5
     request = f"/structures?page_offset=0&page_limit={page_limit}&sort=immutable_id"
-    response = get_good_response(request)
+    response: "Dict[str, Any]" = get_good_response(request, False)
     first_response_uuids = [_["attributes"]["immutable_id"] for _ in response["data"]]
 
     assert len(first_response_uuids) == page_limit
@@ -17,13 +26,13 @@ def test_offset(get_good_response):
         "&sort=immutable_id"
     )
     expected_uuids = first_response_uuids[offset:]
-    response = get_good_response(request)
+    response: "Dict[str, Any]" = get_good_response(request, False)
 
     assert len(response["data"]) == len(expected_uuids)
     assert expected_uuids == [_["attributes"]["immutable_id"] for _ in response["data"]]
 
 
-def test_count_offset(caplog):
+def test_count_offset(caplog: "LogCaptureFixture") -> None:
     """Test EntryCollection.count() when changing offset"""
     from aiida_optimade.routers.structures import STRUCTURES
 

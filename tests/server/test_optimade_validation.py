@@ -1,4 +1,10 @@
-def test_with_validator(remote_client):
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .utils import OptimadeTestClient
+
+
+def test_with_validator(remote_client: "OptimadeTestClient") -> None:
     """Validate server"""
     from optimade.validator import ImplementationValidator
 
@@ -8,7 +14,7 @@ def test_with_validator(remote_client):
     assert validator.valid
 
 
-def test_versioned_base_urls(client):
+def test_versioned_base_urls(client: "OptimadeTestClient") -> None:
     """Test all expected versioned base URLs responds with 200"""
     try:
         import simplejson as json

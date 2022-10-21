@@ -1,19 +1,28 @@
+from typing import TYPE_CHECKING
+
 import pytest
-from optimade.models import (
-    EntryInfoResponse,
-    InfoResponse,
-    LinksResponse,
-    ReferenceResponseMany,
-    ReferenceResponseOne,
-    ResponseMeta,
-    StructureResponseMany,
-    StructureResponseOne,
-)
+
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict, Iterable, List, Tuple, Type, Union
+
+    from _pytest.mark.structures import ParameterSet
+    from pydantic import BaseModel
+    from requests import Response
 
 
-@pytest.mark.parametrize(
-    "request_str, ResponseType",
-    [
+def parameters_for_serialize_response() -> "List[Union[Tuple[str, Type[BaseModel]], ParameterSet]]":  # pylint: disable=line-too-long
+    """Return the list of parameters for `test_serialize_response`."""
+    from optimade.models import (
+        EntryInfoResponse,
+        InfoResponse,
+        LinksResponse,
+        ReferenceResponseMany,
+        ReferenceResponseOne,
+        StructureResponseMany,
+        StructureResponseOne,
+    )
+
+    return [
         ("/info", InfoResponse),
         ("/info/structures", EntryInfoResponse),
         ("/links", LinksResponse),
@@ -34,11 +43,19 @@ from optimade.models import (
             ReferenceResponseOne,
             marks=pytest.mark.xfail(reason="References has not yet been implemented"),
         ),
-    ],
-)
-def test_serialize_response(get_good_response, request_str, ResponseType):
-    response = get_good_response(request_str)
+    ]
 
+
+@pytest.mark.parametrize(
+    "request_str, ResponseType", parameters_for_serialize_response()
+)
+def test_serialize_response(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+    request_str: str,
+    ResponseType: "Type[BaseModel]",  # pylint: disable=invalid-name
+) -> None:
+    """Test serializing responses."""
+    response: "Dict[str, Any]" = get_good_response(request_str, False)
     ResponseType(**response)
 
 
@@ -56,9 +73,15 @@ def test_serialize_response(get_good_response, request_str, ResponseType):
         ),
     ],
 )
-def test_meta_response(request_str, get_good_response, check_keys):
+def test_meta_response(
+    request_str: str,
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+    check_keys: "Callable[[List[str], Iterable], None]",
+) -> None:
     """Check `meta` property in response"""
-    response = get_good_response(request_str)
+    from optimade.models import ResponseMeta
+
+    response: "Dict[str, Any]" = get_good_response(request_str, False)
 
     assert "meta" in response
     meta_required_keys = ResponseMeta.schema()["required"]

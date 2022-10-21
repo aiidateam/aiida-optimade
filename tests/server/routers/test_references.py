@@ -37,8 +37,9 @@ class TestMissingSingleReferenceEndpoint(EndpointTests):
     request_str = f"/references/{test_id}"
     response_cls = ReferenceResponseOne
 
-    def test_references_endpoint_data(self):
+    def test_references_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
+        assert self.json_response
         assert "data" in self.json_response
         assert "meta" in self.json_response
         assert self.json_response["data"] is None

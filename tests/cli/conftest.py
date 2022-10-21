@@ -1,13 +1,14 @@
 """Pytest fixtures for command line interface tests."""
-# pylint: disable=redefined-outer-name,import-error
-import os
-import signal
-from subprocess import PIPE, Popen, TimeoutExpired
-from time import sleep
-from typing import List, Tuple
+# pylint: disable=redefined-outer-name
+from typing import TYPE_CHECKING
 
-import click
 import pytest
+
+if TYPE_CHECKING:
+    from typing import Callable, List, Optional, Tuple
+
+    from click import Command
+    from click.testing import Result
 
 
 @pytest.fixture
@@ -19,17 +20,22 @@ def aiida_test_profile() -> str:
 
 
 @pytest.fixture
-def run_cli_command(aiida_test_profile: str):
+def run_cli_command(
+    aiida_test_profile: str,
+) -> "Callable[[Command, Optional[List[str]], bool], Result]":
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
     is non-zero.
     """
-    from click.testing import Result
+    import os
+    import traceback
+
+    from click.testing import CliRunner
 
     def _run_cli_command(
-        command: click.Command, options: List[str] = None, raises: bool = False
-    ) -> Result:
+        command: "Command", options: "Optional[List[str]]" = None, raises: bool = False
+    ) -> "Result":
         """Run the command and check the result.
 
         Note, the `output_lines` attribute is added to return value containing list of
@@ -40,9 +46,8 @@ def run_cli_command(aiida_test_profile: str):
         :param raises: whether the command is expected to raise an exception
         :return: test result
         """
-        import traceback
 
-        runner = click.testing.CliRunner()
+        runner = CliRunner()
         profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
         if profile == "test_profile":
             # This is for local tests only
@@ -68,16 +73,22 @@ def run_cli_command(aiida_test_profile: str):
 
 
 @pytest.fixture
-def run_and_terminate_server(aiida_test_profile: str):
+def run_and_terminate_server(
+    aiida_test_profile: str,
+) -> "Callable[[str, Optional[List[str]]], Tuple[str, str]]":
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
     is non-zero.
     """
+    import os
+    import signal
+    from subprocess import PIPE, Popen, TimeoutExpired
+    from time import sleep
 
     def _run_and_terminate_server(
-        command: str, options: List[str] = None
-    ) -> Tuple[str, str]:
+        command: str, options: "Optional[List[str]]" = None
+    ) -> "Tuple[str, str]":
         """Run the command and check the result.
 
         Note, the `output_lines` attribute is added to return value containing list of
@@ -100,15 +111,17 @@ def run_and_terminate_server(aiida_test_profile: str):
 
         env = dict(os.environ)
         env["AIIDA_PROFILE"] = profile
-        result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-        sleep(10)  # The server needs time to start up
+        with Popen(
+            args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True
+        ) as result:
+            sleep(10)  # The server needs time to start up
 
-        result.send_signal(signal.SIGINT)
-        try:
-            result.wait(10)
-        except TimeoutExpired:
-            result.kill()
-            sleep(2)
+            result.send_signal(signal.SIGINT)
+            try:
+                result.wait(10)
+            except TimeoutExpired:
+                result.kill()
+                sleep(2)
 
         stdout, stderr = result.communicate()
 

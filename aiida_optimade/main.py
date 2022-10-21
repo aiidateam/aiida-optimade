@@ -119,7 +119,11 @@ async def startup():
 
     # Load links
     data = json.loads(
-        Path(__file__).parent.joinpath("data/links.json").resolve().read_bytes()
+        Path(__file__)
+        .parent.joinpath("data")
+        .joinpath("links.json")
+        .resolve()
+        .read_bytes()
     )
 
     if CONFIG.debug:

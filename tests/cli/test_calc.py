@@ -1,21 +1,36 @@
 """Test CLI `aiida-optimade calc` command"""
-# pylint: disable=unused-argument,too-many-locals,import-error
+# pylint: disable=unused-argument,too-many-locals
 import os
-import re
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Callable, List, Optional
+
+    from aiida.manage.tests import TestManager
+    from click import Command
+    from click.testing import Result
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_all_new(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
     By "non-existent" the meaning is calculating fields that don't already exist for
     any Nodes.
     """
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -24,7 +39,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "initialized_structure_nodes.aiida"
     import_archive(archive)
 
     fields = ["elements", "chemical_formula_hill"]
@@ -64,7 +79,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     )
 
     options = ["--force-yes"] + fields
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_calc.calc, options, False)
 
     assert (
         f"Fields found for {n_structure_data} Nodes." not in result.stdout
@@ -97,7 +112,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
+    original_data = top_dir / "tests" / "static" / "test_structures.aiida"
     import_archive(original_data)
 
 
@@ -105,7 +120,11 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc(run_cli_command, aiida_profile, top_dir):
+def test_calc(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works."""
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -115,7 +134,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
 
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "initialized_structure_nodes.aiida"
     import_archive(archive)
 
     fields = ["elements", "chemical_formula_hill"]
@@ -134,7 +153,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     )
 
     options = ["--force-yes"] + fields
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_calc.calc, options, False)
 
     assert f"Fields found for {n_structure_data} Nodes." in result.stdout, result.stdout
     assert (
@@ -159,16 +178,22 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_archive(original_data)
+    import_archive(top_dir / "tests" / "static" / "test_structures.aiida")
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_partially_init(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -177,7 +202,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Clear database and get initialized_structure_nodes.aiida
     aiida_profile.reset_db()
-    archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "initialized_structure_nodes.aiida"
     import_archive(archive)
 
     extras_key = AiidaEntityTranslator.EXTRAS_KEY
@@ -212,7 +237,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
 
     # "elements" should not be found in 3 Nodes
     options = ["--force-yes", "elements"]
-    result = run_cli_command(cmd_calc.calc, options)
+    result = run_cli_command(cmd_calc.calc, options, False)
 
     assert f"Field found for {n_total_nodes - 3} Nodes." in result.stdout, result.stdout
     assert (
@@ -256,5 +281,4 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_archive(original_data)
+    import_archive(top_dir / "tests" / "static" / "test_structures.aiida")

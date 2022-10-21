@@ -1,11 +1,14 @@
 """Tests for aiida_optimade.entry_collections."""
 # pylint: disable=protected-access
-from typing import Any, Callable, Dict
+from typing import TYPE_CHECKING
 
 import pytest
 
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict
 
-def test_insert():
+
+def test_insert() -> None:
     """Test AiidaCollection.insert() raises NotImplentedError."""
     from aiida_optimade.routers.structures import STRUCTURES
 
@@ -16,7 +19,7 @@ def test_insert():
 
 
 @pytest.mark.parametrize("attribute", ["data_available", "data_returned"])
-def test_causation_errors(attribute: str):
+def test_causation_errors(attribute: str) -> None:
     """Test CausationError is returned if requesting `data_available` or `data_returned`
     before setting them."""
     from aiida_optimade.common.exceptions import CausationError
@@ -29,9 +32,9 @@ def test_causation_errors(attribute: str):
 
 
 def test_bad_fields(
-    get_good_response: Callable[[str], Dict[str, Any]],
-    check_error_response: Callable[[str, int, str, str], None],
-):
+    get_good_response: "Callable[[str], Dict[str, Any]]",
+    check_error_response: "Callable[[str, int, str, str], None]",
+) -> None:
     """Test a UnknownProviderProperty warning is emitted for unrecognized provider
     fields."""
     from optimade.server.config import CONFIG
@@ -68,7 +71,7 @@ def test_bad_fields(
     )
 
 
-def test_prepare_query_kwargs():
+def test_prepare_query_kwargs() -> None:
     """Check only valid QueryBuilder arguments are allowed for _prepare_query()."""
     from aiida_optimade.routers.structures import STRUCTURES
 
@@ -76,7 +79,7 @@ def test_prepare_query_kwargs():
         STRUCTURES._prepare_query(node_types=[], **{"wrong_arg": "some_value"})
 
 
-def test_array_sort_type():
+def test_array_sort_type() -> None:
     """Check TypeError is raised if sorting on list value types."""
     from aiida_optimade.routers.structures import STRUCTURES
 

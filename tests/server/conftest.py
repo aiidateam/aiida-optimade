@@ -1,31 +1,40 @@
 # pylint: disable=redefined-outer-name
-import re
-from typing import Any, Dict, Iterable, List
+from typing import TYPE_CHECKING
 
 import pytest
 
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+
+    from requests import Response
+
+    from .utils import OptimadeTestClient
+
 
 @pytest.fixture(scope="module")
-def client():
+def client() -> "OptimadeTestClient":
     """Return TestClient for OPTIMADE server"""
     from .utils import client_factory
 
-    return client_factory()()
+    return client_factory()(None, True)
 
 
 @pytest.fixture(scope="module")
-def remote_client():
+def remote_client() -> "OptimadeTestClient":
     """Return TestClient for OPTIMADE server, mimicking a remote client"""
     from .utils import client_factory
 
-    return client_factory()(raise_server_exceptions=False)
+    return client_factory()(None, False)
 
 
 @pytest.fixture
-def get_good_response(client, caplog):
+def get_good_response(
+    client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
+) -> "Callable[[str, bool], Union[Dict[str, Any], Response]]":
     """Get OPTIMADE response with some sanity checks"""
+    import re
 
-    def inner(request: str, raw=False) -> Dict[str, Any]:
+    def inner(request: str, raw: bool = False) -> "Union[Dict[str, Any], Response]":
         try:
             response = client.get(request)
 
@@ -53,13 +62,13 @@ def get_good_response(client, caplog):
 
 
 @pytest.fixture
-def check_keys():
+def check_keys() -> "Callable[[List[str], Iterable], None]":
     """Utility function to help validate dict keys"""
 
     def inner(
-        keys: list,
-        response_subset: Iterable,
-    ):
+        keys: "List[str]",
+        response_subset: "Iterable",
+    ) -> None:
         for key in keys:
             assert (
                 key in response_subset
@@ -69,22 +78,24 @@ def check_keys():
 
 
 @pytest.fixture
-def check_response(get_good_response):
+def check_response(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> "Callable[[str, List[str], int, bool, bool], None]":
     """Fixture to check response using client fixture"""
     from optimade.server.config import CONFIG
 
     def inner(
         request: str,
-        expected_uuid: List[str],
+        expected_uuid: "List[str]",
         page_limit: int = CONFIG.page_limit,
         expect_id: bool = False,
         expected_as_is: bool = False,
-    ):
+    ) -> None:
         # Sort by immutable_id
         if "sort=" not in request:
             request += "&sort=immutable_id"
 
-        response = get_good_response(request=request)
+        response: "Dict[str, Any]" = get_good_response(request, False)
 
         if expect_id:
             response_uuids = [struct["id"] for struct in response["data"]]
@@ -107,15 +118,18 @@ def check_response(get_good_response):
 
 
 @pytest.fixture
-def check_error_response(client, caplog):
+def check_error_response(
+    client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
+) -> "Callable[[str, Optional[int], Optional[str], Optional[str]], None]":
     """General method for testing expected errornous response"""
+    import re
 
     def inner(
         request: str,
-        expected_status: int = None,
-        expected_title: str = None,
-        expected_detail: str = None,
-    ):
+        expected_status: "Optional[int]" = None,
+        expected_title: "Optional[str]" = None,
+        expected_detail: "Optional[str]" = None,
+    ) -> None:
         response = None
         try:
             response = client.get(request)

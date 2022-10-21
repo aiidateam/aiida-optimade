@@ -1,18 +1,27 @@
 """Test the `page_limit` query parameter"""
-# pylint: disable=import-error,protected-access
+# pylint: disable=protected-access
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict, Optional, Union
+
+    from pytest import LogCaptureFixture
+    from requests import Response
 
 
-def test_limit(get_good_response):
+def test_limit(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Check page_limit is respected"""
     page_limit = [5, 10]
     for limit in page_limit:
         request = f"/structures?page_limit={limit}"
-        response = get_good_response(request)
+        response: "Dict[str, Any]" = get_good_response(request, False)
 
         assert len(response["data"]) == limit
 
 
-def test_count_limit(caplog):
+def test_count_limit(caplog: "LogCaptureFixture") -> None:
     """Test EntryCollection.count() when changing limit"""
     from aiida_optimade.routers.structures import STRUCTURES
 
@@ -61,12 +70,15 @@ def test_count_limit(caplog):
     }
 
 
-def test_page_limit_max(get_good_response, check_error_response):
+def test_page_limit_max(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+    check_error_response: "Callable[[str, Optional[int], Optional[str], Optional[str]], None]",  # pylint: disable=line-too-long
+) -> None:
     """Ensure the configuration page_limit_max is respected"""
     from optimade.server.config import CONFIG
 
     request = f"/structures?page_limit={CONFIG.page_limit_max}"
-    response = get_good_response(request)
+    response: "Dict[str, Any]" = get_good_response(request, False)
     assert len(response["data"]) == CONFIG.page_limit_max
 
     request = f"/structures?page_limit={CONFIG.page_limit_max + 1}"

@@ -1,20 +1,35 @@
 """Test CLI `aiida-optimade init` command"""
-# pylint: disable=import-error,too-many-locals
+# pylint: disable=too-many-locals
 import os
-import re
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Callable, List, Optional
+
+    from aiida.manage.tests import TestManager
+    from click import Command
+    from click.testing import Result
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
     """
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -24,12 +39,12 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     # Clear database
     aiida_profile.reset_db()
 
-    archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "structure_data_nodes.aiida"
     import_archive(archive)
 
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
-    result = run_cli_command(cmd_init.init)
+    result = run_cli_command(cmd_init.init, None, False)
     assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_structure_data} StructureData and CifData Nodes or MongoDB documents have"
@@ -45,7 +60,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     assert n_structure_data == n_updated_structure_data
 
     # Try again, now all Nodes should have been updated
-    result = run_cli_command(cmd_init.init)
+    result = run_cli_command(cmd_init.init, None, False)
     assert (
         "No new StructureData and CifData Nodes or MongoDB documents found to "
         "initialize" in result.stdout
@@ -53,7 +68,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Test '-f/--force' option
     options = ["--force"]
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         f"About to remove OPTIMADE-specific extras for {n_structure_data} Nodes."
         in result.stdout
@@ -83,7 +98,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
+    original_data = top_dir / "tests" / "static" / "test_structures.aiida"
     import_archive(original_data)
 
 
@@ -91,8 +106,15 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -102,12 +124,12 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     # Clear database
     aiida_profile.reset_db()
 
-    archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "cif_data_nodes.aiida"
     import_archive(archive)
 
     n_cif_data = orm.QueryBuilder().append(orm.CifData).count()
 
-    result = run_cli_command(cmd_init.init)
+    result = run_cli_command(cmd_init.init, None, False)
     assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_cif_data} StructureData and CifData Nodes or MongoDB documents have been "
@@ -123,7 +145,7 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     assert n_cif_data == n_updated_cif_data
 
     # Try again, now all Nodes should have been updated
-    result = run_cli_command(cmd_init.init)
+    result = run_cli_command(cmd_init.init, None, False)
     assert (
         "No new StructureData and CifData Nodes or MongoDB documents found to "
         "initialize" in result.stdout
@@ -137,18 +159,24 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    original_data = top_dir.joinpath("tests/static/test_structures.aiida")
-    import_archive(original_data)
+    import_archive(top_dir / "tests" / "static" / "test_structures.aiida")
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata_mongo(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init --mongo` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
     """
+    import re
+
     import bson.json_util
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -161,13 +189,13 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     aiida_profile.reset_db()
     STRUCTURES_MONGO.collection.drop()
 
-    archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "structure_data_nodes.aiida"
     import_archive(archive)
 
     n_structure_data = orm.QueryBuilder().append(orm.StructureData).count()
 
     options = ["--mongo"]
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_structure_data} StructureData and CifData Nodes or MongoDB documents have"
@@ -184,7 +212,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     assert n_structure_data == len(STRUCTURES_MONGO)
 
     # Try again, now all Nodes should have been updated
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         "No new StructureData and CifData Nodes or MongoDB documents found to "
         "initialize" in result.stdout
@@ -192,7 +220,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 
     # Test '-f/--force' option
     options.append("--force")
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         f"About to drop structures collection {STRUCTURES_MONGO.collection.full_name!r}"
         " in MongoDB." in result.stdout
@@ -223,9 +251,11 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 
     # Repopulate databases with the "proper" test data
     aiida_profile.reset_db()
-    import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
+    import_archive(top_dir / "tests" / "static" / "test_structures.aiida")
     STRUCTURES_MONGO.collection.drop()
-    with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
+    with open(
+        top_dir / "tests" / "static" / "test_structures_mongo.json", encoding="utf8"
+    ) as handle:
         data = bson.json_util.loads(handle.read())
     STRUCTURES_MONGO.collection.insert_many(data)
 
@@ -233,8 +263,15 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata_mongo(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    aiida_profile: "TestManager",
+    top_dir: "Path",
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
+    import re
+
     import bson.json_util
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -247,13 +284,13 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     aiida_profile.reset_db()
     STRUCTURES_MONGO.collection.drop()
 
-    archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
+    archive = top_dir / "tests" / "cli" / "static" / "cif_data_nodes.aiida"
     import_archive(archive)
 
     n_cif_data = orm.QueryBuilder().append(orm.CifData).count()
 
     options = ["--mongo"]
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert "Success:" in result.stdout, result.stdout
     assert (
         f"{n_cif_data} StructureData and CifData Nodes or MongoDB documents have been "
@@ -270,7 +307,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     assert n_cif_data == len(STRUCTURES_MONGO)
 
     # Try again, now all Nodes should have been updated
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         "No new StructureData and CifData Nodes or MongoDB documents found to "
         "initialize" in result.stdout
@@ -284,29 +321,31 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
 
     # Repopulate database with the "proper" test data
     aiida_profile.reset_db()
-    import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
+    import_archive(top_dir / "tests" / "static" / "test_structures.aiida")
     STRUCTURES_MONGO.collection.drop()
-    with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
+    with open(
+        top_dir / "tests" / "static" / "test_structures_mongo.json", encoding="utf8"
+    ) as handle:
         data = bson.json_util.loads(handle.read())
     STRUCTURES_MONGO.collection.insert_many(data)
 
 
-def test_get_documents(top_dir):
+def test_get_documents(top_dir: "Path") -> None:
     """Test get_documents()"""
     import bson.json_util
 
     from aiida_optimade.cli.cmd_init import get_documents, read_chunks
 
-    archive = top_dir.joinpath("tests/static/test_structures_mongo.json").resolve()
+    archive = (top_dir / "tests" / "static" / "test_structures_mongo.json").resolve()
 
     all_loaded_documents = []
-    with open(archive) as handle:
+    with open(archive, encoding="utf8") as handle:
         for documents in get_documents(read_chunks(handle, chunk_size=2**24)):
             loaded_documents = bson.json_util.loads(documents)
             assert isinstance(loaded_documents, list)
             all_loaded_documents.extend(loaded_documents)
 
-    with open(archive) as handle:
+    with open(archive, encoding="utf8") as handle:
         documents_pure = bson.json_util.loads(handle.read())
 
     assert len(all_loaded_documents) == len(documents_pure)
@@ -316,7 +355,7 @@ def test_get_documents(top_dir):
 @pytest.mark.parametrize(
     "bad_file", ["", '[{ {"key": "value"}]', '[/{"key": "value"}]']
 )
-def test_get_documents_bad_file(bad_file):
+def test_get_documents_bad_file(bad_file: str) -> None:
     """Test get_documents() with syntactically bad files"""
     import tempfile
 
@@ -347,29 +386,35 @@ def test_get_documents_bad_file(bad_file):
         assert not all_loaded_documents
 
 
-def test_filename_aiida(run_cli_command, top_dir):
+def test_filename_aiida(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    top_dir: "Path",
+) -> None:
     """Ensure init excepts when using --filename without --mongo"""
     from aiida_optimade.cli import cmd_init
 
-    real_existing_file = top_dir.joinpath("pyproject.toml")
+    real_existing_file = top_dir / "pyproject.toml"
 
     options = ["--filename", str(real_existing_file)]
-    result = run_cli_command(cmd_init.init, options, raises=True)
+    result = run_cli_command(cmd_init.init, options, True)
     assert "Success:" not in result.stdout, result.stdout
     assert "Critical:" in result.stdout, result.stdout
     assert (
         "An exception happened while trying to initialize" in result.stdout
     ), result.stdout
     assert (
-        "NotImplementedError('Passing a filename currently only works for a MongoDB backend'"
-        in result.stdout
+        "NotImplementedError('Passing a filename currently only works for a MongoDB "
+        "backend'" in result.stdout
     ), result.stdout
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_filename_mongo(run_cli_command, top_dir):
+def test_filename_mongo(
+    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    top_dir: "Path",
+) -> None:
     """Ensure --filename works with --mongo"""
     import bson.json_util
 
@@ -382,10 +427,10 @@ def test_filename_mongo(run_cli_command, top_dir):
     STRUCTURES_MONGO.collection.drop()
     assert len(STRUCTURES_MONGO) == 0
 
-    mongo_file = top_dir.joinpath("tests/static/test_structures_mongo.json")
+    mongo_file = top_dir / "tests" / "static" / "test_structures_mongo.json"
 
     options = ["--mongo", "--filename", str(mongo_file)]
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         f"Initializing MongoDB JSON file {mongo_file.name}." in result.stdout
     ), result.stdout
@@ -401,7 +446,7 @@ def test_filename_mongo(run_cli_command, top_dir):
     assert n_data == len(STRUCTURES_MONGO)
 
     # Try again, now all Nodes should have been updated
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         f"Initializing MongoDB JSON file {mongo_file.name}." in result.stdout
     ), result.stdout
@@ -416,7 +461,7 @@ def test_filename_mongo(run_cli_command, top_dir):
 
     # Try again with --force to get "first" result again
     options.append("--force")
-    result = run_cli_command(cmd_init.init, options)
+    result = run_cli_command(cmd_init.init, options, False)
     assert (
         f"Initializing MongoDB JSON file {mongo_file.name}." in result.stdout
     ), result.stdout
@@ -433,6 +478,8 @@ def test_filename_mongo(run_cli_command, top_dir):
 
     # Repopulate database with the "proper" test data
     STRUCTURES_MONGO.collection.drop()
-    with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
+    with open(
+        top_dir / "tests" / "static" / "test_structures_mongo.json", encoding="utf8"
+    ) as handle:
         data = bson.json_util.loads(handle.read())
     STRUCTURES_MONGO.collection.insert_many(data)
