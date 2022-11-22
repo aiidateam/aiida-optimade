@@ -1,22 +1,17 @@
 # pylint: disable=no-name-in-module,too-many-arguments,import-error
 import json
 import re
+import typing
 import warnings
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import USE_CLIENT_DEFAULT
 from optimade import __api_version__
 from optimade.models import ResponseMeta
-
-if TYPE_CHECKING:  # pragma: no cover
-    from typing import Any, Dict, Iterable, Optional, Union
-
-    import httpx
-    from pydantic import BaseModel
-    from starlette import testclient
+from pydantic import BaseModel
+from requests import Response
+from starlette import testclient
 
 
 class OptimadeTestClient(TestClient):
@@ -29,13 +24,10 @@ class OptimadeTestClient(TestClient):
 
     def __init__(
         self,
-        app: "Union[testclient.ASGI2App, testclient.ASGI3App]",
+        app: typing.Union[testclient.ASGI2App, testclient.ASGI3App],
         base_url: str = "http://example.org",
         raise_server_exceptions: bool = True,
         root_path: str = "",
-        backend: str = "asyncio",
-        backend_options: "Optional[Dict[str, Any]]" = None,
-        cookies: "Optional[httpx._client.CookieTypes]" = None,
         version: str = "",
     ) -> None:
         super(OptimadeTestClient, self).__init__(
@@ -43,9 +35,6 @@ class OptimadeTestClient(TestClient):
             base_url=base_url,
             raise_server_exceptions=raise_server_exceptions,
             root_path=root_path,
-            backend=backend,
-            backend_options=backend_options,
-            cookies=cookies,
         )
         if version:
             if not version.startswith("v"):
@@ -61,24 +50,25 @@ class OptimadeTestClient(TestClient):
     def request(  # pylint: disable=too-many-locals
         self,
         method: str,
-        url: "httpx._types.URLTypes",
-        *,
-        content: "Optional[httpx._types.RequestContent]" = None,
-        data: "Optional[httpx._types.RequestData]" = None,
-        files: "Optional[httpx._types.RequestFiles]" = None,
-        json: "Optional[Any]" = None,  # pylint: disable=redefined-outer-name
-        params: "Optional[httpx._types.QueryParamTypes]" = None,
-        headers: "Optional[httpx._types.HeaderTypes]" = None,
-        cookies: "Optional[httpx._types.CookieTypes]" = None,
-        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
-        follow_redirects: "Optional[bool]" = None,
-        allow_redirects: "Optional[bool]" = None,
-        timeout: "Union[httpx._client.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
-        extensions: "Optional[dict]" = None,
-    ) -> "httpx.Response":
+        url: str,
+        params: testclient.Params = None,
+        data: testclient.DataType = None,
+        headers: typing.MutableMapping[str, str] = None,
+        cookies: testclient.Cookies = None,
+        files: testclient.FileType = None,
+        auth: testclient.AuthType = None,
+        timeout: testclient.TimeOut = None,
+        allow_redirects: bool = None,
+        proxies: typing.MutableMapping[str, str] = None,
+        hooks: typing.Any = None,
+        stream: bool = None,
+        verify: typing.Union[bool, str] = None,
+        cert: typing.Union[str, typing.Tuple[str, str]] = None,
+        json: typing.Any = None,  # pylint: disable=redefined-outer-name
+    ) -> Response:
         if (
-            re.match(r"/?v[0-9](.[0-9]){0,2}/", str(url)) is None
-            and not urlparse(str(url)).scheme
+            re.match(r"/?v[0-9](.[0-9]){0,2}/", url) is None
+            and not urlparse(url).scheme
         ):
             while url.startswith("/"):
                 url = url[1:]
@@ -86,18 +76,20 @@ class OptimadeTestClient(TestClient):
         return super().request(
             method=method,
             url=url,
-            content=content,
-            data=data,
-            files=files,
-            json=json,
             params=params,
+            data=data,
             headers=headers,
             cookies=cookies,
+            files=files,
             auth=auth,
-            follow_redirects=follow_redirects,
-            allow_redirects=allow_redirects,
             timeout=timeout,
-            extensions=extensions,
+            allow_redirects=allow_redirects,
+            proxies=proxies,
+            hooks=hooks,
+            stream=stream,
+            verify=verify,
+            cert=cert,
+            json=json,
         )
 
 
@@ -105,7 +97,7 @@ class EndpointTests:
     """Base class for common tests of endpoints"""
 
     request_str: str = None
-    response_cls: "BaseModel" = None
+    response_cls: BaseModel = None
 
     response = None
     json_response = None
@@ -120,7 +112,7 @@ class EndpointTests:
         self.json_response = None
 
     @staticmethod
-    def check_keys(keys: list, response_subset: "Iterable"):
+    def check_keys(keys: list, response_subset: typing.Iterable):
         """Utility function to help validate dict keys"""
         for key in keys:
             assert (
@@ -181,9 +173,9 @@ class NoJsonEndpointTests:
     """A simplified mixin class for tests on non-JSON endpoints."""
 
     request_str: str = None
-    response_cls: "BaseModel" = None
+    response_cls: BaseModel = None
 
-    response: "httpx.Response" = None
+    response: Response = None
 
     @pytest.fixture(autouse=True)
     def get_response(self, client):
