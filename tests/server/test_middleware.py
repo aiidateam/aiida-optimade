@@ -29,6 +29,6 @@ def test_redirect_docs(version: str):
 
     for name, endpoint in OPEN_API_ENDPOINTS.items():
         response = client.get(endpoint)
-        assert str(response.url).split("?", maxsplit=1)[0] == urljoin(
-            str(client.base_url), f"v{__api_version__.split('.')[0]}{endpoint}"
+        assert response.url == urljoin(
+            client.base_url, f"v{__api_version__.split('.')[0]}{endpoint}"
         ), f"Failed for endpoint '{name}''"
