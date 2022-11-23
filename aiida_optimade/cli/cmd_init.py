@@ -1,12 +1,17 @@
 # pylint: disable=protected-access,too-many-statements
 from pathlib import Path
-from typing import IO, Generator, Iterator, List, Union
+from typing import TYPE_CHECKING
 
 import click
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import IO, Generator, Iterator, List, Union
+
+    from aiida.common.extendeddicts import AttributeDict
 
 
 @cli.command()
@@ -43,7 +48,7 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
     help="Filename to load as database (currently only usable for MongoDB).",
 )
 @click.pass_obj
-def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
+def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename: str):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     from aiida import load_profile
     from aiida.cmdline.utils import echo
@@ -58,7 +63,7 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
         profile = f"MongoDB JSON file {filename.name}"
     else:
         try:
-            profile: str = obj.get("profile").name
+            profile: str = obj.profile.name
         except AttributeError:
             profile = None
         profile = load_profile(profile).name
@@ -221,8 +226,8 @@ def init(obj: dict, force: bool, silent: bool, mongo: bool, filename: str):
 
 
 def read_chunks(
-    file_object: IO, chunk_size: int = None
-) -> Generator[Union[str, bytes], None, None]:
+    file_object: "IO", chunk_size: int = None
+) -> "Generator[Union[str, bytes], None, None]":
     """Generator to read a file piece by piece
 
     Parameters:
@@ -243,8 +248,8 @@ def read_chunks(
 
 
 def get_documents(
-    chunk_iterator: Union[Generator[str, None, None], Iterator[str]]
-) -> Generator[List[dict], None, None]:
+    chunk_iterator: "Union[Generator[str, None, None], Iterator[str]]",
+) -> "Generator[List[dict], None, None]":
     """Generator to return MongoDB documents from file"""
     rest_chunk = ""
 
