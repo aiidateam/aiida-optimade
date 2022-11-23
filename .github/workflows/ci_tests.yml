@@ -46,7 +46,6 @@ jobs:
             fail-fast: false
             matrix:
                 python-version: ['3.8', '3.9', '3.10']
-                backend: [core.psql_dos]
 
         services:
             mongo:
@@ -66,6 +65,11 @@ jobs:
                 ports:
                     - 5432:5432
 
+        env:
+            AIIDA_TEST_BACKEND: core.psql_dos
+            AIIDA_TEST_PROFILE: test_psql_dos
+            AIIDA_PROFILE: test_psql_dos
+
         steps:
             - uses: actions/checkout@v3
               with:
@@ -83,30 +87,18 @@ jobs:
                   pip install -e .[testing]
 
             - name: Setup up environment for AiiDA
-              env:
-                  AIIDA_TEST_BACKEND: ${{ matrix.backend }}
               run: .github/aiida/setup_aiida.sh
 
             - name: Test with pytest (AiiDA)
-              env:
-                  AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-                  AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
-                  AIIDA_PROFILE: test_${{ matrix.backend }}
               run: pytest -v --cov=./aiida_optimade/ --cov-report=xml --durations=20
 
             - name: Test with pytest (Data Curation)
               env:
-                  AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-                  AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
-                  AIIDA_PROFILE: test_${{ matrix.backend }}
                   PYTEST_OPTIMADE_CONFIG_FILE: ./tests/static/test_data_curation_config.json
               run: pytest -v --cov=./aiida_optimade/ --cov-report=xml --cov-append --durations=20 tests/server/routers/test_structures.py::test_structures_endpoint_data
 
             - name: Test with pytest (MongoDB)
               env:
-                  AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-                  AIIDA_TEST_PROFILE: test_${{ matrix.backend }}
-                  AIIDA_PROFILE: test_${{ matrix.backend }}
                   PYTEST_OPTIMADE_CONFIG_FILE: ./tests/static/test_mongo_config.json
                   OPTIMADE_MONGO_URI: mongodb://localhost:27017
                   OPTIMADE_DATABASE_BACKEND: mongodb
