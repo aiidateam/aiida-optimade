@@ -6,7 +6,6 @@ import click
 from aiida.cmdline.groups import VerdiCommandGroup
 from aiida.cmdline.params.options import PROFILE as AIIDA_PROFILE
 from aiida.cmdline.params.types import ProfileParamType as VerdiProfileParamType
-from aiida.manage.configuration import get_config
 
 from aiida_optimade.cli.options import AIIDA_PROFILES
 from aiida_optimade.cli.utils import AIIDA_OPTIMADE_TEST_PROFILE
@@ -23,8 +22,7 @@ if TYPE_CHECKING:  # pragma: no cover
     None, "-v", "--version", message="AiiDA-OPTIMADE version %(version)s"
 )
 @AIIDA_PROFILE(
-    type=VerdiProfileParamType(load_profile=True),
-    expose_value=False,
+    type=VerdiProfileParamType(),
     default="optimade",
     show_default=True,
     help="AiiDA profile to use and serve. Configured profiles: "
@@ -43,7 +41,7 @@ def cli(ctx: "VerdiContext", profile: "Profile", dev: bool):  # pragma: no cover
     """AiiDA-OPTIMADE command line interface (CLI)."""
 
     if dev:
-        profile = get_config(create=True).get_profile(AIIDA_OPTIMADE_TEST_PROFILE)
+        profile = ctx.obj.config.get_profile(AIIDA_OPTIMADE_TEST_PROFILE)
 
     ctx.obj.profile = profile
     ctx.obj.dev = dev
