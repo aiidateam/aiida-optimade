@@ -7,7 +7,7 @@
     "profiles": {
         "test_psql_dos": {
             "storage": {
-                "backend": "psql_dos",
+                "backend": "core.psql_dos",
                 "config": {
                     "database_engine": "postgresql_psycopg2",
                     "database_hostname": "docker.host.internal",

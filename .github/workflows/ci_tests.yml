@@ -46,7 +46,7 @@ jobs:
             fail-fast: false
             matrix:
                 python-version: ['3.8', '3.9', '3.10']
-                backend: [psql_dos]
+                backend: [core.psql_dos]
 
         services:
             mongo:
@@ -178,7 +178,7 @@ jobs:
 
             - name: Setup up environment for AiiDA
               env:
-                  AIIDA_TEST_BACKEND: psql_dos
+                  AIIDA_TEST_BACKEND: core.psql_dos
               run: .github/aiida/setup_aiida.sh
 
             - name: Load test data
@@ -251,7 +251,7 @@ jobs:
 
             - name: Setup up environment for AiiDA
               env:
-                  AIIDA_TEST_BACKEND: psql_dos
+                  AIIDA_TEST_BACKEND: core.psql_dos
               run: .github/aiida/setup_aiida.sh
 
             - name: Load test data (AiiDA)
@@ -320,7 +320,7 @@ jobs:
 
             - name: Setup up environment for AiiDA
               env:
-                  AIIDA_TEST_BACKEND: psql_dos
+                  AIIDA_TEST_BACKEND: core.psql_dos
               run: .github/aiida/setup_aiida.sh
 
             - name: Build docker image
