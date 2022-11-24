@@ -94,5 +94,4 @@ def run(
         host=host,
         port=port,
         log_level=log_level,
-        debug=debug,
     )
