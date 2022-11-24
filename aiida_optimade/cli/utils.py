@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from aiida.common.exceptions import ConfigurationError, MissingConfigurationError
 from aiida.manage.configuration import get_config
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import List
 
 AIIDA_OPTIMADE_TEST_PROFILE = "aiida-optimade_test"

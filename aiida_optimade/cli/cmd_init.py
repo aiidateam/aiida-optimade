@@ -12,8 +12,10 @@ from tqdm import tqdm
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import IO, Generator, Iterator, Optional, Union
+
+    from aiida.common.extendeddicts import AttributeDict
 
 
 @cli.command()
@@ -50,9 +52,9 @@ if TYPE_CHECKING:
     help="Filename to load as database (currently only usable for MongoDB).",
 )
 @click.pass_obj
-def init(
-    obj: dict, force: bool, silent: bool, mongo: bool, filename: str
-):  # pylint: disable=too-many-locals,too-many-branches
+def init(  # pylint: disable=too-many-locals,too-many-branches
+    obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename: str
+):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
@@ -64,7 +66,7 @@ def init(
         profile = f"MongoDB JSON file {filepath.name}"
     else:
         try:
-            profile: str = obj.get("profile").name
+            profile: str = obj.profile.name
         except AttributeError:
             profile = None
         profile = load_profile(profile).name

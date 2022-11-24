@@ -10,8 +10,10 @@ from tqdm import tqdm
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Tuple
+
+    from aiida.common.extendeddicts import AttributeDict
 
 
 @cli.command()
@@ -41,16 +43,14 @@ if TYPE_CHECKING:
     help="Suppress informational output.",
 )
 @click.pass_obj
-def calc(
-    obj: dict, fields: "Tuple[str]", force_yes: bool, silent: bool
-):  # pylint: disable=too-many-statements
+def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bool):
     """Calculate OPTIMADE fields in the AiiDA database."""
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
     try:
-        profile: str = obj.get("profile").name
+        profile: str = obj.profile.name
     except AttributeError:
         profile = None
     profile = load_profile(profile).name
