@@ -1,8 +1,13 @@
 # pylint: disable=too-many-arguments
+from typing import TYPE_CHECKING
+
 import click
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.cli.options import LOGGING_LEVELS
+
+if TYPE_CHECKING:  # pragma: no cover
+    from aiida.common.extendeddicts import AttributeDict
 
 
 @cli.command()
@@ -43,13 +48,20 @@ from aiida_optimade.cli.options import LOGGING_LEVELS
     help="Enable auto-reload. Note, if --debug is set, this will also be set to True.",
 )
 @click.pass_obj
-def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bool):
+def run(
+    obj: "AttributeDict",
+    log_level: str,
+    debug: bool,
+    host: str,
+    port: int,
+    reload: bool,
+):
     """Run AiiDA-OPTIMADE server."""
     import os
 
     import uvicorn
 
-    if obj.get("dev", False):
+    if getattr(obj, "dev", False):
         debug = True
 
     log_level = log_level.lower()
@@ -70,7 +82,7 @@ def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bo
         from aiida import load_profile
 
         try:
-            profile: str = obj.get("profile").name
+            profile: str = obj.profile.name
         except AttributeError:
             profile = None
         profile_name: str = load_profile(profile).name
@@ -82,5 +94,4 @@ def run(obj: dict, log_level: str, debug: bool, host: str, port: int, reload: bo
         host=host,
         port=port,
         log_level=log_level,
-        debug=debug,
     )

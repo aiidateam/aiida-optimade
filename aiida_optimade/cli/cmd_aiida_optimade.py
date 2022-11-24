@@ -1,20 +1,27 @@
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
-from aiida.cmdline.params.options import PROFILE as VERDI_PROFILE
+from aiida.cmdline.groups import VerdiCommandGroup
+from aiida.cmdline.params.options import PROFILE as AIIDA_PROFILE
 from aiida.cmdline.params.types import ProfileParamType as VerdiProfileParamType
-from aiida.manage.configuration import Profile, get_config
 
 from aiida_optimade.cli.options import AIIDA_PROFILES
 from aiida_optimade.cli.utils import AIIDA_OPTIMADE_TEST_PROFILE
 
+if TYPE_CHECKING:  # pragma: no cover
+    from aiida.cmdline.groups.verdi import VerdiContext
+    from aiida.manage.configuration import Profile
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+
+@click.command(
+    cls=VerdiCommandGroup, context_settings={"help_option_names": ["-h", "--help"]}
+)
 @click.version_option(
     None, "-v", "--version", message="AiiDA-OPTIMADE version %(version)s"
 )
-@VERDI_PROFILE(
+@AIIDA_PROFILE(
     type=VerdiProfileParamType(),
     default="optimade",
     show_default=True,
@@ -30,17 +37,14 @@ from aiida_optimade.cli.utils import AIIDA_OPTIMADE_TEST_PROFILE
     "profile and `--debug` options).",
 )
 @click.pass_context
-def cli(ctx, profile: Profile, dev: bool):  # pragma: no cover
+def cli(ctx: "VerdiContext", profile: "Profile", dev: bool):  # pragma: no cover
     """AiiDA-OPTIMADE command line interface (CLI)."""
 
-    if ctx.obj is None:
-        ctx.obj = {}
-
     if dev:
-        profile = get_config(create=True).get_profile(AIIDA_OPTIMADE_TEST_PROFILE)
+        profile = ctx.obj.config.get_profile(AIIDA_OPTIMADE_TEST_PROFILE)
 
-    ctx.obj["profile"] = profile
-    ctx.obj["dev"] = dev
+    ctx.obj.profile = profile
+    ctx.obj.dev = dev
 
     # Set config
     if (
