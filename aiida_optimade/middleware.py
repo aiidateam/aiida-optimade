@@ -8,7 +8,7 @@ from starlette.responses import RedirectResponse
 
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from starlette.requests import Request
 
 

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Callable, Dict, Iterable, List, Tuple, Type, Union
 
     from _pytest.mark.structures import ParameterSet

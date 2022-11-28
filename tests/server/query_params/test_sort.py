@@ -1,7 +1,7 @@
 """Test sort query parameter"""
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from datetime import datetime
     from typing import Any, Callable, Dict, List, Union
 

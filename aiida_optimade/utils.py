@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from optimade.models import DataType
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Dict, Tuple
 
 OPEN_API_ENDPOINTS = {

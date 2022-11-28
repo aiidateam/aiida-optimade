@@ -8,7 +8,7 @@ from aiida.orm.querybuilder import QueryBuilder
 from aiida_optimade.common import LOGGER, AiidaEntityNotFound
 from aiida_optimade.translators.utils import hex_to_floats
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, List, Optional, Union
 
 

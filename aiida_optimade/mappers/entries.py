@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Dict, Set, Tuple
 
     from aiida_optimade.translators.entities import AiidaEntityTranslator

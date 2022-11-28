@@ -18,7 +18,7 @@ from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformer
 from aiida_optimade.utils import retrieve_queryable_properties
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 

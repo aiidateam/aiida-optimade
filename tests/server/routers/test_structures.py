@@ -10,7 +10,7 @@ from optimade.models import (
 
 from ..utils import EndpointTests
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Callable, Dict, Union
 
     from requests import Response

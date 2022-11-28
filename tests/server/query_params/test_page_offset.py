@@ -2,7 +2,7 @@
 # pylint: disable=protected-access
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Callable, Dict, Union
 
     from pytest import LogCaptureFixture

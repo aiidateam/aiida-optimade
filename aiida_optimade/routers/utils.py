@@ -12,7 +12,7 @@ from optimade.server.routers.utils import (
     meta_values,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing import Type, Union
 
     from fastapi import Request
