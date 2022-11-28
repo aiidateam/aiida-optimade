@@ -53,14 +53,18 @@ if TYPE_CHECKING:  # pragma: no cover
 )
 @click.pass_obj
 def init(  # pylint: disable=too-many-locals,too-many-branches
-    obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename: str
+    obj: "AttributeDict",
+    force: bool,
+    silent: bool,
+    mongo: bool,
+    filename: "Optional[str]",
 ):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
-    filepath = Path(filename)
+    filepath = Path(filename) if filename else None
 
     if mongo and filepath:
         profile = f"MongoDB JSON file {filepath.name}"
