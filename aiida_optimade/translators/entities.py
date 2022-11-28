@@ -25,7 +25,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
     def __init__(self, pk: int):
         self._pk = pk
         self.new_attributes = {}
-        self.__node: Node
+        self.__node: "Optional[Node]" = None
 
     def _get_unique_node_property(self, project: "Union[List[str], str]") -> "Any":
         query = QueryBuilder(limit=1)
