@@ -15,7 +15,7 @@ repos:
           - id: yamlfmt
 
     - repo: https://github.com/ambv/black
-      rev: 22.10.0
+      rev: 22.12.0
       hooks:
           - id: black
             name: Blacken
@@ -38,7 +38,7 @@ repos:
           - id: flake8
 
     - repo: https://github.com/timothycrosley/isort
-      rev: 5.10.1
+      rev: v5.11.3
       hooks:
           - id: isort
             args: [--profile, black, --filter-files, --skip-gitignore]
