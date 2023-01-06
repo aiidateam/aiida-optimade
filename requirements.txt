@@ -1,4 +1,4 @@
-optimade[mongo]~=0.19.4
+optimade[mongo]~=0.20.2
 aiida-core~=2.2.1
 fastapi==0.86.0
 pymatgen>=2019.7.2,<=2022.1.9,!=2019.9.7
