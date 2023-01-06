@@ -9,7 +9,7 @@ services:
             context: ..
             dockerfile: Dockerfile
             args:
-                OPTIMADE_TOOLS_VERSION: 0.19.4
+                OPTIMADE_TOOLS_VERSION: 0.20.2
                 AIIDA_VERSION: 2.2.1
                 CONFIG_FILE: aiida_optimade/config.json
         environment:
