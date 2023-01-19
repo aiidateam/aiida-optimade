@@ -43,7 +43,7 @@ repos:
   - id: flake8
 
 - repo: https://github.com/timothycrosley/isort
-  rev: v5.11.3
+  rev: 5.11.4
   hooks:
   - id: isort
     args: [--profile, black, --filter-files, --skip-gitignore]
