@@ -1,10 +1,16 @@
+"""Utility tasks based on invoke."""
 import re
-from typing import Tuple
+from typing import TYPE_CHECKING
 
 from invoke import task
 
+if TYPE_CHECKING:
+    from typing import Optional, Tuple
 
-def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
+
+def update_file(
+    filename: str, sub_line: "Tuple[str, str]", strip: "Optional[str]" = None
+) -> None:
     """Utility function for tasks to read, update, and write files"""
     with open(filename, "r") as handle:
         lines = [
@@ -96,7 +102,7 @@ def optimade_req(_, ver=""):
         api_version += f"+{api_version[4]}"
 
     update_file(
-        "requirements.txt", (r"optimade\[mongo\]~=.+", f"optimade[mongo]~={ver}")
+        "requirements.txt", (r"optimade\[server\]~=.+", f"optimade[server]~={ver}")
     )
     update_file(
         "README.md",
