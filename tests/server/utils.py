@@ -7,14 +7,17 @@ from urllib.parse import urlparse
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
+from httpx._client import USE_CLIENT_DEFAULT
 from optimade import __api_version__
 from optimade.models import ResponseMeta
 from pydantic import BaseModel
-from requests import Response
-from starlette import testclient
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, Iterable, MutableMapping, Optional, Tuple, Type, Union
+    from typing import Any, Dict, Iterable, Optional, Type, Union
+
+    import httpx
+    from starlette import testclient, types
 
 
 class OptimadeTestClient(TestClient):
@@ -27,17 +30,28 @@ class OptimadeTestClient(TestClient):
 
     def __init__(
         self,
-        app: "Union[testclient.ASGI2App, testclient.ASGI3App]",
+        app: "types.ASGIApp",
         base_url: str = "http://example.org",
         raise_server_exceptions: bool = True,
         root_path: str = "",
+        backend: str = "asyncio",
+        backend_options: "Optional[Dict[str, Any]]" = None,
+        cookies: "Optional[httpx._types.CookieTypes]" = None,
         version: str = "",
     ) -> None:
+        optional_kwargs = {"cookies": cookies}
         super().__init__(
             app=app,
             base_url=base_url,
             raise_server_exceptions=raise_server_exceptions,
             root_path=root_path,
+            backend=backend,
+            backend_options=backend_options,
+            **{
+                key: value
+                for key, value in optional_kwargs.items()
+                if value is not None
+            },
         )
         if version:
             if not version.startswith("v"):
@@ -53,46 +67,43 @@ class OptimadeTestClient(TestClient):
     def request(  # pylint: disable=too-many-locals
         self,
         method: str,
-        url: str,
-        params: "Optional[testclient.Params]" = None,
-        data: "Optional[testclient.DataType]" = None,
-        headers: "Optional[MutableMapping[str, str]]" = None,
-        cookies: "Optional[testclient.Cookies]" = None,
-        files: "Optional[testclient.FileType]" = None,
-        auth: "Optional[testclient.AuthType]" = None,
-        timeout: "Optional[testclient.TimeOut]" = None,
-        allow_redirects: "Optional[bool]" = None,
-        proxies: "Optional[MutableMapping[str, str]]" = None,
-        hooks: "Any" = None,
-        stream: "Optional[bool]" = None,
-        verify: "Optional[Union[bool, str]]" = None,
-        cert: "Optional[Union[str, Tuple[str, str]]]" = None,
+        url: "httpx._types.URLTypes",
+        *,
+        content: "Optional[httpx._types.RequestContent]" = None,
+        data: "Optional[testclient._RequestData]" = None,
+        files: "Optional[httpx._types.RequestFiles]" = None,
         json: "Any" = None,  # pylint: disable=redefined-outer-name
+        params: "Optional[httpx._types.QueryParamTypes]" = None,
+        headers: "Optional[httpx._types.HeaderTypes]" = None,
+        cookies: "Optional[httpx._types.CookieTypes]" = None,
+        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
+        follow_redirects: "Optional[bool]" = None,
+        allow_redirects: "Optional[bool]" = None,
+        timeout: "Union[httpx._types.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
+        extensions: "Optional[Dict[str, Any]]" = None,
     ) -> Response:
         if (
-            re.match(r"/?v[0-9](.[0-9]){0,2}/", url) is None
-            and not urlparse(url).scheme
+            re.match(r"/?v[0-9](.[0-9]){0,2}/", str(url)) is None
+            and not urlparse(str(url)).scheme
         ):
-            while url.startswith("/"):
-                url = url[1:]
+            while str(url).startswith("/"):
+                url = str(url)[1:]
             url = f"{self.version}/{url}"
         return super().request(
             method=method,
             url=url,
-            params=params,
+            content=content,
             data=data,
+            files=files,
+            json=json,
+            params=params,
             headers=headers,
             cookies=cookies,
-            files=files,
             auth=auth,
-            timeout=timeout,
+            follow_redirects=follow_redirects,
             allow_redirects=allow_redirects,
-            proxies=proxies,
-            hooks=hooks,
-            stream=stream,
-            verify=verify,
-            cert=cert,
-            json=json,
+            timeout=timeout,
+            extensions=extensions,
         )
 
 

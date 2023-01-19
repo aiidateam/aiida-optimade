@@ -7,7 +7,7 @@ import pytest
 if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
-    from requests import Response
+    from httpx import Response
 
     from .utils import OptimadeTestClient
 
