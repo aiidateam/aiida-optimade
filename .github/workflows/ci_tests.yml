@@ -22,8 +22,11 @@ jobs:
       skip_pre-commit_hooks: codecov-validator
 
       # pylint & safety
-      run_pylint: false
-      run_safety: false
+      run_pylint: true
+      pylint_runs: |
+        --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --recursive=yes --ignore-paths=tests/* *.py aiida_optimade
+        --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --disable=import-outside-toplevel,redefined-outer-name --recursive=yes tests
+      run_safety: true
 
       # Build distribution
       run_build_package: true
