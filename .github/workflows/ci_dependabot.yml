@@ -12,7 +12,7 @@ on:
 jobs:
   create-collected-pr:
     name: External
-    uses: SINTEF/ci-cd/.github/workflows/ci_update_dependencies.yml@v1
+    uses: SINTEF/ci-cd/.github/workflows/ci_update_dependencies.yml@v2.0.0
     if: github.repository_owner == 'aiidateam'
     with:
       git_username: The AiiDA Team

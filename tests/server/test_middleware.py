@@ -28,7 +28,7 @@ def test_redirect_docs(version: str) -> None:
     Open API docs endpoints from vMAJOR.MINOR.PATCH and vMAJOR.MINOR base URLs should
     be redirected to vMAJOR urls.
     """
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
 
     from optimade import __api_version__
 
@@ -40,6 +40,9 @@ def test_redirect_docs(version: str) -> None:
 
     for name, endpoint in OPEN_API_ENDPOINTS.items():
         response = client.get(endpoint)
-        assert response.url == urljoin(
-            client.base_url, f"v{__api_version__.split('.', maxsplit=1)[0]}{endpoint}"
+        assert urlparse(str(response.url)) == urlparse(
+            urljoin(
+                str(client.base_url),
+                f"v{__api_version__.split('.', maxsplit=1)[0]}{endpoint}",
+            )
         ), f"Failed for endpoint '{name}''"

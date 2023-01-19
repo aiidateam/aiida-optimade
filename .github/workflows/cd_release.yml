@@ -14,7 +14,7 @@ env:
 jobs:
   publish:
     name: External
-    uses: SINTEF/ci-cd/.github/workflows/cd_release.yml@v1
+    uses: SINTEF/ci-cd/.github/workflows/cd_release.yml@v2.0.0
     if: github.repository == 'aiidateam/aiida-optimade' && startsWith(github.ref, 'refs/tags/v')
     with:
       git_username: ${{ env.GIT_USER_NAME }}
@@ -31,7 +31,7 @@ jobs:
         .github/mongo/ci_config.json;\"version\": ([^,]+),;\"version\": \"{version}\",
       build_cmd: pip install -U flit && flit build
     secrets:
-      PyPI_token: ${{ secrets.test_pypi_password }}
+      PyPI_token: ${{ secrets.pypi_password }}
       PAT: ${{ secrets.RELEASE_PAT }}
 
   update-stable:

@@ -1,10 +1,11 @@
-# pylint: disable=no-name-in-module,too-many-arguments,import-error
+"""Server utilities for testing."""
 from typing import TYPE_CHECKING
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx._client import USE_CLIENT_DEFAULT
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import (
         Any,
         Callable,
@@ -12,16 +13,16 @@ if TYPE_CHECKING:  # pragma: no cover
         Generator,
         Iterable,
         List,
-        MutableMapping,
         Optional,
-        Tuple,
         Type,
         Union,
     )
 
+    import httpx
+    from httpx import Response
     from pydantic import BaseModel
-    from requests import Response
     from starlette import testclient
+    from starlette.types import ASGIApp
 
 
 class OptimadeTestClient(TestClient):
@@ -32,12 +33,15 @@ class OptimadeTestClient(TestClient):
     So this will prepend any requests with the MAJOR OPTIMADE version path.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
-        app: "Union[testclient.ASGI2App, testclient.ASGI3App]",
+        app: "ASGIApp",
         base_url: str = "http://example.org",
         raise_server_exceptions: bool = True,
         root_path: str = "",
+        backend: str = "asyncio",
+        backend_options: "Optional[Dict[str, Any]]" = None,
+        cookies: "Optional[httpx._types.CookieTypes]" = None,
         version: str = "",
     ) -> None:
         import re
@@ -45,11 +49,19 @@ class OptimadeTestClient(TestClient):
 
         from optimade import __api_version__
 
+        optional_kwargs = {"cookies": cookies}
         super().__init__(
             app=app,
             base_url=base_url,
             raise_server_exceptions=raise_server_exceptions,
             root_path=root_path,
+            backend=backend,
+            backend_options=backend_options,
+            **{
+                key: value
+                for key, value in optional_kwargs.items()
+                if value is not None
+            },
         )
         if version:
             if not version.startswith("v"):
@@ -66,56 +78,46 @@ class OptimadeTestClient(TestClient):
     def request(  # pylint: disable=too-many-locals
         self,
         method: str,
-        url: str,
-        params: "Optional[testclient.Params]" = None,
-        data: "Optional[testclient.DataType]" = None,
-        headers: "Optional[MutableMapping[str, str]]" = None,
-        cookies: "Optional[testclient.Cookies]" = None,
-        files: "Optional[testclient.FileType]" = None,
-        auth: "Optional[testclient.AuthType]" = None,
-        timeout: "Optional[testclient.TimeOut]" = None,
+        url: "httpx._types.URLTypes",
+        *,
+        content: "Optional[httpx._types.RequestContent]" = None,
+        data: "Optional[testclient._RequestData]" = None,
+        files: "Optional[httpx._types.RequestFiles]" = None,
+        json: "Any" = None,  # pylint: disable=redefined-outer-name
+        params: "Optional[httpx._types.QueryParamTypes]" = None,
+        headers: "Optional[httpx._types.HeaderTypes]" = None,
+        cookies: "Optional[httpx._types.CookieTypes]" = None,
+        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,  # pylint: disable=line-too-long
+        follow_redirects: "Optional[bool]" = None,
         allow_redirects: "Optional[bool]" = None,
-        proxies: "Optional[MutableMapping[str, str]]" = None,
-        hooks: "Any" = None,
-        stream: "Optional[bool]" = None,
-        verify: "Optional[Union[bool, str]]" = None,
-        cert: "Optional[Union[str, Tuple[str, str]]]" = None,
-        json: "Any" = None,
+        timeout: "Union[httpx._types.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,  # pylint: disable=line-too-long
+        extensions: "Optional[Dict[str, Any]]" = None,
     ) -> "Response":
         import re
         from urllib.parse import urlparse
 
         if (
-            re.match(r"/?v[0-9](.[0-9]){0,2}/", url) is None
-            and not urlparse(url).scheme
+            re.match(r"/?v[0-9](.[0-9]){0,2}/", str(url)) is None
+            and not urlparse(str(url)).scheme
         ):
-            while url.startswith("/"):
-                url = url[1:]
+            while str(url).startswith("/"):
+                url = str(url)[1:]
             url = f"{self.version}/{url}"
-        optional_kwargs = {
-            "params": params,
-            "data": data,
-            "headers": headers,
-            "cookies": cookies,
-            "files": files,
-            "auth": auth,
-            "timeout": timeout,
-            "allow_redirects": allow_redirects,
-            "proxies": proxies,
-            "hooks": hooks,
-            "stream": stream,
-            "verify": verify,
-            "cert": cert,
-            "json": json,
-        }
         return super().request(
             method=method,
             url=url,
-            **{
-                key: value
-                for key, value in optional_kwargs.items()
-                if value is not None
-            },
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            auth=auth,
+            follow_redirects=follow_redirects,
+            allow_redirects=allow_redirects,
+            timeout=timeout,
+            extensions=extensions,
         )
 
 
@@ -149,7 +151,7 @@ class EndpointTests:
         """Make sure the response was successful"""
         import json
 
-        assert self.response
+        assert self.response is not None
         assert self.response.status_code == 200, (
             f"Request to {self.request_str} failed: "
             f"{json.dumps(self.json_response, indent=2)}"
@@ -175,6 +177,7 @@ class EndpointTests:
         """General test for response JSON and pydantic model serializability"""
         assert isinstance(self.json_response, dict)
         assert self.response_cls is not None, "Response class unset for this endpoint"
+        assert self.json_response is not None
         self.response_cls(**self.json_response)
 
 
@@ -213,14 +216,14 @@ class NoJsonEndpointTests:
     @pytest.fixture(autouse=True)
     def get_response(self, client: OptimadeTestClient) -> "Generator[None, None, None]":
         """Get response from client"""
-        assert self.request_str
+        assert self.request_str is not None
         self.response = client.get(self.request_str)
         yield
         self.response = None
 
     def test_response_okay(self) -> None:
         """Make sure the response was successful"""
-        assert self.response
+        assert self.response is not None
         assert (
             self.response.status_code == 200
         ), f"Request to {self.request_str} failed: {self.response.content}"

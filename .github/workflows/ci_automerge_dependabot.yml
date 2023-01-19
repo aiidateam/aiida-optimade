@@ -43,7 +43,7 @@ jobs:
     - name: Run tasks for `optimade` and `aiida-core` dependencies
       run: |
         pat_aiida='^.*"aiida-core ~=(.*)".*$'
-        pat_optimade='^.*"optimade\[mongo\] ~=(.*)".*$'
+        pat_optimade='^.*"optimade\[.*\] ~=(.*)".*$'
         while IFS="" read -r line || [ -n "${line}" ]; do
           if [[ "${line}" =~ $pat_aiida ]]; then
             aiida_core="${BASH_REMATCH[1]}"
