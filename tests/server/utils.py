@@ -1,8 +1,8 @@
 # pylint: disable=no-name-in-module,too-many-arguments,import-error
 import json
 import re
-import typing
 import warnings
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
@@ -12,6 +12,9 @@ from optimade.models import ResponseMeta
 from pydantic import BaseModel
 from requests import Response
 from starlette import testclient
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, Iterable, MutableMapping, Optional, Tuple, Type, Union
 
 
 class OptimadeTestClient(TestClient):
@@ -24,13 +27,13 @@ class OptimadeTestClient(TestClient):
 
     def __init__(
         self,
-        app: typing.Union[testclient.ASGI2App, testclient.ASGI3App],
+        app: "Union[testclient.ASGI2App, testclient.ASGI3App]",
         base_url: str = "http://example.org",
         raise_server_exceptions: bool = True,
         root_path: str = "",
         version: str = "",
     ) -> None:
-        super(OptimadeTestClient, self).__init__(
+        super().__init__(
             app=app,
             base_url=base_url,
             raise_server_exceptions=raise_server_exceptions,
@@ -51,20 +54,20 @@ class OptimadeTestClient(TestClient):
         self,
         method: str,
         url: str,
-        params: testclient.Params = None,
-        data: testclient.DataType = None,
-        headers: typing.MutableMapping[str, str] = None,
-        cookies: testclient.Cookies = None,
-        files: testclient.FileType = None,
-        auth: testclient.AuthType = None,
-        timeout: testclient.TimeOut = None,
-        allow_redirects: bool = None,
-        proxies: typing.MutableMapping[str, str] = None,
-        hooks: typing.Any = None,
-        stream: bool = None,
-        verify: typing.Union[bool, str] = None,
-        cert: typing.Union[str, typing.Tuple[str, str]] = None,
-        json: typing.Any = None,  # pylint: disable=redefined-outer-name
+        params: "Optional[testclient.Params]" = None,
+        data: "Optional[testclient.DataType]" = None,
+        headers: "Optional[MutableMapping[str, str]]" = None,
+        cookies: "Optional[testclient.Cookies]" = None,
+        files: "Optional[testclient.FileType]" = None,
+        auth: "Optional[testclient.AuthType]" = None,
+        timeout: "Optional[testclient.TimeOut]" = None,
+        allow_redirects: "Optional[bool]" = None,
+        proxies: "Optional[MutableMapping[str, str]]" = None,
+        hooks: "Any" = None,
+        stream: "Optional[bool]" = None,
+        verify: "Optional[Union[bool, str]]" = None,
+        cert: "Optional[Union[str, Tuple[str, str]]]" = None,
+        json: "Any" = None,  # pylint: disable=redefined-outer-name
     ) -> Response:
         if (
             re.match(r"/?v[0-9](.[0-9]){0,2}/", url) is None
@@ -96,11 +99,11 @@ class OptimadeTestClient(TestClient):
 class EndpointTests:
     """Base class for common tests of endpoints"""
 
-    request_str: str = None
-    response_cls: BaseModel = None
+    request_str: "Optional[str]" = None
+    response_cls: "Optional[Type[BaseModel]]" = None
 
-    response = None
-    json_response = None
+    response: "Optional[Response]" = None
+    json_response: "Optional[Dict[str, Any]]" = None
 
     @pytest.fixture(autouse=True)
     def get_response(self, client):
@@ -112,7 +115,7 @@ class EndpointTests:
         self.json_response = None
 
     @staticmethod
-    def check_keys(keys: list, response_subset: typing.Iterable):
+    def check_keys(keys: list, response_subset: "Iterable"):
         """Utility function to help validate dict keys"""
         for key in keys:
             assert (
@@ -121,6 +124,7 @@ class EndpointTests:
 
     def test_response_okay(self):
         """Make sure the response was successful"""
+        assert self.response is not None
         assert self.response.status_code == 200, (
             f"Request to {self.request_str} failed: "
             f"{json.dumps(self.json_response, indent=2)}"
@@ -128,6 +132,7 @@ class EndpointTests:
 
     def test_meta_response(self):
         """General test for `meta` property in response"""
+        assert self.json_response is not None
         assert "meta" in self.json_response
         meta_required_keys = ResponseMeta.schema()["required"]
         meta_optional_keys = list(
@@ -142,14 +147,15 @@ class EndpointTests:
     def test_serialize_response(self):
         """General test for response JSON and pydantic model serializability"""
         assert self.response_cls is not None, "Response class unset for this endpoint"
-        self.response_cls(**self.json_response)  # pylint: disable=not-callable
+        assert self.json_response is not None
+        self.response_cls(**self.json_response)
 
 
 def client_factory():
     """Return TestClient for OPTIMADE server"""
 
     def inner(
-        version: str = None, raise_server_exceptions: bool = True
+        version: "Optional[str]" = None, raise_server_exceptions: bool = True
     ) -> OptimadeTestClient:
         from aiida_optimade.main import APP
 
@@ -172,20 +178,22 @@ def client_factory():
 class NoJsonEndpointTests:
     """A simplified mixin class for tests on non-JSON endpoints."""
 
-    request_str: str = None
-    response_cls: BaseModel = None
+    request_str: "Optional[str]" = None
+    response_cls: "Optional[Type[BaseModel]]" = None
 
-    response: Response = None
+    response: "Optional[Response]" = None
 
     @pytest.fixture(autouse=True)
-    def get_response(self, client):
+    def get_response(self, client: OptimadeTestClient):
         """Get response from client"""
+        assert self.request_str is not None
         self.response = client.get(self.request_str)
         yield
         self.response = None
 
     def test_response_okay(self):
         """Make sure the response was successful"""
+        assert self.response is not None
         assert (
             self.response.status_code == 200
         ), f"Request to {self.request_str} failed: {self.response.content}"
