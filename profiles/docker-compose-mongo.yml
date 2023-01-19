@@ -3,42 +3,42 @@ version: '3'
 
 services:
 
-    aiida-optimade:
-        restart: always
-        depends_on:
-            - mongo
-        build:
-            context: ..
-            dockerfile: Dockerfile
-            args:
-                OPTIMADE_TOOLS_VERSION: 0.20.3
-                AIIDA_VERSION: 2.2.1
-                CONFIG_FILE: aiida_optimade/config.json
-        environment:
-            AIIDA_PATH: /app
-            AIIDA_PROFILE: test_psql_dos
-            FORCE_INIT:
-            USE_MONGO:
-            MONGO_FILENAME:
-            AIIDA_OPTIMADE_LOG_LEVEL:
-            OPTIMADE_MONGO_URI: mongodb://mongo:27017
-        volumes:
-            - /tmp/test_repository_test_psql_dos:/app/.aiida/repository-quicksetup
-            - .:/profiles
-            - ../.github/mongo:/app/.mongo
-        ports:
-            - 3253:80
+  aiida-optimade:
+    restart: always
+    depends_on:
+    - mongo
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        OPTIMADE_TOOLS_VERSION: 0.20.3
+        AIIDA_VERSION: 2.2.1
+        CONFIG_FILE: aiida_optimade/config.json
+    environment:
+      AIIDA_PATH: /app
+      AIIDA_PROFILE: test_psql_dos
+      FORCE_INIT:
+      USE_MONGO:
+      MONGO_FILENAME:
+      AIIDA_OPTIMADE_LOG_LEVEL:
+      OPTIMADE_MONGO_URI: mongodb://mongo:27017
+    volumes:
+    - /tmp/test_repository_test_psql_dos:/app/.aiida/repository-quicksetup
+    - .:/profiles
+    - ../.github/mongo:/app/.mongo
+    ports:
+    - 3253:80
     # Extra field ONLY for use with GitHub Actions CI
-        extra_hosts:
-            - docker.host.internal:${DOCKER_HOST_IP}
-        networks:
-            - optimade
+    extra_hosts:
+    - docker.host.internal:${DOCKER_HOST_IP}
+    networks:
+    - optimade
 
-    mongo:
-        restart: always
-        image: mongo:4
-        networks:
-            - optimade
+  mongo:
+    restart: always
+    image: mongo:4
+    networks:
+    - optimade
 
 networks:
-    optimade:
+  optimade:

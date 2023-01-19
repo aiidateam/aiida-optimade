@@ -1,44 +1,49 @@
 ---
 repos:
-    - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.4.0
-      hooks:
-          - id: trailing-whitespace
-            args: [--markdown-linebreak-ext=md]
-          - id: check-yaml
-          - id: check-json
-          - id: end-of-file-fixer
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: trailing-whitespace
+    args: [--markdown-linebreak-ext=md]
+  - id: check-yaml
+  - id: check-json
+  - id: end-of-file-fixer
 
-    - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-      rev: 0.2.2
-      hooks:
-          - id: yamlfmt
+- repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+  rev: 0.2.2
+  hooks:
+  - id: yamlfmt
+    args:
+    - --mapping=2
+    - --sequence=2
+    - --offset=0
+    exclude: ^.github/dependabot.yml$
 
-    - repo: https://github.com/ambv/black
-      rev: 22.12.0
-      hooks:
-          - id: black
-            name: Blacken
+- repo: https://github.com/ambv/black
+  rev: 22.12.0
+  hooks:
+  - id: black
+    name: Blacken
 
-    - repo: local
-      hooks:
-          - id: codecov-validator
-            name: Validate .codecov.yml
-            description: Validate .codecov.yml using codecov's online validation tool.
-            entry: ./.ci/codecov-validator.sh
-            files: >
-                (?x)^(
-                  .codecov.yml
-                )$
-            language: system
+- repo: local
+  hooks:
+  - id: codecov-validator
+    name: Validate .codecov.yml
+    description: Validate .codecov.yml using codecov's online validation tool.
+    entry: ./.ci/codecov-validator.sh
+    files: >
+      (?x)^(
+        .codecov.yml
+      )$
+    language: system
 
-    - repo: https://github.com/pycqa/flake8
-      rev: 6.0.0
-      hooks:
-          - id: flake8
+- repo: https://github.com/pycqa/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
 
-    - repo: https://github.com/timothycrosley/isort
-      rev: v5.11.3
-      hooks:
-          - id: isort
-            args: [--profile, black, --filter-files, --skip-gitignore]
+- repo: https://github.com/timothycrosley/isort
+  rev: v5.11.3
+  hooks:
+  - id: isort
+    args: [--profile, black, --filter-files, --skip-gitignore]
