@@ -29,7 +29,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Chemistry",
-    "Topic :: Scientific/Engineering :: Physics"
+    "Topic :: Scientific/Engineering :: Physics",
 ]
 keywords = ["OPTIMADE", "AiiDA", "materials"]
 requires-python = "~=3.8"
@@ -85,7 +85,14 @@ aiida-optimade = "aiida_optimade.cli.cmd_aiida_optimade:cli"
 name = "aiida_optimade"
 
 [tool.flit.sdist]
-include = ["aiida_optimade/*.json", "aiida_optimade/data/*.json"]
+include = [
+    "aiida_optimade/*.json",
+    "aiida_optimade/data/*.json",
+    ".docker/run.sh",
+    "profiles/*",
+    "Dockerfile",
+    ".dockerignore",
+]
 
 [tool.mypy]
 python_version = "3.8"
