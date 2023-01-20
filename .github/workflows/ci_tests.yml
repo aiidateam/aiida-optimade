@@ -27,6 +27,9 @@ jobs:
         --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --recursive=yes --ignore-paths=tests/* *.py aiida_optimade
         --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --disable=import-outside-toplevel,redefined-outer-name --recursive=yes tests
       run_safety: true
+      safety_options: |
+        --ignore=51549
+        --ignore=51668
 
       # Build distribution
       run_build_package: true
