@@ -9,34 +9,36 @@ on:
     - push-action/**
 
 jobs:
+  basic_tests:
+    name: External
+    uses: SINTEF/ci-cd/.github/workflows/ci_tests.yml@v2.0.0
+    with:
+      # General config
+      install_extras: '[dev]'
 
-  pre-commit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
+      # pre-commit
+      run_pre-commit: true
+      python_version_pre-commit: '3.8'
+      skip_pre-commit_hooks: codecov-validator
 
-    steps:
-    - uses: actions/checkout@v3
+      # pylint & safety
+      run_pylint: true
+      pylint_runs: |
+        --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --recursive=yes --ignore-paths=tests/* *.py aiida_optimade
+        --rcfile=pyproject.toml --extension-pkg-whitelist='pydantic' --disable=import-outside-toplevel,redefined-outer-name --recursive=yes tests
+      run_safety: true
+      safety_options: |
+        --ignore=51549
+        --ignore=51668
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
+      # Build distribution
+      run_build_package: true
+      python_version_package: '3.8'
+      build_libs: flit
+      build_cmd: flit build
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -U setuptools
-
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^pre-commit.*$ ]]; then
-                pre_commit="${line}"
-            fi
-        done < requirements_dev.txt
-
-        pip install ${pre_commit}
-
-    - name: Test with pre-commit
-      run: SKIP=codecov-validator pre-commit run --all-files --show-diff-on-failure
+      # Build documentation
+      run_build_docs: false
 
   pytest:
     runs-on: ubuntu-latest
@@ -156,17 +158,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
-
-        pip install pymongo
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:
@@ -231,15 +225,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:
@@ -300,15 +288,9 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
+        pip install -U setuptools wheel flit
 
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install .[dev]
 
     - name: Setup up environment for AiiDA
       env:
@@ -337,13 +319,3 @@ jobs:
         all versioned paths: yes
         validate unversioned path: yes
         validator version: latest
-
-  build-package:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Check build and install source distribution
-      uses: CasperWA/check-sdist-action@v1

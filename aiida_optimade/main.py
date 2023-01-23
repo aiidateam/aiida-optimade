@@ -1,10 +1,12 @@
+# pylint: disable=ungrouped-imports
 import json
 import os
 import warnings
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import bson.json_util
-from aiida import load_profile
+from aiida.manage.configuration import load_profile
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,6 +39,9 @@ from aiida_optimade.middleware import RedirectOpenApiDocs
 from aiida_optimade.routers import info, links, structures
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
 
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Dict, List
+
 if not Path(os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH)).exists():
     LOGGER.warning(  # pragma: no cover
         "Invalid config file or no config file provided, running server with "
@@ -57,7 +62,7 @@ if CONFIG.debug:
 
 APP = FastAPI(
     base_url=CONFIG.base_url,
-    root_path=CONFIG.root_path,
+    root_path=CONFIG.root_path if CONFIG.root_path else "",
     title="OPTIMADE API for AiiDA",
     description=(
         "The [Open Databases Integration for Materials Design (OPTIMADE) consortium]"
@@ -109,7 +114,7 @@ for version in ("major", "minor", "patch"):
 
 
 @APP.on_event("startup")
-async def startup():
+async def startup() -> None:
     """Things to do upon server startup"""
     # Load AiiDA profile
     profile_name = os.getenv("AIIDA_PROFILE")
@@ -117,46 +122,52 @@ async def startup():
     LOGGER.info("AiiDA Profile: %s", profile_name)
 
     # Load links
-    with open(Path(__file__).parent.joinpath("data/links.json").resolve()) as handle:
-        data = json.load(handle)
+    data: "List[Dict[str, Any]]" = json.loads(
+        Path(__file__)
+        .resolve()
+        .parent.joinpath("data")
+        .joinpath("links.json")
+        .resolve()
+        .read_bytes()
+    )
 
-        if CONFIG.debug:
-            data.append(
-                {
-                    "id": "local",
-                    "type": "links",
-                    "name": "Local server",
-                    "description": (
-                        "Locally running instance of the AiiDA-OPTIMADE server using "
-                        f"AiiDA profile {profile_name!r}."
-                    ),
-                    "base_url": "http://localhost:5000",
-                    "homepage": "https://github.com/aiidateam/aiida-optimade",
-                    "link_type": "child",
-                }
+    if CONFIG.debug:
+        data.append(
+            {
+                "id": "local",
+                "type": "links",
+                "name": "Local server",
+                "description": (
+                    "Locally running instance of the AiiDA-OPTIMADE server using "
+                    f"AiiDA profile {profile_name!r}."
+                ),
+                "base_url": "http://localhost:5000",
+                "homepage": "https://github.com/aiidateam/aiida-optimade",
+                "link_type": "child",
+            }
+        )
+
+    processed = []
+    for link in data:
+        link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
+        processed.append(link)
+
+    LOGGER.info("Loading links")
+    if CONFIG.database_backend == SupportedBackend.MONGODB:
+        LOGGER.info("  Using real MongoDB.")
+        if links.LINKS.count(
+            filter={"id": {"$in": [_["id"] for _ in processed]}}
+        ) != len(links.LINKS):
+            LOGGER.info(
+                "  Will drop and reinsert links data in %s",
+                links.LINKS.collection.full_name,
             )
-
-        processed = []
-        for link in data:
-            link["_id"] = {"$oid": mongo_id_for_database(link["id"], link["type"])}
-            processed.append(link)
-
-        LOGGER.info("Loading links")
-        if CONFIG.database_backend == SupportedBackend.MONGODB:
-            LOGGER.info("  Using real MongoDB.")
-            if links.LINKS.count(
-                filter={"id": {"$in": [_["id"] for _ in processed]}}
-            ) != len(links.LINKS):
-                LOGGER.info(
-                    "  Will drop and reinsert links data in %s",
-                    links.LINKS.collection.full_name,
-                )
-                links.LINKS.collection.drop()
-                links.LINKS.collection.insert_many(
-                    bson.json_util.loads(bson.json_util.dumps(processed)),
-                )
-        else:
-            LOGGER.info("  Using mock MongoDB.")
+            links.LINKS.collection.drop()
             links.LINKS.collection.insert_many(
                 bson.json_util.loads(bson.json_util.dumps(processed)),
             )
+    else:
+        LOGGER.info("  Using mock MongoDB.")
+        links.LINKS.collection.insert_many(
+            bson.json_util.loads(bson.json_util.dumps(processed)),
+        )

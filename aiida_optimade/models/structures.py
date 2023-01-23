@@ -7,11 +7,11 @@ from optimade.models import (
 )
 from pydantic import Field
 
+from aiida_optimade.config import CONFIG
+
 
 def prefix_provider(string: str) -> str:
     """Prefix string with `_{provider}_`"""
-    from optimade.server.config import CONFIG
-
     if string in CONFIG.provider_fields.get("structures", []):
         return f"_{CONFIG.provider.prefix}_{string}"
     return string

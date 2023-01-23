@@ -1,17 +1,25 @@
 """Test sort query parameter"""
-# pylint: disable=import-error
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
-from aiida import orm
+if TYPE_CHECKING:
+    from datetime import datetime
+    from typing import Any, Callable, Dict, List, Union
+
+    from requests import Response
 
 
-def fmt_datetime(object_: datetime) -> str:
+def fmt_datetime(object_: "datetime") -> str:
     """Parse datetime into pydantic's JSON encoded datetime string"""
+    from datetime import timezone
+
     return object_.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def test_int_asc(get_good_response):
+def test_int_asc(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Ascending sort (integer)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
@@ -44,15 +52,19 @@ def test_int_asc(get_good_response):
         )
         expected_nelements = [nelement for nelement, in builder.all()]
 
-    response = get_good_response(request)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     nelements_list = [
         struct.get("attributes", {}).get("nelements") for struct in response["data"]
     ]
     assert nelements_list == expected_nelements
 
 
-def test_int_desc(get_good_response):
+def test_int_desc(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Descending sort (integer)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
@@ -85,15 +97,19 @@ def test_int_desc(get_good_response):
         )
         expected_nelements = [nelement for nelement, in builder.all()]
 
-    response = get_good_response(request)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     nelements_list = [
         struct.get("attributes", {}).get("nelements") for struct in response["data"]
     ]
     assert nelements_list == expected_nelements
 
 
-def test_str_asc(check_response):
+def test_str_asc(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     """Ascending sort (string)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=immutable_id&page_limit=5"
@@ -125,8 +141,11 @@ def test_str_asc(check_response):
     )
 
 
-def test_str_desc(check_response):
+def test_str_desc(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     """Descending sort (string)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-immutable_id&page_limit=5"
@@ -158,8 +177,11 @@ def test_str_desc(check_response):
     )
 
 
-def test_datetime_asc(get_good_response):
+def test_datetime_asc(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Ascending sort (datetime)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=last_modified&page_limit=5"
@@ -184,15 +206,19 @@ def test_datetime_asc(get_good_response):
         )
         expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
-    response = get_good_response(request)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     last_modified_list = [
         struct.get("attributes", {}).get("last_modified") for struct in response["data"]
     ]
     assert last_modified_list == expected_mtime
 
 
-def test_datetime_desc(get_good_response):
+def test_datetime_desc(
+    get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
+) -> None:
     """Descending sort (datetime)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-last_modified&page_limit=5"
@@ -217,7 +243,8 @@ def test_datetime_desc(get_good_response):
         )
         expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
-    response = get_good_response(request)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     last_modified_list = [
         struct.get("attributes", {}).get("last_modified") for struct in response["data"]
     ]

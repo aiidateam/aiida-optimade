@@ -1,14 +1,20 @@
 """Test the `filters` query parameter."""
 # pylint: disable=missing-function-docstring,protected-access,import-error,too-many-statements
 import os
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from typing import Callable, List, Optional
 
 
 @pytest.mark.skip(
     "Un-skip when a fix for optimade-python-tools issue #102 is in place."
 )
-def test_custom_field(check_response):
+def test_custom_field(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     from optimade.server.config import CONFIG
 
     request = (
@@ -20,31 +26,43 @@ def test_custom_field(check_response):
     check_response(request, expected_uuids)
 
 
-def test_id(check_response, get_valid_id):
+def test_id(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+    get_valid_id: str,
+) -> None:
     request = f'/structures?filter=id="{get_valid_id}"'
     expected_ids = [str(get_valid_id)]
     check_response(request, expected_ids, expect_id=True)
 
 
-def test_geq(check_response):
+def test_geq(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=nelements>=18"
     expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
     check_response(request, expected_uuids)
 
 
-def test_gt(check_response):
+def test_gt(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=nelements>17"
     expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
     check_response(request, expected_uuids)
 
 
-def test_gt_none(check_response):
+def test_gt_none(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=nelements>18"
     expected_uuids = []
     check_response(request, expected_uuids)
 
 
-def test_rhs_statements(check_response, get_valid_id):
+def test_rhs_statements(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+    get_valid_id: str,
+) -> None:
     request = "/structures?filter=18<nelements"
     expected_uuids = []
     check_response(request, expected_uuids)
@@ -58,7 +76,9 @@ def test_rhs_statements(check_response, get_valid_id):
     check_response(request, expected_uuids)
 
 
-def test_list_has(check_response):
+def test_list_has(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=elements HAS "Ga"'
     expected_uuids = [
         "199bf419-0393-4970-8822-f1014e457d3c",
@@ -79,7 +99,9 @@ def test_list_has(check_response):
     check_response(request, expected_uuids)
 
 
-def test_page_limit(check_response):
+def test_page_limit(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=elements HAS ALL "Ge","S"&page_limit=2'
     expected_uuids = [
         "02548222-8f47-4fb4-afdb-197e2984f818",
@@ -93,13 +115,17 @@ def test_page_limit(check_response):
     check_response(request, expected_uuids, page_limit=2)
 
 
-def test_list_has_all(check_response):
+def test_list_has_all(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=elements HAS ALL "Ge","Na","Al","Cl","O"'
     expected_uuids = ["254947de-54c8-4cdb-afc5-1cee237f9f98"]
     check_response(request, expected_uuids)
 
 
-def test_list_has_any(check_response):
+def test_list_has_any(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     elements = '"La","Ba"'
     request = f"/structures?filter=elements HAS ALL {elements}"
     expected_uuids = ["c8368624-e49a-46ad-aef7-daaee4ff89e3"]
@@ -143,13 +169,17 @@ def test_list_has_any(check_response):
     check_response(request, expected_uuids)
 
 
-def test_list_length_basic(check_response):
+def test_list_length_basic(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=elements LENGTH 18"
     expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
     check_response(request, expected_uuids)
 
 
-def test_list_length_operators(check_response):
+def test_list_length_operators(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=elements LENGTH = 17"
     expected_uuids = ["dd369206-2ccb-4528-8c73-141d77fe5fa1"]
     check_response(request, expected_uuids)
@@ -169,7 +199,9 @@ def test_list_length_operators(check_response):
     check_response(request, expected_uuids)
 
 
-def test_list_length_bad_operators(check_error_response):
+def test_list_length_bad_operators(
+    check_error_response: "Callable[[str, Optional[int], Optional[str], Optional[str]], None]",  # pylint: disable=line-too-long
+) -> None:
     """Check NonImplementedError is raised when using a valid,
     but not-supported operator"""
     from optimade.server.config import CONFIG, SupportedBackend
@@ -198,7 +230,9 @@ def test_list_length_bad_operators(check_error_response):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_list_has_only(check_error_response):
+def test_list_has_only(
+    check_error_response: "Callable[[str, Optional[int], Optional[str], Optional[str]], None]",  # pylint: disable=line-too-long
+) -> None:
     # HAS ONLY is not yet implemented
     request = '/structures?filter=elements HAS ONLY "Ac"'
     check_error_response(
@@ -209,7 +243,9 @@ def test_list_has_only(check_error_response):
     )
 
 
-def test_list_correlated(check_error_response):
+def test_list_correlated(
+    check_error_response: "Callable[[str, Optional[int], Optional[str], Optional[str]], None]",  # pylint: disable=line-too-long
+) -> None:
     # Zipped lists are not yet implemented
     request = '/structures?filter=elements:elements_ratios HAS "Ag":"0.2"'
     expected_detail = (
@@ -225,7 +261,9 @@ def test_list_correlated(check_error_response):
     )
 
 
-def test_saved_extras_is_known(check_response):
+def test_saved_extras_is_known(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = "/structures?filter=nsites IS KNOWN AND nsites>=5280"
     expected_uuids = [
         "d99ddab5-026b-45f6-88b7-d81bf0e41988",
@@ -241,7 +279,9 @@ def test_saved_extras_is_known(check_response):
     check_response(request, expected_uuids)
 
 
-def test_node_columns_is_known(check_response):
+def test_node_columns_is_known(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = (
@@ -271,13 +311,18 @@ def test_node_columns_is_known(check_response):
     check_response(request, expected_uuids)
 
 
-def test_node_column_fields(check_response, get_valid_id):
+def test_node_column_fields(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+    get_valid_id: str,
+) -> None:
     request = f'/structures?filter=id="{get_valid_id}"'
     expected_ids = [str(get_valid_id)]
     check_response(request, expected_ids, expect_id=True)
 
 
-def test_saved_extras_fields(check_response):
+def test_saved_extras_fields(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=chemical_formula_anonymous CONTAINS "A7B4"'
     expected_uuids = [
         "2ebd7c96-cadd-464b-aeda-58e3b86f1347",
@@ -289,7 +334,9 @@ def test_saved_extras_fields(check_response):
     check_response(request, expected_uuids)
 
 
-def test_string_contains(check_response):
+def test_string_contains(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=chemical_formula_descriptive CONTAINS "Ag4Cl"'
     expected_uuids = [
         "8223bf92-829b-4ba7-9bf6-887f8f21dee8",
@@ -298,7 +345,9 @@ def test_string_contains(check_response):
     check_response(request, expected_uuids)
 
 
-def test_string_start(check_response):
+def test_string_start(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=chemical_formula_descriptive STARTS WITH "H"'
     expected_uuids = [
         "02c28e40-0072-418a-9069-7e6ea123ce70",
@@ -321,7 +370,9 @@ def test_string_start(check_response):
     check_response(request, expected_uuids)
 
 
-def test_string_end(check_response):
+def test_string_end(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=chemical_formula_descriptive ENDS WITH "0}9"'
     expected_uuids = [
         "7ddb0679-3255-4cea-91be-749e44e9e900",
@@ -331,13 +382,17 @@ def test_string_end(check_response):
     check_response(request, expected_uuids)
 
 
-def test_list_has_and(check_response):
+def test_list_has_and(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=elements HAS "Na" AND nelements=18'
     expected_uuids = ["b6175807-826a-459f-8a5a-7bff75ff1d36"]
     check_response(request, expected_uuids)
 
 
-def test_not_or_and_precedence(check_response):
+def test_not_or_and_precedence(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=NOT elements HAS "Na" AND nelements=5'
     expected_uuids = [
         "705cf9c6-25b3-4720-a079-a342f34712a2",
@@ -375,7 +430,9 @@ def test_not_or_and_precedence(check_response):
     check_response(request, expected_uuids)
 
 
-def test_brackets(check_response):
+def test_brackets(
+    check_response: "Callable[[str, List[str], int, bool, bool], None]",
+) -> None:
     request = '/structures?filter=elements HAS "Ga" AND nelements=7 OR nsites=464'
     expected_uuids = [
         "b9e0df95-6029-48cf-a4b4-ddbe0a613572",
@@ -396,7 +453,7 @@ def test_brackets(check_response):
     check_response(request, expected_uuids)
 
 
-def test_count_filter(caplog):
+def test_count_filter(caplog: pytest.LogCaptureFixture) -> None:
     """Test EntryCollection.count() when changing filters"""
     from aiida_optimade.routers.structures import STRUCTURES
 
@@ -455,7 +512,9 @@ def test_count_filter(caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_querybuilder_calls(caplog, get_valid_id):
+def test_querybuilder_calls(
+    caplog: pytest.LogCaptureFixture, get_valid_id: str
+) -> None:
     """Check the expected number of QueryBuilder calls are respected"""
     from fastapi.params import Query
     from optimade.server.query_params import EntryListingQueryParams

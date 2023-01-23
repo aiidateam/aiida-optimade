@@ -1,22 +1,25 @@
 # pylint: disable=redefined-outer-name,unused-argument
-import json
-import os
-import signal
-from subprocess import PIPE, Popen, TimeoutExpired
-from time import sleep
+from typing import TYPE_CHECKING
 
 import pytest
-import requests
+
+if TYPE_CHECKING:
+    from typing import Callable, Generator, List, Optional, Tuple
 
 
 @pytest.fixture
-def run_server(aiida_test_profile: str):
+def run_server(aiida_test_profile: str) -> "Generator[None, None, None]":
     """Run the server using `aiida-optimade run`
 
     :param options: the list of command line options to pass to `aiida-optimade run`
         invocation
     :param raises: whether `aiida-optimade run` is expected to raise an exception
     """
+    import os
+    import signal
+    from subprocess import PIPE, Popen, TimeoutExpired
+    from time import sleep
+
     profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
     if profile == "test_profile":
         # This is for local tests only
@@ -28,36 +31,45 @@ def run_server(aiida_test_profile: str):
 
     result = None
     try:
-        result = Popen(args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        result = Popen(  # pylint: disable=consider-using-with
+            args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True
+        )
         sleep(10)  # The server needs time to start up
         yield
     finally:
+        assert result is not None
+
         result.send_signal(signal.SIGINT)
         try:
             result.wait(10)
         except TimeoutExpired:
             result.kill()
             sleep(2)
+
         assert result is not None
 
 
 @pytest.mark.usefixtures("run_server")
-def test_run():
+def test_run() -> None:
     """Test running `aiida-optimade run`"""
+    import requests
     from optimade import __api_version__
     from optimade.models import InfoResponse
 
-    response = requests.get(
-        "http://localhost:5000"
-        f"/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}"
-        "/info"
+    version = (
+        __api_version__.split("-", maxsplit=1)[0]
+        .split("+", maxsplit=1)[0]
+        .split(".", maxsplit=1)[0]
     )
+    response = requests.get(f"http://localhost:5000/v{version}/info", timeout=30)
     assert response.status_code == 200
     response_json = response.json()
     InfoResponse(**response_json)
 
 
-def test_log_level_debug(run_and_terminate_server):
+def test_log_level_debug(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test passing log level "debug" to `aiida-optimade run`
 
     In the latest versions of uvicorn, setting the log-level to "debug"
@@ -66,25 +78,29 @@ def test_log_level_debug(run_and_terminate_server):
     or set `debug=True`.
     """
     options = ["--log-level", "debug"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert "DEBUG MODE" in output, f"output: {output!r}, errors: {errors!r}"
     assert "DEBUG:" not in output, f"output: {output!r}, errors: {errors!r}"
 
 
-def test_log_level_warning(run_and_terminate_server):
+def test_log_level_warning(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test passing log level "warning" to `aiida-optimade run`"""
     options = ["--log-level", "warning"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert "DEBUG MODE" not in output, f"output: {output!r}, errors: {errors!r}"
     assert (
         "DEBUG:" not in output and "DEBUG:" not in errors
     ), f"output: {output!r}, errors: {errors!r}"
 
 
-def test_non_valid_log_level(run_and_terminate_server):
+def test_non_valid_log_level(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test passing a non-valid log level to `aiida-optimade run`"""
     options = ["--log-level", "novalidloglevel"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert not output, f"output: {output!r}, errors: {errors!r}"
     assert (
         "Invalid value for '--log-level': 'novalidloglevel' is not one of" in errors
@@ -94,10 +110,12 @@ def test_non_valid_log_level(run_and_terminate_server):
 @pytest.mark.skip(
     "Cannot handle reloading the server with the run_and_terminate_server fixture."
 )
-def test_debug(run_and_terminate_server):
+def test_debug(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test --debug flag"""
     options = ["--debug"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert "DEBUG MODE" in output, f"output: {output!r}, errors: {errors!r}"
     assert "DEBUG:" in output, f"output: {output!r}, errors: {errors!r}"
 
@@ -105,17 +123,22 @@ def test_debug(run_and_terminate_server):
 @pytest.mark.skip(
     "Cannot handle reloading the server with the run_and_terminate_server fixture."
 )
-def test_logging_precedence(run_and_terminate_server):
+def test_logging_precedence(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test --log-level takes precedence over --debug"""
     options = ["--debug", "--log-level", "warning"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert "DEBUG MODE" not in output, f"output: {output!r}, errors: {errors!r}"
     assert (
         "DEBUG:" not in output and "DEBUG:" not in errors
     ), f"output: {output!r}, errors: {errors!r}"
 
 
-def test_env_var_is_set(run_and_terminate_server, aiida_test_profile: str):
+def test_env_var_is_set(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+    aiida_test_profile: str,
+) -> None:
     """Test the AIIDA_PROFILE env var is set
 
     The issue with this test, is that the set "AIIDA_PROFILE" environment variable
@@ -126,33 +149,40 @@ def test_env_var_is_set(run_and_terminate_server, aiida_test_profile: str):
     Since `run_and_terminate_server` automatically sets the "AIIDA_PROFILE"
     environment variable to the current "AIIDA_PROFILE", we will check that here.
     """
+    import os
 
     fixture_profile = os.getenv("AIIDA_PROFILE")
     assert fixture_profile is not None
     if fixture_profile == "test_profile":
         # This is for local tests only
         fixture_profile = aiida_test_profile
-    output, errors = run_and_terminate_server(command="run")
+    output, errors = run_and_terminate_server("run", None)
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
 
 
 @pytest.mark.usefixtures("run_server")
-def test_last_modified():
+def test_last_modified() -> None:
     """Ensure last_modified does not change upon requests"""
+    import json
+    from time import sleep
+
+    import requests
     from optimade import __api_version__
 
-    request = (
-        "http://localhost:5000"
-        f"/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}/structures"
+    version = (
+        __api_version__.split("-", maxsplit=1)[0]
+        .split("+", maxsplit=1)[0]
+        .split(".", maxsplit=1)[0]
     )
+    request = f"http://localhost:5000/v{version}/structures"
 
-    first_response = requests.get(request)
+    first_response = requests.get(request, timeout=30)
     assert first_response.status_code == 200, json.dumps(
         first_response.json(), indent=2
     )
     first_response = first_response.json()
     sleep(2)
-    second_response = requests.get(request)
+    second_response = requests.get(request, timeout=30)
     assert second_response.status_code == 200, json.dumps(
         second_response.json(), indent=2
     )
@@ -169,7 +199,9 @@ def test_last_modified():
 @pytest.mark.skip(
     "Cannot handle reloading the server with the run_and_terminate_server fixture."
 )
-def test_dev_option(run_and_terminate_server):
+def test_dev_option(
+    run_and_terminate_server: "Callable[[str, Optional[List[str]]], Tuple[str, str]]",
+) -> None:
     """Test --dev flag
 
     This should be equivalent to running with the `--debug` option for
@@ -177,6 +209,6 @@ def test_dev_option(run_and_terminate_server):
     `aiida-optimade_test`.
     """
     options = ["--dev"]
-    output, errors = run_and_terminate_server(command="run", options=options)
+    output, errors = run_and_terminate_server("run", options)
     assert "DEBUG MODE" in output, f"output: {output!r}, errors: {errors!r}"
     assert "DEBUG:" in output, f"output: {output!r}, errors: {errors!r}"

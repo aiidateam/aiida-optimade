@@ -1,12 +1,19 @@
 # pylint: disable=missing-function-docstring
-import urllib
+import urllib.parse
 from typing import Union
 
 from fastapi import APIRouter, HTTPException, Request
 from optimade import __api_version__
-from optimade.models import EntryInfoResponse, ErrorResponse, InfoResponse
+from optimade.models import (
+    BaseInfoAttributes,
+    BaseInfoResource,
+    EntryInfoResource,
+    EntryInfoResponse,
+    ErrorResponse,
+    InfoResponse,
+)
 from optimade.server.config import CONFIG
-from optimade.server.routers.utils import meta_values
+from optimade.server.routers.utils import get_base_url, meta_values
 
 from aiida_optimade.models import StructureResource
 from aiida_optimade.utils import retrieve_queryable_properties
@@ -24,9 +31,6 @@ ENTRY_INFO_SCHEMAS = {"structures": StructureResource.schema}
     tags=["Info"],
 )
 def get_info(request: Request):
-    from optimade.models import BaseInfoAttributes, BaseInfoResource
-    from optimade.server.routers.utils import get_base_url
-
     parse_result = urllib.parse.urlparse(str(request.url))
     base_url = get_base_url(parse_result)
 
@@ -41,7 +45,7 @@ def get_info(request: Request):
                 api_version=__api_version__,
                 available_api_versions=[
                     {
-                        "url": f"{base_url}/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
+                        "url": f"{base_url}/v{__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0].split('.', maxsplit=1)[0]}",  # pylint: disable=line-too-long
                         "version": __api_version__,
                     }
                 ],
@@ -69,8 +73,6 @@ def get_info(request: Request):
     tags=["Info"],
 )
 def get_info_entry(request: Request, entry: str):
-    from optimade.models import EntryInfoResource
-
     valid_entry_info_endpoints = ENTRY_INFO_SCHEMAS.keys()
     if entry not in valid_entry_info_endpoints:
         raise HTTPException(

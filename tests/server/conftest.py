@@ -1,5 +1,4 @@
 # pylint: disable=redefined-outer-name
-import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -17,7 +16,7 @@ def client() -> "OptimadeTestClient":
     """Return TestClient for OPTIMADE server"""
     from .utils import client_factory
 
-    return client_factory()()
+    return client_factory()(None, True)
 
 
 @pytest.fixture(scope="module")
@@ -25,7 +24,7 @@ def remote_client() -> "OptimadeTestClient":
     """Return TestClient for OPTIMADE server, mimicking a remote client"""
     from .utils import client_factory
 
-    return client_factory()(raise_server_exceptions=False)
+    return client_factory()(None, False)
 
 
 @pytest.fixture
@@ -33,6 +32,7 @@ def get_good_response(
     client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
 ) -> "Callable[[str, bool], Union[Response, Dict[str, Any]]]":
     """Get OPTIMADE response with some sanity checks"""
+    import re
 
     def inner(request: str, raw: bool = False) -> "Union[Response, Dict[str, Any]]":
         if TYPE_CHECKING:
@@ -65,11 +65,11 @@ def get_good_response(
 
 
 @pytest.fixture
-def check_keys() -> "Callable[[list, Iterable], None]":
+def check_keys() -> "Callable[[List[str], Iterable], None]":
     """Utility function to help validate dict keys"""
 
     def inner(
-        keys: list,
+        keys: "List[str]",
         response_subset: "Iterable",
     ) -> None:
         for key in keys:
@@ -124,15 +124,16 @@ def check_response(
 @pytest.fixture
 def check_error_response(
     remote_client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
-):
+) -> "Callable[[str, Optional[int], Optional[str], Optional[str]], None]":
     """General method for testing expected erroneous response"""
+    import re
 
     def inner(
         request: str,
         expected_status: "Optional[int]" = None,
         expected_title: "Optional[str]" = None,
         expected_detail: "Optional[str]" = None,
-    ):
+    ) -> None:
         response: "Optional[Response]" = None
         try:
             response = remote_client.get(request)

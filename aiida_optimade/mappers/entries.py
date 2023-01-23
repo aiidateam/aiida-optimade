@@ -1,11 +1,12 @@
 # pylint: disable=arguments-differ
-from typing import Any, Dict, Set, Tuple
+from typing import TYPE_CHECKING
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
-from aiida_optimade.translators.entities import AiidaEntityTranslator
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Dict, Set, Tuple
 
-__all__ = ("ResourceMapper",)
+    from aiida_optimade.translators.entities import AiidaEntityTranslator
 
 
 class ResourceMapper(OptimadeResourceMapper):
@@ -13,9 +14,9 @@ class ResourceMapper(OptimadeResourceMapper):
 
     PROJECT_PREFIX: str = "extras.optimade."
 
-    TRANSLATORS: Dict[str, AiidaEntityTranslator]
-    REQUIRED_ATTRIBUTES: Set[str] = set()
-    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: Set[str] = {
+    TRANSLATORS: "Dict[str, AiidaEntityTranslator]"
+    REQUIRED_ATTRIBUTES: "Set[str]" = set()
+    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: "Set[str]" = {
         "id",
         "type",
         "relationships",
@@ -24,11 +25,11 @@ class ResourceMapper(OptimadeResourceMapper):
     }
 
     @classmethod
-    def all_aliases(cls) -> Tuple[Tuple[str, str]]:
+    def all_aliases(cls) -> "Tuple[Tuple[str, str]]":
         """Get all aliases as a tuple
         Also add `PROJECT_PREFIX` fields to the tuple
         """
-        res = super(ResourceMapper, cls).all_aliases()
+        res: "Tuple[Tuple[str, str]]" = super(ResourceMapper, cls).all_aliases()
         return res + tuple(
             (field, f"{cls.PROJECT_PREFIX}{field}")
             for field in set(cls.ENTRY_RESOURCE_ATTRIBUTES.keys())
@@ -37,7 +38,9 @@ class ResourceMapper(OptimadeResourceMapper):
         )
 
     @classmethod
-    def map_back(cls, entity_properties: Dict[str, Any]) -> dict:
+    def map_back(  # pylint: disable=arguments-renamed
+        cls, entity_properties: "Dict[str, Any]"
+    ) -> dict:
         """Map properties from AiiDA to OPTIMADE
 
         Parameters:

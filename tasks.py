@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import re
 from typing import Tuple
 
@@ -6,58 +7,14 @@ from invoke import task
 
 def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
     """Utility function for tasks to read, update, and write files"""
-    with open(filename, "r") as handle:
+    with open(filename, "r", encoding="utf8") as handle:
         lines = [
             re.sub(sub_line[0], sub_line[1], line.rstrip(strip)) for line in handle
         ]
 
-    with open(filename, "w") as handle:
+    with open(filename, "w", encoding="utf8") as handle:
         handle.write("\n".join(lines))
         handle.write("\n")
-
-
-@task
-def setver(_, patch=False, version=""):
-    """Update the package version throughout the package"""
-    if (not patch and not version) or (patch and version):
-        raise RuntimeError(
-            "Either use --patch or specify e.g. "
-            '--version="Major.Minor.Patch(a|b|rc)?[0-9]+"'
-        )
-    if patch:
-        from aiida_optimade import __version__
-
-        ver = [int(x) for x in __version__.split(".")]
-        ver[2] += 1
-        version = ".".join(map(str, ver))
-    elif version:
-        if version.startswith("v"):
-            version = version[1:]
-        if re.match(r"[0-9]+(\.[0-9]+){2}", version) is None:
-            raise ValueError("version MUST be specified as 'Major.Minor.Patch'")
-
-    update_file(
-        "aiida_optimade/__init__.py", ("__version__ = .+", f'__version__ = "{version}"')
-    )
-    update_file("setup.json", ('"version": ([^,]+),', f'"version": "{version}",'))
-    update_file(
-        "aiida_optimade/config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        "tests/static/test_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        "tests/static/test_mongo_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-    update_file(
-        ".github/mongo/ci_config.json",
-        ('"version": ([^,]+),', f'"version": "{version}",'),
-    )
-
-    print(f"Bumped version to {version}")
 
 
 @task
@@ -74,7 +31,8 @@ def optimade_req(_, ver=""):
 
     optimade_init = requests.get(
         "https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools"
-        f"/v{ver}/optimade/__init__.py"
+        f"/v{ver}/optimade/__init__.py",
+        timeout=30,
     )
     if optimade_init.status_code != 200:
         raise RuntimeError(f"{ver} does not seem to be published on GitHub")
@@ -96,7 +54,7 @@ def optimade_req(_, ver=""):
         api_version += f"+{api_version[4]}"
 
     update_file(
-        "requirements.txt", (r"optimade\[mongo\]~=.+", f"optimade[mongo]~={ver}")
+        "pyproject.toml", (r'"optimade\[mongo\] ~=.+"', f'"optimade[mongo] ~={ver}"')
     )
     update_file(
         "README.md",
@@ -138,7 +96,7 @@ def aiida_req(_, ver=""):
     if ver.startswith("v"):
         ver = ver[1:]
 
-    update_file("requirements.txt", ("aiida-core~=.+", f"aiida-core~={ver}"))
+    update_file("pyproject.toml", (r'"aiida-core ~=.+"', f'"aiida-core ~={ver}"'))
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):

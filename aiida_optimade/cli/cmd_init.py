@@ -1,7 +1,9 @@
-# pylint: disable=protected-access,too-many-statements
+# pylint: disable=protected-access,too-many-statements,import-outside-toplevel
+import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import bson.json_util
 import click
 from tqdm import tqdm
 
@@ -9,7 +11,7 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import IO, Generator, Iterator, List, Union
+    from typing import IO, Generator, Iterator, Optional, Union
 
     from aiida.common.extendeddicts import AttributeDict
 
@@ -48,28 +50,35 @@ if TYPE_CHECKING:  # pragma: no cover
     help="Filename to load as database (currently only usable for MongoDB).",
 )
 @click.pass_obj
-def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename: str):
+def init(  # pylint: disable=too-many-locals,too-many-branches
+    obj: "AttributeDict",
+    force: bool,
+    silent: bool,
+    mongo: bool,
+    filename: "Optional[str]",
+):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
-    from aiida import load_profile
     from aiida.cmdline.utils import echo
+    from aiida.manage.configuration import load_profile
 
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
-    filename: Path = Path(filename) if filename else filename
+    filepath = Path(filename) if filename else None
 
-    if mongo and filename:
-        profile = f"MongoDB JSON file {filename.name}"
+    if mongo and filepath:
+        profile = f"MongoDB JSON file {filepath.name}"
     else:
         try:
-            profile: str = obj.profile.name
+            profile = obj.profile.name
         except AttributeError:
             profile = None
         profile = load_profile(profile).name
 
     try:
         with disable_logging():
+            # pylint: disable=import-outside-toplevel
             from aiida_optimade.routers.structures import STRUCTURES
 
             if mongo:
@@ -130,7 +139,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
             echo.echo_info(f"Initializing {profile}.")
             echo.echo_warning("This may take several minutes!")
 
-        if filename:
+        if filepath:
             if not mongo:
                 LOGGER.debug(
                     "Passed filename (%s) with AiiDA backend (mongo=%s)",
@@ -140,8 +149,6 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                 raise NotImplementedError(
                     "Passing a filename currently only works for a MongoDB backend"
                 )
-
-            import bson.json_util
 
             updated_pks = range(len(STRUCTURES_MONGO))
             chunk_size = 2**24  # 16 MB
@@ -153,15 +160,15 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                     "consider using --force to first drop the collection, if possible."
                 )
 
-            with open(filename, "r") as handle:
+            with open(filepath, "r", encoding="utf8") as handle:
                 if silent:
                     all_chunks = read_chunks(handle, chunk_size=chunk_size)
                 else:
                     all_chunks = tqdm(
                         read_chunks(handle, chunk_size=chunk_size),
-                        total=(filename.stat().st_size // chunk_size)
-                        + (1 if filename.stat().st_size % chunk_size else 0),
-                        desc=f"Storing entries in {filename.name}",
+                        total=(filepath.stat().st_size // chunk_size)
+                        + (1 if filepath.stat().st_size % chunk_size else 0),
+                        desc=f"Storing entries in {filepath.name}",
                     )
                 if updated_pks:
                     for data in get_documents(all_chunks):
@@ -201,8 +208,6 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                 entries=entries if mongo else None,
             )
     except Exception as exc:  # pylint: disable=broad-except
-        import traceback
-
         exception = traceback.format_exc()
 
         LOGGER.error("Full exception from 'aiida-optimade init' CLI:\n%s", exception)
@@ -226,7 +231,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
 
 
 def read_chunks(
-    file_object: "IO", chunk_size: int = None
+    file_object: "IO", chunk_size: "Optional[int]" = None
 ) -> "Generator[Union[str, bytes], None, None]":
     """Generator to read a file piece by piece
 
@@ -249,7 +254,7 @@ def read_chunks(
 
 def get_documents(
     chunk_iterator: "Union[Generator[str, None, None], Iterator[str]]",
-) -> "Generator[List[dict], None, None]":
+) -> "Generator[str, None, None]":
     """Generator to return MongoDB documents from file"""
     rest_chunk = ""
 

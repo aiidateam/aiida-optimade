@@ -1,5 +1,4 @@
-# pylint: disable=undefined-variable
-from .entries import *  # noqa: F403
-from .structures import *  # noqa: F403
+from .entries import ResourceMapper
+from .structures import StructureMapper
 
-__all__ = entries.__all__ + structures.__all__  # noqa: F405
+__all__ = ("ResourceMapper", "StructureMapper")

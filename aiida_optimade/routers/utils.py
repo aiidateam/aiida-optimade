@@ -1,23 +1,34 @@
 import functools
 import urllib.parse
-from typing import Union
+from typing import TYPE_CHECKING
 
-from fastapi import HTTPException, Request
-from optimade.models import EntryResponseMany, EntryResponseOne, ToplevelLinks
+from fastapi import HTTPException
+from optimade.models import ToplevelLinks
 from optimade.server.config import CONFIG
-from optimade.server.entry_collections.mongo import MongoCollection
-from optimade.server.query_params import EntryListingQueryParams, SingleEntryQueryParams
-from optimade.server.routers.utils import handle_response_fields, meta_values
+from optimade.server.routers.utils import (
+    get_base_url,
+    handle_response_fields,
+    meta_values,
+)
 
-from aiida_optimade.entry_collections import AiidaCollection
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Type, Union
+
+    from fastapi import Request
+    from optimade.models import EntryResponseMany, EntryResponseOne
+    from optimade.server.entry_collections.mongo import MongoCollection
+    from optimade.server.query_params import (
+        EntryListingQueryParams,
+        SingleEntryQueryParams,
+    )
+
+    from aiida_optimade.entry_collections import AiidaCollection
 
 
 def handle_pagination(
-    request: Request, more_data_available: bool, nresults: int
+    request: "Request", more_data_available: bool, nresults: int
 ) -> dict:
     """Handle pagination for request with number of results equal nresults"""
-    from optimade.server.routers.utils import get_base_url
-
     pagination = {}
 
     # "prev"
@@ -58,11 +69,11 @@ def handle_pagination(
 
 
 def get_entries(
-    collection: Union[AiidaCollection, MongoCollection],
-    response: EntryResponseMany,
-    request: Request,
-    params: EntryListingQueryParams,
-) -> EntryResponseMany:
+    collection: "Union[AiidaCollection, MongoCollection]",
+    response: "Type[EntryResponseMany]",
+    request: "Request",
+    params: "EntryListingQueryParams",
+) -> "EntryResponseMany":
     """Generalized /{entry} endpoint getter"""
     (
         results,
@@ -71,6 +82,9 @@ def get_entries(
         fields,
         include_fields,
     ) = collection.find(params)
+
+    if not isinstance(results, list):
+        raise TypeError("Expected a list of results.")
 
     pagination = handle_pagination(
         request=request, more_data_available=more_data_available, nresults=len(results)
@@ -95,14 +109,14 @@ def get_entries(
 
 
 def get_single_entry(
-    collection: Union[AiidaCollection, MongoCollection],
+    collection: "Union[AiidaCollection, MongoCollection]",
     entry_id: str,
-    response: EntryResponseOne,
-    request: Request,
-    params: SingleEntryQueryParams,
-) -> EntryResponseOne:
+    response: "Type[EntryResponseOne]",
+    request: "Request",
+    params: "SingleEntryQueryParams",
+) -> "EntryResponseOne":
     """Generalized /{entry}/{entry_id} endpoint getter"""
-    params.filter = f'id="{entry_id}"'
+    setattr(params, "filter", f'id="{entry_id}"')
     (
         results,
         data_returned,
@@ -111,14 +125,14 @@ def get_single_entry(
         include_fields,
     ) = collection.find(params)
 
-    if more_data_available:
+    if more_data_available or isinstance(results, list):
         raise HTTPException(
             status_code=500,
             detail="more_data_available MUST be False for single entry response, "
             f"however it is {more_data_available}",
         )
 
-    if fields or include_fields and results is not None:
+    if (fields or include_fields) and results is not None:
         results = handle_response_fields(
             results=results, exclude_fields=fields, include_fields=include_fields
         )[0]
@@ -151,9 +165,11 @@ def close_session(func):
         try:
             value = func(*args, **kwargs)
         finally:
-            from aiida.manage.manager import get_manager
+            from aiida.manage.manager import (  # pylint: disable=import-outside-toplevel
+                get_manager,
+            )
 
-            get_manager().get_backend().get_session().close()
+            get_manager().get_backend().close()
         return value
 
     return wrapper

@@ -65,7 +65,7 @@ def get_single_structure(
         collection=STRUCTURES_MONGO
         if CONFIG.database_backend == SupportedBackend.MONGODB
         else STRUCTURES,
-        entry_id=entry_id,
+        entry_id=str(entry_id),
         response=StructureResponseOne,
         request=request,
         params=params,

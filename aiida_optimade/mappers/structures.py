@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict
+from typing import TYPE_CHECKING
 
 from optimade.server.config import CONFIG, SupportedBackend
 
@@ -7,23 +7,25 @@ from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.mappers.entries import ResourceMapper
 from aiida_optimade.models import StructureResource, StructureResourceAttributes
 from aiida_optimade.translators import (
-    AiidaEntityTranslator,
     CifDataTranslator,
     StructureDataTranslator,
     hex_to_floats,
 )
 
-__all__ = ("StructureMapper",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Dict, Optional, Type
+
+    from aiida_optimade.translators import AiidaEntityTranslator
 
 
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
-    TRANSLATORS: Dict[str, AiidaEntityTranslator] = {
+    TRANSLATORS: "Dict[str, Type[AiidaEntityTranslator]]" = {
         "data.core.cif.CifData.": CifDataTranslator,
         "data.core.structure.StructureData.": StructureDataTranslator,
     }
-    REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
+    REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required", []))
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
     ENTRY_RESOURCE_CLASS = StructureResource
 
@@ -33,7 +35,7 @@ class StructureMapper(ResourceMapper):
         retrieved_attributes: dict,
         entry_pk: int,
         node_type: str,
-        missing_attributes: set = None,
+        missing_attributes: "Optional[set]" = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 

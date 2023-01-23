@@ -1,6 +1,9 @@
-from typing import Tuple
+from typing import TYPE_CHECKING
 
 from optimade.models import DataType
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Dict, Tuple
 
 OPEN_API_ENDPOINTS = {
     "docs": "/extensions/docs",
@@ -10,23 +13,23 @@ OPEN_API_ENDPOINTS = {
 
 
 def retrieve_queryable_properties(
-    schema: dict, queryable_properties: list
-) -> Tuple[dict, dict]:
+    schema: "Dict[str, Dict[str, Any]]", queryable_properties: list
+) -> "Tuple[dict, dict]":
     """Get all queryable properties from an OPTIMADE schema"""
     properties = {}
     all_properties = {}
 
-    for name, value in schema["properties"].items():
+    for name, value in schema.get("properties", {}).items():
         if name in queryable_properties:
             if "$ref" in value:
-                path = value["$ref"].split("/")[1:]
+                path = value.get("$ref", "").split("/")[1:]
                 sub_schema = schema.copy()
                 while path:
                     next_key = path.pop(0)
                     sub_schema = sub_schema[next_key]
                 sub_queryable_properties = sub_schema["properties"].keys()
                 new_properties, new_all_properties = retrieve_queryable_properties(
-                    sub_schema, sub_queryable_properties
+                    sub_schema, list(sub_queryable_properties)
                 )
                 properties.update(new_properties)
                 all_properties.update(new_all_properties)

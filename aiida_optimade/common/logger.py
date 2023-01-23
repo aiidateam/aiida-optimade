@@ -1,5 +1,6 @@
 """Logging to both file and widget"""
 import logging
+import logging.handlers
 import os
 import sys
 from contextlib import contextmanager
@@ -45,7 +46,7 @@ LOGS_DIR.mkdir(exist_ok=True)
 
 # Set handlers
 FILE_HANDLER = logging.handlers.RotatingFileHandler(
-    LOGS_DIR.joinpath("aiida_optimade.log"), maxBytes=1000000, backupCount=5
+    LOGS_DIR / "aiida_optimade.log", maxBytes=1000000, backupCount=5
 )
 FILE_HANDLER.setLevel(logging.DEBUG)
 

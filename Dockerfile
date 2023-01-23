@@ -7,7 +7,7 @@ ARG OPTIMADE_TOOLS_VERSION=0.20.3
 ARG AIIDA_VERSION=2.2.1
 
 # Copy repo contents
-COPY setup.py setup.json README.md requirements*.txt ./
+COPY pyproject.toml README.md LICENSE ./
 COPY aiida_optimade ./aiida_optimade
 
 RUN pip install -U pip setuptools wheel \
