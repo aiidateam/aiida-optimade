@@ -6,7 +6,6 @@ from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
 
 from aiida_optimade.common import LOGGER, AiidaEntityNotFound
-from aiida_optimade.translators.utils import hex_to_floats
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import Any, List, Optional, Union
@@ -34,20 +33,23 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
             raise AiidaEntityNotFound(
                 f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
             )
-        res = query.first(True)
+        res = query.first()
         del query
         if res is None:
             raise RuntimeError(
                 "Query 'count' does not match up with returned result from 'first'"
             )
-        return res
+        return res if len(res) > 1 else res[0]  # pylint: disable=unsubscriptable-object
 
     @property
     def _node(self) -> Node:
         if not self._node_loaded:
-            self.__node: Node = self._get_unique_node_property("*")
+            self.__node = self._get_unique_node_property("*")
         elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node: Node = self._get_unique_node_property("*")
+            self.__node = self._get_unique_node_property("*")
+
+        if self.__node is None:
+            raise TypeError("The Node should now be loaded, but it was not.")
         return self.__node
 
     @_node.setter
@@ -86,9 +88,9 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
 
     def _store_attributes_mongo(self) -> None:
         """Store new attributes in MongoDB collection"""
-        from aiida_optimade.routers.structures import (  # pylint: disable=import-outside-toplevel
-            STRUCTURES_MONGO,
-        )
+        # pylint: disable=import-outside-toplevel
+        from aiida_optimade.routers.structures import STRUCTURES_MONGO
+        from aiida_optimade.translators.utils import hex_to_floats
 
         optimade = STRUCTURES_MONGO.collection.find_one(filter={"id": self._pk})
         if optimade:

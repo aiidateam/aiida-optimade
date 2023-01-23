@@ -2,7 +2,6 @@ import functools
 import urllib.parse
 from typing import TYPE_CHECKING
 
-from aiida.manage.manager import get_manager
 from fastapi import HTTPException
 from optimade.models import ToplevelLinks
 from optimade.server.config import CONFIG
@@ -117,7 +116,7 @@ def get_single_entry(
     params: "SingleEntryQueryParams",
 ) -> "EntryResponseOne":
     """Generalized /{entry}/{entry_id} endpoint getter"""
-    params.filter = f'id="{entry_id}"'
+    setattr(params, "filter", f'id="{entry_id}"')
     (
         results,
         data_returned,
@@ -166,6 +165,10 @@ def close_session(func):
         try:
             value = func(*args, **kwargs)
         finally:
+            from aiida.manage.manager import (  # pylint: disable=import-outside-toplevel
+                get_manager,
+            )
+
             get_manager().get_backend().close()
         return value
 

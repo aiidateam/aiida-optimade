@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from aiida.orm.nodes.data.cif import CifData
 from aiida.orm.nodes.data.structure import StructureData
 from aiida.tools.data.cif import InvalidOccupationsError
@@ -5,8 +7,11 @@ from pymatgen.io.cif import CifParser
 
 from aiida_optimade.translators.structures import StructureDataTranslator
 
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Union
 
-def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
+
+def _get_aiida_structure_pymatgen_inline(cif: CifData, **kwargs) -> StructureData:
     """Copy of similar named function in AiiDA-Core.
 
     Creates :py:class:`aiida.orm.nodes.data.structure.StructureData` using pymatgen.
@@ -86,16 +91,30 @@ class CifDataTranslator(StructureDataTranslator):
     @property
     def _node(self) -> StructureData:
         if not self._node_loaded:
-            self.__node: StructureData = self._get_unique_node_property("*")
+            self.__node: "Union[CifData, StructureData]" = (
+                self._get_unique_node_property("*")
+            )
         elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node: StructureData = self._get_unique_node_property("*")
+            self.__node: "Union[CifData, StructureData]" = (
+                self._get_unique_node_property("*")
+            )
+
         if isinstance(self.__node, StructureData):
             return self.__node
+        if not isinstance(self.__node, CifData):
+            raise TypeError("The CifData Node should now be loaded, but it was not.")
 
         extras = self.__node.extras.copy()
         self.__node = _get_aiida_structure_pymatgen_inline(cif=self.__node)
         self.__node.set_extra_many(extras)
         return self.__node
+
+    @_node.setter
+    def _node(self, value: "Union[None, CifData, StructureData]") -> None:
+        if self._node_loaded:
+            del self.__node
+        if value:
+            self.__node = value
 
     @property
     def _kinds(self) -> list:

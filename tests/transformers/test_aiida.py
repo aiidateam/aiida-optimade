@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable
 
 
@@ -24,13 +24,13 @@ def transform() -> "Callable[[str], Any]":
     return _transform
 
 
-def test_empty(transform: "Callable[[str], Any]"):
+def test_empty(transform: "Callable[[str], Any]") -> None:
     """Check passing "empty" strings"""
     assert transform(" ") is None
     assert transform("") is None
 
 
-def test_property_names(transform: "Callable[[str], Any]"):
+def test_property_names(transform: "Callable[[str], Any]") -> None:
     """Check `property` names"""
     from optimade.server.exceptions import BadRequest
 
@@ -57,7 +57,7 @@ def test_property_names(transform: "Callable[[str], Any]"):
     }
 
 
-def test_string_values(transform: "Callable[[str], Any]"):
+def test_string_values(transform: "Callable[[str], Any]") -> None:
     """Check various string values validity"""
     assert transform('author="Sąžininga Žąsis"') == {
         "author": {"==": "Sąžininga Žąsis"}
@@ -67,7 +67,7 @@ def test_string_values(transform: "Callable[[str], Any]"):
     }
 
 
-def test_number_values(transform: "Callable[[str], Any]"):
+def test_number_values(transform: "Callable[[str], Any]") -> None:
     """Check various number values validity"""
     from optimade.server.exceptions import BadRequest
 
@@ -101,7 +101,7 @@ def test_number_values(transform: "Callable[[str], Any]"):
         transform("number=0.0.1")
 
 
-def test_simple_comparisons(transform: "Callable[[str], Any]"):
+def test_simple_comparisons(transform: "Callable[[str], Any]") -> None:
     """Check simple comparisons"""
     assert transform("a<3") == {"a": {"<": 3}}
     assert transform("a<=3") == {"a": {"<=": 3}}
@@ -120,7 +120,7 @@ def test_id(transform: "Callable[[str], Any]"):
     }
 
 
-def test_operators(transform: "Callable[[str], Any]"):
+def test_operators(transform: "Callable[[str], Any]") -> None:
     """Test OPTIMADE filter operators"""
     from lark.exceptions import VisitError
 
@@ -275,7 +275,7 @@ def test_operators(transform: "Callable[[str], Any]"):
 
 
 @pytest.mark.skip("Relationships have not yet been implemented")
-def test_filtering_on_relationships(transform: "Callable[[str], Any]"):
+def test_filtering_on_relationships(transform: "Callable[[str], Any]") -> None:
     """Test the nested properties with special names like "structures",
     "references" etc. are applied to the relationships field"""
 
@@ -335,7 +335,7 @@ def test_filtering_on_relationships(transform: "Callable[[str], Any]"):
     # )
 
 
-def test_not_implemented(transform: "Callable[[str], Any]"):
+def test_not_implemented(transform: "Callable[[str], Any]") -> None:
     """Test list properties that are currently not implemented give a sensible
     response"""
     from lark.exceptions import VisitError
@@ -376,7 +376,7 @@ def test_not_implemented(transform: "Callable[[str], Any]"):
         )
 
 
-def test_unaliased_length_operator(transform: "Callable[[str], Any]"):
+def test_unaliased_length_operator(transform: "Callable[[str], Any]") -> None:
     """Check unaliased LENGTH lists"""
 
     assert transform("cartesian_site_positions LENGTH 3") == (
@@ -396,7 +396,7 @@ def test_unaliased_length_operator(transform: "Callable[[str], Any]"):
     )
 
 
-def test_list_properties(transform: "Callable[[str], Any]"):
+def test_list_properties(transform: "Callable[[str], Any]") -> None:
     """Test the HAS ALL, ANY and optional ONLY queries"""
     # NOTE: HAS ONLY has not yet been implemented.
     # assert transform('elements HAS ONLY "H","He","Ga","Ta"') == (
@@ -436,7 +436,7 @@ def test_list_properties(transform: "Callable[[str], Any]"):
     # )
 
 
-def test_properties(transform: "Callable[[str], Any]"):
+def test_properties(transform: "Callable[[str], Any]") -> None:
     """Filtering on Properties with unknown value"""
     # The { !and: [{ >: 1.99 }] } is different from the <= operator.
     # { <=: 1.99 } returns only the documents where price field exists and its
@@ -476,7 +476,7 @@ def test_precedence(transform: "Callable[[str], Any]"):
     )
 
 
-def test_special_cases(transform: "Callable[[str], Any]"):
+def test_special_cases(transform: "Callable[[str], Any]") -> None:
     """Check special cases"""
     assert transform("te < st") == {"te": {"<": "st"}}
     assert transform('spacegroup="P2"') == {"spacegroup": {"==": "P2"}}

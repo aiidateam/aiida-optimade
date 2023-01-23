@@ -10,10 +10,10 @@ from optimade.models import (
 
 from ..utils import EndpointTests
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Union
 
-    from requests import Response
+    from httpx import Response
 
     from ..utils import OptimadeTestClient
 
@@ -29,7 +29,8 @@ def test_structures_endpoint_data(
     """Check known properties/attributes for successful response"""
     from optimade.server.config import CONFIG
 
-    response: "Dict[str, Any]" = get_good_response("/structures", False)
+    response = get_good_response("/structures", False)
+    assert isinstance(response, dict)
 
     assert "data" in response
     assert len(response["data"]) == CONFIG.page_limit
@@ -43,7 +44,8 @@ def test_get_next_responses(
     client: "OptimadeTestClient",
 ) -> None:
     """Check pagination"""
-    first_response: "Dict[str, Any]" = get_good_response("/structures", False)
+    first_response = get_good_response("/structures", False)
+    assert isinstance(first_response, dict)
 
     total_data = first_response["meta"]["data_available"]
     page_limit = 5
@@ -80,7 +82,8 @@ def test_structures_id_endpoint_data(
     from optimade.server.config import CONFIG
 
     test_id = "1"
-    response: "Dict[str, Any]" = get_good_response(f"/structures/{test_id}", False)
+    response = get_good_response(f"/structures/{test_id}", False)
+    assert isinstance(response, dict)
     assert "data" in response
     assert response["data"]["id"] == test_id
     assert response["data"]["type"] == "structures"
@@ -96,7 +99,8 @@ def test_structures_missing_endpoint_data(
 ) -> None:
     """Check known properties/attributes for successful response"""
     test_id = "0"
-    response: "Dict[str, Any]" = get_good_response(f"/structures/{test_id}", False)
+    response = get_good_response(f"/structures/{test_id}", False)
+    assert isinstance(response, dict)
 
     assert "data" in response
     assert "meta" in response

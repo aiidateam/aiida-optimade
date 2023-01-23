@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Callable, Generator, List, Optional, Tuple
 
 
@@ -37,13 +37,15 @@ def run_server(aiida_test_profile: str) -> "Generator[None, None, None]":
         sleep(10)  # The server needs time to start up
         yield
     finally:
-        if result is not None:
-            result.send_signal(signal.SIGINT)
-            try:
-                result.wait(10)
-            except TimeoutExpired:
-                result.kill()
-                sleep(2)
+        assert result is not None
+
+        result.send_signal(signal.SIGINT)
+        try:
+            result.wait(10)
+        except TimeoutExpired:
+            result.kill()
+            sleep(2)
+
         assert result is not None
 
 
@@ -54,12 +56,12 @@ def test_run() -> None:
     from optimade import __api_version__
     from optimade.models import InfoResponse
 
-    response = requests.get(
-        "http://localhost:5000"
-        f"/v{__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0].split('.', maxsplit=1)[0]}"  # pylint: disable=line-too-long
-        "/info",
-        timeout=30,
+    version = (
+        __api_version__.split("-", maxsplit=1)[0]
+        .split("+", maxsplit=1)[0]
+        .split(".", maxsplit=1)[0]
     )
+    response = requests.get(f"http://localhost:5000/v{version}/info", timeout=30)
     assert response.status_code == 200
     response_json = response.json()
     InfoResponse(**response_json)
@@ -167,10 +169,12 @@ def test_last_modified() -> None:
     import requests
     from optimade import __api_version__
 
-    request = (
-        "http://localhost:5000"
-        f"/v{__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0].split('.', maxsplit=1)[0]}/structures"  # pylint: disable=line-too-long
+    version = (
+        __api_version__.split("-", maxsplit=1)[0]
+        .split("+", maxsplit=1)[0]
+        .split(".", maxsplit=1)[0]
     )
+    request = f"http://localhost:5000/v{version}/structures"
 
     first_response = requests.get(request, timeout=30)
     assert first_response.status_code == 200, json.dumps(

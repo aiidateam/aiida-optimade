@@ -5,12 +5,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from pathlib import Path
     from typing import Callable, List, Optional
 
     from aiida.manage.tests import TestManager
-    from click import Command
     from click.testing import Result
 
 
@@ -19,7 +18,7 @@ if TYPE_CHECKING:  # pragma: no cover
     reason="Test is not for MongoDB",
 )
 def test_calc_all_new(
-    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    run_cli_command: "Callable[[Callable, Optional[List[str]], bool], Result]",
     aiida_profile: "TestManager",
     top_dir: "Path",
     caplog: pytest.LogCaptureFixture,
@@ -121,7 +120,7 @@ def test_calc_all_new(
     reason="Test is not for MongoDB",
 )
 def test_calc(
-    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    run_cli_command: "Callable[[Callable, Optional[List[str]], bool], Result]",
     aiida_profile: "TestManager",
     top_dir: "Path",
 ) -> None:
@@ -186,7 +185,7 @@ def test_calc(
     reason="Test is not for MongoDB",
 )
 def test_calc_partially_init(
-    run_cli_command: "Callable[[Command, Optional[List[str]], bool], Result]",
+    run_cli_command: "Callable[[Callable, Optional[List[str]], bool], Result]",
     aiida_profile: "TestManager",
     top_dir: "Path",
     caplog: pytest.LogCaptureFixture,

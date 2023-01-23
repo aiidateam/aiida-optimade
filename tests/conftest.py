@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Generator
+    from typing import Generator, List, Union
 
     from aiida.manage.tests import TestManager
 
@@ -40,7 +40,7 @@ def setup_config(top_dir: "Path") -> "Generator[None, None, None]":
 
 
 @pytest.fixture(scope="session", autouse=True)
-@pytest.mark.usefixtures("setup_config")
+# @pytest.mark.usefixtures("setup_config")
 def aiida_profile(top_dir: "Path") -> "Generator[TestManager, None, None]":
     """Load test data for AiiDA test profile
 
@@ -67,8 +67,8 @@ def aiida_profile(top_dir: "Path") -> "Generator[TestManager, None, None]":
             manager.reset_db()
 
             profile = load_profile()
-            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will
-            # be used
+            # If test locally `AIIDA_TEST_PROFILE` may not be set and `test_profile`
+            # will be used instead
             assert profile.name in ["test_profile", "test_psql_dos"]
             os.environ["AIIDA_PROFILE"] = profile.name
 
@@ -87,11 +87,11 @@ def aiida_profile(top_dir: "Path") -> "Generator[TestManager, None, None]":
                 from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
                 STRUCTURES_MONGO.collection.drop()
-                with open(
-                    top_dir / "tests" / "static" / "test_structures_mongo.json",
-                    encoding="utf8",
-                ) as handle:
-                    data = bson.json_util.loads(handle.read())
+                data = bson.json_util.loads(
+                    (
+                        top_dir / "tests" / "static" / "test_structures_mongo.json"
+                    ).read_text(encoding="utf8")
+                )
                 STRUCTURES_MONGO.collection.insert_many(data)
 
             yield manager
@@ -116,4 +116,13 @@ def get_valid_id() -> str:
             raise RuntimeError("No structures found in test DB !!!")
         return node["id"]
 
-    return QueryBuilder().append(StructureData, project="id").first(True)
+    valid_id: "Union[List[str], None]" = (
+        QueryBuilder().append(StructureData, project="id").first()
+    )
+    if valid_id is None:
+        raise RuntimeError(
+            "There should be a valid StructureData Node in the AiiDA DB. Was the "
+            "AiiDA Profile properly setup/loaded?"
+        )
+
+    return valid_id[0]  # pylint: disable=unsubscriptable-object

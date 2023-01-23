@@ -1,7 +1,7 @@
 """Test sort query parameter"""
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from datetime import datetime
     from typing import Any, Callable, Dict, List, Union
 
@@ -52,7 +52,8 @@ def test_int_asc(
         )
         expected_nelements = [nelement for nelement, in builder.all()]
 
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     nelements_list = [
         struct.get("attributes", {}).get("nelements") for struct in response["data"]
     ]
@@ -96,7 +97,8 @@ def test_int_desc(
         )
         expected_nelements = [nelement for nelement, in builder.all()]
 
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     nelements_list = [
         struct.get("attributes", {}).get("nelements") for struct in response["data"]
     ]
@@ -204,7 +206,8 @@ def test_datetime_asc(
         )
         expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     last_modified_list = [
         struct.get("attributes", {}).get("last_modified") for struct in response["data"]
     ]
@@ -240,7 +243,8 @@ def test_datetime_desc(
         )
         expected_mtime = [fmt_datetime(mtime) for mtime, in builder.all()]
 
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     last_modified_list = [
         struct.get("attributes", {}).get("last_modified") for struct in response["data"]
     ]

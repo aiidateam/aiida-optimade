@@ -1,12 +1,10 @@
-# pylint: disable=protected-access,too-many-statements
+# pylint: disable=protected-access,too-many-statements,import-outside-toplevel
 import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import bson.json_util
 import click
-from aiida.cmdline.utils import echo
-from aiida.manage.configuration import load_profile
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
@@ -60,6 +58,9 @@ def init(  # pylint: disable=too-many-locals,too-many-branches
     filename: "Optional[str]",
 ):
     """Initialize an AiiDA database to be served with AiiDA-OPTIMADE."""
+    from aiida.cmdline.utils import echo
+    from aiida.manage.configuration import load_profile
+
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
@@ -70,7 +71,7 @@ def init(  # pylint: disable=too-many-locals,too-many-branches
         profile = f"MongoDB JSON file {filepath.name}"
     else:
         try:
-            profile: str = obj.profile.name
+            profile = obj.profile.name
         except AttributeError:
             profile = None
         profile = load_profile(profile).name

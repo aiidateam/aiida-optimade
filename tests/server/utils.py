@@ -1,4 +1,5 @@
 """Server utilities for testing."""
+# pylint: disable=too-many-arguments,too-many-locals
 from typing import TYPE_CHECKING
 
 import pytest
@@ -33,7 +34,7 @@ class OptimadeTestClient(TestClient):
     So this will prepend any requests with the MAJOR OPTIMADE version path.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         app: "ASGIApp",
         base_url: str = "http://example.org",
@@ -67,15 +68,15 @@ class OptimadeTestClient(TestClient):
             if not version.startswith("v"):
                 version = f"/v{version}"
             if re.match(r"v[0-9](.[0-9]){0,2}", version) is None:
+                default_version = __api_version__.split(".", maxsplit=1)[0]
                 warnings.warn(
                     f"Invalid version passed to client: '{version}'. "
-                    "Will use the default: "
-                    f"'/v{__api_version__.split('.', maxsplit=1)[0]}'"
+                    f"Will use the default: '/v{default_version}'"
                 )
-                version = f"/v{__api_version__.split('.', maxsplit=1)[0]}"
+                version = f"/v{default_version}"
         self.version = version
 
-    def request(  # pylint: disable=too-many-locals
+    def request(
         self,
         method: str,
         url: "httpx._types.URLTypes",
@@ -161,7 +162,7 @@ class EndpointTests:
         """General test for `meta` property in response"""
         from optimade.models import ResponseMeta
 
-        assert isinstance(self.json_response, dict)
+        assert self.json_response
         assert "meta" in self.json_response
         meta_required_keys = ResponseMeta.schema()["required"]
         meta_optional_keys = list(

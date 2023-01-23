@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Union
 
-    from requests import Response
+    from httpx import Response
 
 
 def test_last_modified(
@@ -14,9 +14,11 @@ def test_last_modified(
 
     request = "/structures"
 
-    first_response: "Dict[str, Any]" = get_good_response(request, False)
+    first_response = get_good_response(request, False)
+    assert isinstance(first_response, dict)
     sleep(2)
-    second_response: "Dict[str, Any]" = get_good_response(request, False)
+    second_response = get_good_response(request, False)
+    assert isinstance(second_response, dict)
 
     assert [_["id"] for _ in first_response["data"]] == [
         _["id"] for _ in second_response["data"]

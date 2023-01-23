@@ -2,7 +2,7 @@
 # pylint: disable=protected-access
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Optional, Union
 
     from pytest import LogCaptureFixture
@@ -16,7 +16,8 @@ def test_limit(
     page_limit = [5, 10]
     for limit in page_limit:
         request = f"/structures?page_limit={limit}"
-        response: "Dict[str, Any]" = get_good_response(request, False)
+        response = get_good_response(request, False)
+        assert isinstance(response, dict)
 
         assert len(response["data"]) == limit
 
@@ -78,7 +79,8 @@ def test_page_limit_max(
     from optimade.server.config import CONFIG
 
     request = f"/structures?page_limit={CONFIG.page_limit_max}"
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     assert len(response["data"]) == CONFIG.page_limit_max
 
     request = f"/structures?page_limit={CONFIG.page_limit_max + 1}"

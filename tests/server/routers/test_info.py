@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Iterable, List, Union
 
     from requests import Response
@@ -15,7 +15,8 @@ def test_info_endpoint_attributes(
     """Check known properties/attributes for successful response"""
     from optimade.models import BaseInfoAttributes
 
-    response: "Dict[str, Any]" = get_good_response("/info", False)
+    response = get_good_response("/info", False)
+    assert isinstance(response, dict)
 
     assert "data" in response
     assert response["data"]["type"] == "info"
@@ -32,7 +33,8 @@ def test_info_structures_endpoint_data(
     """Check known properties/attributes for successful response"""
     from optimade.models import EntryInfoResource
 
-    response: "Dict[str, Any]" = get_good_response("/info/structures", False)
+    response = get_good_response("/info/structures", False)
+    assert isinstance(response, dict)
 
     assert "data" in response
     data = EntryInfoResource.schema()["required"]
@@ -43,7 +45,8 @@ def test_info_structures_sortable(
     get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
 ) -> None:
     """Check the sortable key is present for all properties"""
-    response: "Dict[str, Any]" = get_good_response("/info/structures", False)
+    response = get_good_response("/info/structures", False)
+    assert isinstance(response, dict)
 
     for info_keys in response.get("data", {}).get("properties", {}).values():
         assert "sortable" in info_keys
@@ -53,7 +56,8 @@ def test_sortable_values(
     get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
 ) -> None:
     """Make sure certain properties are and are not sortable"""
-    response: "Dict[str, Any]" = get_good_response("/info/structures", False)
+    response = get_good_response("/info/structures", False)
+    assert isinstance(response, dict)
     sortable = ["id", "nelements", "nsites"]
     non_sortable = ["species", "lattice_vectors", "dimension_types"]
 
@@ -82,7 +86,8 @@ def test_info_structures_unit(
     get_good_response: "Callable[[str, bool], Union[Dict[str, Any], Response]]",
 ) -> None:
     """Check the unit key is present for certain properties"""
-    response: "Dict[str, Any]" = get_good_response("/info/structures", False)
+    response = get_good_response("/info/structures", False)
+    assert isinstance(response, dict)
     unit_fields = ["lattice_vectors", "cartesian_site_positions"]
     for field, info_keys in response.get("data", {}).get("properties", {}).items():
         if field in unit_fields:
@@ -97,7 +102,8 @@ def test_provider_fields(
     """Check the presence of AiiDA-specific fields"""
     from optimade.server.config import CONFIG
 
-    response: "Dict[str, Any]" = get_good_response("/info/structures", False)
+    response = get_good_response("/info/structures", False)
+    assert isinstance(response, dict)
     provider_fields = CONFIG.provider_fields.get("structures", [])
 
     if not provider_fields:
@@ -124,7 +130,8 @@ def test_info_references_endpoint_data(
     """Check known properties/attributes for successful response"""
     from optimade.models import EntryInfoResource
 
-    response: "Dict[str, Any]" = get_good_response("/info/reference", False)
+    response = get_good_response("/info/reference", False)
+    assert isinstance(response, dict)
 
     assert "data" in response
     data = EntryInfoResource.schema()["required"]

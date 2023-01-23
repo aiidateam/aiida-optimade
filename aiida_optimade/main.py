@@ -3,6 +3,7 @@ import json
 import os
 import warnings
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import bson.json_util
 from aiida.manage.configuration import load_profile
@@ -37,6 +38,9 @@ from aiida_optimade.common import LOGGER
 from aiida_optimade.middleware import RedirectOpenApiDocs
 from aiida_optimade.routers import info, links, structures
 from aiida_optimade.utils import OPEN_API_ENDPOINTS
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Dict, List
 
 if not Path(os.getenv("OPTIMADE_CONFIG_FILE", DEFAULT_CONFIG_FILE_PATH)).exists():
     LOGGER.warning(  # pragma: no cover
@@ -110,7 +114,7 @@ for version in ("major", "minor", "patch"):
 
 
 @APP.on_event("startup")
-async def startup():
+async def startup() -> None:
     """Things to do upon server startup"""
     # Load AiiDA profile
     profile_name = os.getenv("AIIDA_PROFILE")
@@ -118,8 +122,9 @@ async def startup():
     LOGGER.info("AiiDA Profile: %s", profile_name)
 
     # Load links
-    data = json.loads(
+    data: "List[Dict[str, Any]]" = json.loads(
         Path(__file__)
+        .resolve()
         .parent.joinpath("data")
         .joinpath("links.json")
         .resolve()

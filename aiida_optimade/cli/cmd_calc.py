@@ -1,17 +1,15 @@
-# pylint: disable=protected-access,too-many-locals,too-many-branches
+# pylint: disable=protected-access,too-many-locals,too-many-branches,import-outside-toplevel,too-many-statements
 import traceback
 from typing import TYPE_CHECKING
 
 import click
-from aiida.cmdline.utils import echo
-from aiida.manage.configuration import load_profile
 from tqdm import tqdm
 
 from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import Tuple
+    from typing import Optional, Tuple
 
     from aiida.common.extendeddicts import AttributeDict
 
@@ -45,14 +43,18 @@ if TYPE_CHECKING:  # pragma: no cover
 @click.pass_obj
 def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bool):
     """Calculate OPTIMADE fields in the AiiDA database."""
+    from aiida.cmdline.utils import echo
+    from aiida.manage.configuration import load_profile
+
     # The default aiida.cmdline loglevel inherit from aiida loglevel is REPORT
     # Here we use INFO loglevel for the operations
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
+    profile: "Optional[str]" = None
     try:
-        profile: str = obj.profile.name
+        profile = obj.profile.name
     except AttributeError:
-        profile = None
+        pass
     profile = load_profile(profile).name
 
     try:

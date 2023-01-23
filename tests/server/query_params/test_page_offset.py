@@ -2,7 +2,7 @@
 # pylint: disable=protected-access
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Union
 
     from pytest import LogCaptureFixture
@@ -15,7 +15,8 @@ def test_offset(
     """Apply low offset, comparing two requests with and without offset"""
     page_limit = 5
     request = f"/structures?page_offset=0&page_limit={page_limit}&sort=immutable_id"
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
     first_response_uuids = [_["attributes"]["immutable_id"] for _ in response["data"]]
 
     assert len(first_response_uuids) == page_limit
@@ -26,7 +27,8 @@ def test_offset(
         "&sort=immutable_id"
     )
     expected_uuids = first_response_uuids[offset:]
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
 
     assert len(response["data"]) == len(expected_uuids)
     assert expected_uuids == [_["attributes"]["immutable_id"] for _ in response["data"]]

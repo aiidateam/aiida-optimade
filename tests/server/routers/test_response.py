@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Any, Callable, Dict, Iterable, List, Tuple, Type, Union
 
     from _pytest.mark.structures import ParameterSet
@@ -55,7 +55,8 @@ def test_serialize_response(
     ResponseType: "Type[BaseModel]",  # pylint: disable=invalid-name
 ) -> None:
     """Test serializing responses."""
-    response: "Dict[str, Any]" = get_good_response(request_str, False)
+    response = get_good_response(request_str, False)
+    assert isinstance(response, dict)
     ResponseType(**response)
 
 
@@ -81,7 +82,8 @@ def test_meta_response(
     """Check `meta` property in response"""
     from optimade.models import ResponseMeta
 
-    response: "Dict[str, Any]" = get_good_response(request_str, False)
+    response = get_good_response(request_str, False)
+    assert isinstance(response, dict)
 
     assert "meta" in response
     meta_required_keys = ResponseMeta.schema()["required"]

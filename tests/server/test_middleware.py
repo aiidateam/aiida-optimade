@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import List
 
 
@@ -14,11 +14,19 @@ def return_versions() -> "List[str]":
     """
     from optimade import __api_version__
 
-    return [
-        f"v{__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0].split('.', maxsplit=1)[0]}",  # pylint: disable=line-too-long
-        f"v{'.'.join(__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0].split('.')[:2])}",  # pylint: disable=line-too-long
-        f"v{__api_version__.split('-', maxsplit=1)[0].split('+', maxsplit=1)[0]}",
+    versions = [
+        __api_version__.split("-", maxsplit=1)[0]
+        .split("+", maxsplit=1)[0]
+        .split(".", maxsplit=1)[0],
+        ".".join(
+            __api_version__.split("-", maxsplit=1)[0]
+            .split("+", maxsplit=1)[0]
+            .split(".")[:2]
+        ),
+        __api_version__.split("-", maxsplit=1)[0].split("+", maxsplit=1)[0],
     ]
+
+    return [f"v{_}" for _ in versions]
 
 
 @pytest.mark.parametrize("version", return_versions())

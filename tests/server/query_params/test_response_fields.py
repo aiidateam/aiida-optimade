@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
-    from typing import Any, Callable, Dict, Optional, Union
+if TYPE_CHECKING:
+    from typing import Any, Callable, Dict, List, Optional, Union
 
     from requests import Response
 
@@ -17,7 +17,8 @@ def test_provider_fields(
         f"{CONFIG.provider_fields.get('structures', ['ctime'])[0]}"
     )
     request = f"/structures?response_fields={provider_specific_field}"
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
 
     returned_attributes = set()
     for _ in response.get("data", []):
@@ -33,7 +34,8 @@ def test_non_provider_fields(
     """Ensure provider fields are excluded when not requested"""
     non_provider_specific_field = "elements"
     request = f"/structures?response_fields={non_provider_specific_field}"
-    response: "Dict[str, Any]" = get_good_response(request, False)
+    response = get_good_response(request, False)
+    assert isinstance(response, dict)
 
     returned_attributes = set()
     for _ in response.get("data", []):

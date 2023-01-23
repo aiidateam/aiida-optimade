@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from typing import Callable, List, Optional, Tuple
 
     from click import Command
@@ -58,14 +58,18 @@ def run_cli_command(
             assert result.exception is not None, result.output
             assert result.exit_code != 0
         else:
-            assert result.exception is None, "".join(
-                traceback.format_exception(*result.exc_info)
+            assert result.exception is None, (
+                "".join(traceback.format_exception(*result.exc_info))
+                if result.exc_info
+                else result.exception
             )
             assert result.exit_code == 0, result.output
 
-        result.output_lines = [
-            line.strip() for line in result.output.split("\n") if line.strip()
-        ]
+        setattr(
+            result,
+            "output_lines",
+            [line.strip() for line in result.output.split("\n") if line.strip()],
+        )
 
         return result
 
@@ -111,17 +115,17 @@ def run_and_terminate_server(
 
         env = dict(os.environ)
         env["AIIDA_PROFILE"] = profile
-        with Popen(
+        result = Popen(  # pylint: disable=consider-using-with
             args, env=env, stdout=PIPE, stderr=PIPE, universal_newlines=True
-        ) as result:
-            sleep(10)  # The server needs time to start up
+        )
+        sleep(10)  # The server needs time to start up
 
-            result.send_signal(signal.SIGINT)
-            try:
-                result.wait(10)
-            except TimeoutExpired:
-                result.kill()
-                sleep(2)
+        result.send_signal(signal.SIGINT)
+        try:
+            result.wait(10)
+        except TimeoutExpired:
+            result.kill()
+            sleep(2)
 
         stdout, stderr = result.communicate()
 
