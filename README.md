@@ -83,7 +83,7 @@ $ aiida-optimade -p <PROFILE> init
 
 Where `<PROFILE>` is the AiiDA profile.
 
-> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is now specified.
+> **Note**: Currently, the default is `optimade`, if the `-p / --profile` option is not specified.
 > This will be changed in the future to use the default AiiDA profile.
 
 Initialization goes through your profile's `StructureData` nodes, adding an `optimade` extra, wherein all OPTIMADE-specific fields that do not have an equivalent AiiDA property are stored.
