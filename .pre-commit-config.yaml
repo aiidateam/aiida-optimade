@@ -20,7 +20,7 @@ repos:
     exclude: ^.github/dependabot.yml$
 
 - repo: https://github.com/ambv/black
-  rev: 22.12.0
+  rev: 23.1.0
   hooks:
   - id: black
     name: Blacken
@@ -38,12 +38,12 @@ repos:
     language: system
 
 - repo: https://github.com/pycqa/flake8
-  rev: 5.0.4
+  rev: 6.0.0
   hooks:
   - id: flake8
 
 - repo: https://github.com/timothycrosley/isort
-  rev: 5.11.5
+  rev: 5.12.0
   hooks:
   - id: isort
     args: [--profile, black, --filter-files, --skip-gitignore]
