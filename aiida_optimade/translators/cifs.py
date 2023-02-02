@@ -41,7 +41,6 @@ def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
     try:
         structures = parser.get_structures(**parameters)
     except ValueError as exc_one:
-
         # Verify whether the failure was due to wrong occupancy numbers
         try:
             constructor_kwargs["occupancy_tolerance"] = 1e10
