@@ -96,7 +96,7 @@ def optimade_req(_, ver=""):
         api_version += f"+{api_version[4]}"
 
     update_file(
-        "requirements.txt", (r"optimade\[mongo\]~=.+", f"optimade[mongo]~={ver}")
+        "requirements.txt", (r"optimade\[server\]~=.+", f"optimade[server]~={ver}")
     )
     update_file(
         "README.md",
