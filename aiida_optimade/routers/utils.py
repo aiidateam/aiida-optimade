@@ -73,7 +73,9 @@ def get_entries(
     ) = collection.find(params)
 
     pagination = handle_pagination(
-        request=request, more_data_available=more_data_available, nresults=len(results)
+        request=request,
+        more_data_available=more_data_available,
+        nresults=len(results) if results else 0,
     )
 
     if fields or include_fields:
