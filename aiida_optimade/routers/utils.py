@@ -77,11 +77,13 @@ def get_entries(
 
     if results is None:
         nresults = 0
+        results = []
     else:
         try:
             nresults = len(results)
         except TypeError:
             nresults = 1
+            results = [results]
 
     pagination = {}
     if results:
