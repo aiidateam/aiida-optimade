@@ -1,6 +1,6 @@
 import functools
 import urllib.parse
-from typing import Union
+from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, Request
 from optimade.models import EntryResponseMany, EntryResponseOne, ToplevelLinks
@@ -10,6 +10,9 @@ from optimade.server.query_params import EntryListingQueryParams, SingleEntryQue
 from optimade.server.routers.utils import handle_response_fields, meta_values
 
 from aiida_optimade.entry_collections import AiidaCollection
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Type, Union
 
 
 def handle_pagination(
@@ -58,8 +61,8 @@ def handle_pagination(
 
 
 def get_entries(
-    collection: Union[AiidaCollection, MongoCollection],
-    response: EntryResponseMany,
+    collection: "Union[AiidaCollection, MongoCollection]",
+    response: "Type[EntryResponseMany]",
     request: Request,
     params: EntryListingQueryParams,
 ) -> EntryResponseMany:
@@ -72,13 +75,23 @@ def get_entries(
         include_fields,
     ) = collection.find(params)
 
-    pagination = handle_pagination(
-        request=request,
-        more_data_available=more_data_available,
-        nresults=len(results) if results else 0,
-    )
+    if results is None:
+        nresults = 0
+    else:
+        try:
+            nresults = len(results)
+        except TypeError:
+            nresults = 1
 
-    if fields or include_fields:
+    pagination = {}
+    if results:
+        pagination = handle_pagination(
+            request=request,
+            more_data_available=more_data_available,
+            nresults=nresults,
+        )
+
+    if (fields or include_fields) and results:
         results = handle_response_fields(
             results=results, exclude_fields=fields, include_fields=include_fields
         )
@@ -97,9 +110,9 @@ def get_entries(
 
 
 def get_single_entry(
-    collection: Union[AiidaCollection, MongoCollection],
+    collection: "Union[AiidaCollection, MongoCollection]",
     entry_id: str,
-    response: EntryResponseOne,
+    response: "Type[EntryResponseOne]",
     request: Request,
     params: SingleEntryQueryParams,
 ) -> EntryResponseOne:
