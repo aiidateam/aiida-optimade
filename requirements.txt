@@ -1,4 +1,4 @@
-optimade[server]~=0.23.1
+optimade[server]~=0.24.0
 aiida-core~=2.3.0
 pymatgen>=2019.7.2,!=2019.9.7,<2023.5.11
 
