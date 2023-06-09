@@ -2,15 +2,58 @@
 
 ## [Unreleased](https://github.com/aiidateam/aiida-optimade/tree/HEAD)
 
-[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.0...HEAD)
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.1...HEAD)
 
-**Implemented enhancements:**
+**Closed issues:**
 
-- \[MCLOUD\] Allow for data curation [\#237](https://github.com/aiidateam/aiida-optimade/issues/237)
+- `available_api_versions` broken url [\#381](https://github.com/aiidateam/aiida-optimade/issues/381)
+
+## [v1.1.1](https://github.com/aiidateam/aiida-optimade/tree/v1.1.1) (2023-06-09)
+
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.0...v1.1.1)
+
+**Fixed bugs:**
+
+- codecov dependency error [\#451](https://github.com/aiidateam/aiida-optimade/issues/451)
+- Remove/Update pre-commit hook for yamlfmt [\#450](https://github.com/aiidateam/aiida-optimade/issues/450)
+- Update auto-merge workflow [\#426](https://github.com/aiidateam/aiida-optimade/issues/426)
+- Dependabot configuration file should only use strings [\#418](https://github.com/aiidateam/aiida-optimade/issues/418)
+- Changed `optimade` extra dependency [\#416](https://github.com/aiidateam/aiida-optimade/issues/416)
+
+**Merged pull requests:**
+
+- add root\_path to available\_api\_versions urls [\#471](https://github.com/aiidateam/aiida-optimade/pull/471) ([eimrek](https://github.com/eimrek))
+- Update dependencies [\#467](https://github.com/aiidateam/aiida-optimade/pull/467) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#463](https://github.com/aiidateam/aiida-optimade/pull/463) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#458](https://github.com/aiidateam/aiida-optimade/pull/458) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#456](https://github.com/aiidateam/aiida-optimade/pull/456) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#454](https://github.com/aiidateam/aiida-optimade/pull/454) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#449](https://github.com/aiidateam/aiida-optimade/pull/449) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#447](https://github.com/aiidateam/aiida-optimade/pull/447) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#444](https://github.com/aiidateam/aiida-optimade/pull/444) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#442](https://github.com/aiidateam/aiida-optimade/pull/442) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#439](https://github.com/aiidateam/aiida-optimade/pull/439) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#436](https://github.com/aiidateam/aiida-optimade/pull/436) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#433](https://github.com/aiidateam/aiida-optimade/pull/433) ([CasperWA](https://github.com/CasperWA))
+- Fix references to the optimade dependency [\#429](https://github.com/aiidateam/aiida-optimade/pull/429) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#428](https://github.com/aiidateam/aiida-optimade/pull/428) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#423](https://github.com/aiidateam/aiida-optimade/pull/423) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#421](https://github.com/aiidateam/aiida-optimade/pull/421) ([CasperWA](https://github.com/CasperWA))
+- Customize YAML formatter [\#419](https://github.com/aiidateam/aiida-optimade/pull/419) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#410](https://github.com/aiidateam/aiida-optimade/pull/410) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#405](https://github.com/aiidateam/aiida-optimade/pull/405) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#402](https://github.com/aiidateam/aiida-optimade/pull/402) ([CasperWA](https://github.com/CasperWA))
+- Fix FastAPI version to 0.86.0 [\#400](https://github.com/aiidateam/aiida-optimade/pull/400) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#395](https://github.com/aiidateam/aiida-optimade/pull/395) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#392](https://github.com/aiidateam/aiida-optimade/pull/392) ([CasperWA](https://github.com/CasperWA))
 
 ## [v1.1.0](https://github.com/aiidateam/aiida-optimade/tree/v1.1.0) (2022-10-11)
 
 [Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.0.1...v1.1.0)
+
+**Implemented enhancements:**
+
+- \[MCLOUD\] Allow for data curation [\#237](https://github.com/aiidateam/aiida-optimade/issues/237)
 
 **Merged pull requests:**
 

@@ -12,7 +12,7 @@
   },
   "implementation": {
     "name": "aiida-optimade",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "source_url": "https://github.com/aiidateam/aiida-optimade",
     "maintainer": {"email": "casper.andersen@epfl.ch"}
   },
