@@ -30,6 +30,10 @@ def get_info(request: Request):
     parse_result = urllib.parse.urlparse(str(request.url))
     base_url = get_base_url(parse_result)
 
+    root_path_str = ""
+    if CONFIG.root_path:
+        root_path_str = f"/{CONFIG.root_path.strip('/')}"
+
     return InfoResponse(
         meta=meta_values(
             str(request.url), 1, 1, more_data_available=False, schema=CONFIG.schema_url
@@ -41,7 +45,7 @@ def get_info(request: Request):
                 api_version=__api_version__,
                 available_api_versions=[
                     {
-                        "url": f"{base_url}/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
+                        "url": f"{base_url}{root_path_str}/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
                         "version": __api_version__,
                     }
                 ],
