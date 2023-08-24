@@ -11,3 +11,5 @@ sed -i "s|PLACEHOLDER_REPOSITORY|/tmp/test_repository_test_${AIIDA_TEST_BACKEND#
 verdi setup --config "${CONFIG}/profile.yaml"
 
 verdi profile setdefault test_${AIIDA_TEST_BACKEND#core.}
+
+verdi storage migrate
