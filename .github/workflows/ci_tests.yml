@@ -20,7 +20,7 @@ jobs:
     - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Install dependencies
       run: |
@@ -83,7 +83,7 @@ jobs:
     - name: Install python dependencies
       run: |
         python -m pip install -U pip
-        pip install -U setuptools
+        pip install -U setuptools wheel
         pip install -e .[testing]
 
     - name: Setup up environment for AiiDA
@@ -105,14 +105,14 @@ jobs:
       run: pytest -v --cov=./aiida_optimade/ --cov-report=xml:mongo_cov.xml --durations=20
 
     - name: Upload coverage to Codecov
-      if: matrix.python-version == 3.8
+      if: matrix.python-version == '3.8'
       uses: codecov/codecov-action@v3
       with:
         flags: aiida
         file: ./coverage.xml
 
     - name: Upload coverage to Codecov
-      if: matrix.python-version == 3.8
+      if: matrix.python-version == '3.8'
       uses: codecov/codecov-action@v3
       with:
         flags: mongo
@@ -151,21 +151,13 @@ jobs:
     - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
-
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
-
+        pip install -U setuptools wheel
+        pip install aiida-core
         pip install pymongo
 
     - name: Setup up environment for AiiDA
@@ -226,20 +218,13 @@ jobs:
     - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
-
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install -U setuptools wheel
+        pip install aiida-core
 
     - name: Setup up environment for AiiDA
       env:
@@ -295,20 +280,13 @@ jobs:
     - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U setuptools
-
-        while IFS="" read -r line || [ -n "${line}" ]; do
-            if [[ "${line}" =~ ^aiida-core.*$ ]]; then
-                aiida_core="${line}"
-            fi
-        done < requirements.txt
-
-        pip install ${aiida_core}
+        pip install -U setuptools wheel
+        pip install aiida-core
 
     - name: Setup up environment for AiiDA
       env:
