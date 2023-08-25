@@ -20,7 +20,7 @@ repos:
     exclude: ^.github/dependabot.yml$
 
 - repo: https://github.com/ambv/black
-  rev: 23.3.0
+  rev: 23.7.0
   hooks:
   - id: black
     name: Blacken
@@ -38,7 +38,7 @@ repos:
     language: system
 
 - repo: https://github.com/pycqa/flake8
-  rev: 6.0.0
+  rev: 6.1.0
   hooks:
   - id: flake8
 
