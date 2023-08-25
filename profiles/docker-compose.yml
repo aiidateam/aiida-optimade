@@ -9,8 +9,8 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        OPTIMADE_TOOLS_VERSION: 0.24.1
-        AIIDA_VERSION: 2.4.0
+        OPTIMADE_TOOLS_VERSION: 0.25.1
+        AIIDA_VERSION: 2.4.0; python_version>="3.9"
         CONFIG_FILE: aiida_optimade/config.json
     environment:
       AIIDA_PATH: /app
