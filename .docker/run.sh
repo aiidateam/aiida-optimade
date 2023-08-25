@@ -3,6 +3,7 @@ set -ex
 
 mkdir -p ${AIIDA_PATH}/.aiida
 cp -n /profiles/${AIIDA_PROFILE}.json ${AIIDA_PATH}/.aiida/config.json
+verdi storage migrate --force
 
 # make docker.host.internal available
 # see https://github.com/docker/for-linux/issues/264#issuecomment-387525409
