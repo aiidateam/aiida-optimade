@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "label": "AiiDA",
-  "message": "v2.4.0; python_version>="3.9"",
+  "message": "v2.4.0",
   "color": "brightgreen"
 }
