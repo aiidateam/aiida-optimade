@@ -137,8 +137,13 @@ def aiida_req(_, ver=""):
         raise RuntimeError("Please specify --ver='Major.Minor.Patch'")
     if ver.startswith("v"):
         ver = ver[1:]
+    if not re.match(r"[0-9]+(\.[0-9]+){2}", ver):
+        raise ValueError("ver MUST be specified as 'Major.Minor.Patch'")
 
-    update_file("requirements.txt", ("aiida-core~=.+", f"aiida-core~={ver}"))
+    update_file(
+        "requirements.txt",
+        (r"aiida-core~=.+>=.+", f'aiida-core~={ver}; python_version>="3.9"'),
+    )
     update_file(".ci/aiida-version.json", ('"message": .+', f'"message": "v{ver}",'))
     update_file("Dockerfile", ("AIIDA_VERSION=.*", f"AIIDA_VERSION={ver}"))
     for file_format in ("j2", "yml"):
