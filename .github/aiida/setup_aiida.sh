@@ -12,4 +12,4 @@ verdi setup --config "${CONFIG}/profile.yaml"
 
 verdi profile setdefault test_${AIIDA_TEST_BACKEND#core.}
 
-verdi storage migrate
+verdi storage migrate --force
