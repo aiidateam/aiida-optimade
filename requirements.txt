@@ -1,5 +1,5 @@
 optimade[server]~=0.24.1
-aiida-core~=2.3.1
+aiida-core~=2.4.0
 pymatgen>=2019.7.2,!=2019.9.7,<2023.6.24
 
 # Dependencies used directly in this package, but included through other dependencies:
