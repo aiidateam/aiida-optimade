@@ -153,7 +153,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                     "consider using --force to first drop the collection, if possible."
                 )
 
-            with open(filename, "r") as handle:
+            with open(filename) as handle:
                 if silent:
                     all_chunks = read_chunks(handle, chunk_size=chunk_size)
                 else:

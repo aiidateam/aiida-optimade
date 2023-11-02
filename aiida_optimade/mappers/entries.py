@@ -28,7 +28,7 @@ class ResourceMapper(OptimadeResourceMapper):
         """Get all aliases as a tuple
         Also add `PROJECT_PREFIX` fields to the tuple
         """
-        res = super(ResourceMapper, cls).all_aliases()
+        res = super().all_aliases()
         return res + tuple(
             (field, f"{cls.PROJECT_PREFIX}{field}")
             for field in set(cls.ENTRY_RESOURCE_ATTRIBUTES.keys())

@@ -6,7 +6,7 @@ from invoke import task
 
 def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
     """Utility function for tasks to read, update, and write files"""
-    with open(filename, "r") as handle:
+    with open(filename) as handle:
         lines = [
             re.sub(sub_line[0], sub_line[1], line.rstrip(strip)) for line in handle
         ]
