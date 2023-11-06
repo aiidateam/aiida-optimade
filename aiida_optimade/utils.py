@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from optimade.models import DataType
 
 OPEN_API_ENDPOINTS = {
@@ -11,7 +9,7 @@ OPEN_API_ENDPOINTS = {
 
 def retrieve_queryable_properties(
     schema: dict, queryable_properties: list
-) -> Tuple[dict, dict]:
+) -> tuple[dict, dict]:
     """Get all queryable properties from an OPTIMADE schema"""
     properties = {}
     all_properties = {}

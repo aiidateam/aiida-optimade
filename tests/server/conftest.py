@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 if TYPE_CHECKING:
-    from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+    from collections.abc import Iterable
+    from typing import Any, Callable, Dict, List, Optional, Union
 
     from httpx import Response
 

@@ -9,7 +9,8 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import IO, Generator, Iterator, List, Union
+    from collections.abc import Generator, Iterator
+    from typing import IO, List, Union
 
     from aiida.common.extendeddicts import AttributeDict
 
@@ -153,7 +154,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                     "consider using --force to first drop the collection, if possible."
                 )
 
-            with open(filename, "r") as handle:
+            with open(filename) as handle:
                 if silent:
                     all_chunks = read_chunks(handle, chunk_size=chunk_size)
                 else:

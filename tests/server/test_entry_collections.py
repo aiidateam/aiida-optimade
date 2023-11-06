@@ -1,6 +1,6 @@
 """Tests for aiida_optimade.entry_collections."""
 # pylint: disable=protected-access
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 import pytest
 
@@ -29,7 +29,7 @@ def test_causation_errors(attribute: str):
 
 
 def test_bad_fields(
-    get_good_response: Callable[[str], Dict[str, Any]],
+    get_good_response: Callable[[str], dict[str, Any]],
     check_error_response: Callable[[str, int, str, str], None],
 ):
     """Test a UnknownProviderProperty warning is emitted for unrecognized provider
