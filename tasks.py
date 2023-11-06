@@ -1,10 +1,9 @@
 import re
-from typing import Tuple
 
 from invoke import task
 
 
-def update_file(filename: str, sub_line: Tuple[str, str], strip: str = None):
+def update_file(filename: str, sub_line: tuple[str, str], strip: str = None):
     """Utility function for tasks to read, update, and write files"""
     with open(filename) as handle:
         lines = [

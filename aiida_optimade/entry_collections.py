@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Optional, Union
 
 from aiida.orm import Group
 from aiida.orm.nodes import Node
@@ -31,7 +31,7 @@ class AiidaCollection(EntryCollection):
 
     def __init__(
         self,
-        entities: Union[str, List[str]],
+        entities: Union[str, list[str]],
         group: Optional[str],
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
@@ -48,15 +48,15 @@ class AiidaCollection(EntryCollection):
         # "Cache"
         self._data_available: int = None
         self._data_returned: int = None
-        self._extras_fields: Set[str] = None
-        self._latest_filter: Dict[str, Any] = None
-        self._count: Dict[str, Any] = None
+        self._extras_fields: set[str] = None
+        self._latest_filter: dict[str, Any] = None
+        self._count: dict[str, Any] = None
         self._checked_extras_filter_fields: set = set()
 
-        self._all_fields: Set[str] = None
+        self._all_fields: set[str] = None
 
     @property
-    def all_fields(self) -> Set[str]:
+    def all_fields(self) -> set[str]:
         if not self._all_fields:
             self._all_fields = super().all_fields
         return self._all_fields
@@ -114,7 +114,7 @@ class AiidaCollection(EntryCollection):
     def __len__(self) -> int:
         return self.data_available
 
-    def insert(self, _: List[EntryResource]) -> None:
+    def insert(self, _: list[EntryResource]) -> None:
         raise NotImplementedError(
             f"The insert method is not implemented for {self.__class__.__name__}."
         )
@@ -175,8 +175,8 @@ class AiidaCollection(EntryCollection):
 
     def find(  # pylint: disable=too-many-branches
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
-    ) -> Tuple[
-        Union[List[EntryResource], EntryResource, None], int, bool, Set[str], Set[str]
+    ) -> tuple[
+        Union[list[EntryResource], EntryResource, None], int, bool, set[str], set[str]
     ]:
         self.set_data_available()
 
@@ -266,8 +266,8 @@ class AiidaCollection(EntryCollection):
         )
 
     def _run_db_query(
-        self, criteria: Dict[str, Any], single_entry: bool = False
-    ) -> Tuple[List[Dict[str, Any]], bool]:
+        self, criteria: dict[str, Any], single_entry: bool = False
+    ) -> tuple[list[dict[str, Any]], bool]:
         """Run the query on the backend and collect the results.
 
         Arguments:
@@ -296,7 +296,7 @@ class AiidaCollection(EntryCollection):
 
     @staticmethod
     def _prepare_query(
-        node_types: List[str], group: Optional[str] = None, **kwargs
+        node_types: list[str], group: Optional[str] = None, **kwargs
     ) -> QueryBuilder:
         """Workhorse function to prepare an AiiDA QueryBuilder query"""
         for key in kwargs:
@@ -344,7 +344,7 @@ class AiidaCollection(EntryCollection):
 
     def handle_query_params(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Parse and interpret the backend-agnostic query parameter models into a
         dictionary that can be used by AiiDA's QueryBuilder.
 
@@ -385,7 +385,7 @@ class AiidaCollection(EntryCollection):
 
         return cursor_kwargs
 
-    def parse_sort_params(self, sort_params: str) -> List[Dict[str, Dict[str, str]]]:
+    def parse_sort_params(self, sort_params: str) -> list[dict[str, dict[str, str]]]:
         """Handles any sort parameters passed to the collection,
         resolving aliases and dealing with any invalid fields.
 
@@ -473,8 +473,8 @@ class AiidaCollection(EntryCollection):
         __filter_fields_util(deepcopy(filters))
 
     def _check_and_calculate_entities(
-        self, cli: bool = False, entries: List[List[int]] = None
-    ) -> List[int]:
+        self, cli: bool = False, entries: list[list[int]] = None
+    ) -> list[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
         For a bit of optimization, we only care about a field if it has specifically
@@ -490,7 +490,7 @@ class AiidaCollection(EntryCollection):
 
         """
 
-        def _update_entities(entities: List[List[Any]], fields: List[str]):
+        def _update_entities(entities: list[list[Any]], fields: list[str]):
             """Utility function to update entities within this method"""
             optimade_fields = [
                 self.resource_mapper.get_optimade_field(_) for _ in fields

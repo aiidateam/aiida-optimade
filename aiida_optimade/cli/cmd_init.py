@@ -9,7 +9,8 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import IO, Generator, Iterator, List, Union
+    from collections.abc import Generator, Iterator
+    from typing import IO, List, Union
 
     from aiida.common.extendeddicts import AttributeDict
 

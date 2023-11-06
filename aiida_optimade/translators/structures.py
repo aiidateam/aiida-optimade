@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long,too-many-public-methods
 import itertools
 from math import fsum
-from typing import Any, List, Union
+from typing import Any, Union
 
 from aiida.orm.nodes.data.structure import StructureData
 from optimade.models.utils import ANONYMOUS_ELEMENTS
@@ -138,7 +138,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         return False
 
     # Start creating fields
-    def elements(self) -> List[str]:
+    def elements(self) -> list[str]:
         """Names of elements found in the structure as a list of strings, in alphabetical order."""
         attribute = "elements"
 
@@ -168,7 +168,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def elements_ratios(self) -> List[float]:
+    def elements_ratios(self) -> list[float]:
         """Relative proportions of different elements in the structure."""
         attribute = "elements_ratios"
 
@@ -281,7 +281,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def dimension_types(self) -> List[int]:
+    def dimension_types(self) -> list[int]:
         """List of three integers.
 
         For each of the three directions indicated by the three lattice vectors
@@ -313,7 +313,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def lattice_vectors(self) -> List[List[float]]:
+    def lattice_vectors(self) -> list[list[float]]:
         """The three lattice vectors in Cartesian coordinates, in ångström (Å)."""
         attribute = "lattice_vectors"
 
@@ -326,7 +326,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = floats_to_hex(res)
         return res
 
-    def cartesian_site_positions(self) -> List[List[Union[float, None]]]:
+    def cartesian_site_positions(self) -> list[list[Union[float, None]]]:
         """Cartesian positions of each site.
 
         A site is an atom, a site potentially occupied by an atom,
@@ -357,7 +357,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def species_at_sites(self) -> List[str]:
+    def species_at_sites(self) -> list[str]:
         """Name of the species at each site
 
         (Where values for sites are specified with the same order of the property
@@ -374,7 +374,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def species(self) -> List[dict]:
+    def species(self) -> list[dict]:
         """A list describing the species of the sites of this structure.
 
         Species can be pure chemical elements, or virtual-crystal atoms
@@ -427,7 +427,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def assemblies(self) -> Union[List[dict], None]:
+    def assemblies(self) -> Union[list[dict], None]:
         """A description of groups of sites that are statistically correlated.
 
         NOTE: Currently not supported.
@@ -443,7 +443,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def structure_features(self) -> List[str]:
+    def structure_features(self) -> list[str]:
         """A list of strings that flag which special features are used by the structure.
 
         SHOULD be absent if there are no partial occupancies

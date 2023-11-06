@@ -1,11 +1,11 @@
-from typing import List, Union
+from typing import Union
 
 __all__ = ("hex_to_floats",)
 
 
 def check_floating_round_errors(
-    some_list: List[Union[List[float], float]]
-) -> List[Union[List[float], float]]:
+    some_list: list[Union[list[float], float]]
+) -> list[Union[list[float], float]]:
     """Check whether there are some float rounding errors
     (check only for close to zero numbers)
 
@@ -28,8 +28,8 @@ def check_floating_round_errors(
 
 
 def floats_to_hex(
-    some_list: List[Union[List[float], float]]
-) -> List[Union[List[str], str]]:
+    some_list: list[Union[list[float], float]]
+) -> list[Union[list[str], str]]:
     """Convert floats embedded in lists to hex strings (for storing "precise" floats)
 
     :param some_list: Must be a list of either lists or float values
@@ -53,8 +53,8 @@ def floats_to_hex(
 
 
 def hex_to_floats(
-    some_list: List[Union[List[str], str]]
-) -> List[Union[List[float], float]]:
+    some_list: list[Union[list[str], str]]
+) -> list[Union[list[float], float]]:
     """Convert hex strings embedded in lists (back) to floats
 
     :param some_list: Must be a list of either lists or string values

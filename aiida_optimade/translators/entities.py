@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, Union
 
 from aiida import orm
 from aiida.orm.nodes import Node
@@ -25,7 +25,7 @@ class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
         self.__node = None
 
     def _get_unique_node_property(
-        self, project: Union[List[str], str]
+        self, project: Union[list[str], str]
     ) -> Union[Node, Any]:
         query = QueryBuilder(limit=1)
         query.append(self.AIIDA_ENTITY, filters={"id": self._pk}, project=project)

@@ -1,5 +1,4 @@
 import warnings
-from typing import Dict
 
 from optimade.server.config import CONFIG, SupportedBackend
 
@@ -19,7 +18,7 @@ __all__ = ("StructureMapper",)
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
-    TRANSLATORS: Dict[str, AiidaEntityTranslator] = {
+    TRANSLATORS: dict[str, AiidaEntityTranslator] = {
         "data.core.cif.CifData.": CifDataTranslator,
         "data.core.structure.StructureData.": StructureDataTranslator,
     }
