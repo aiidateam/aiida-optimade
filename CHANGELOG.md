@@ -1,12 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/aiidateam/aiida-optimade/tree/HEAD)
+## [v1.1.2](https://github.com/aiidateam/aiida-optimade/tree/v1.1.2) (2023-10-25)
 
-[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.1...HEAD)
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.1...v1.1.2)
 
-**Closed issues:**
+**Merged pull requests:**
 
-- `available_api_versions` broken url [\#381](https://github.com/aiidateam/aiida-optimade/issues/381)
+- Update dependencies [\#498](https://github.com/aiidateam/aiida-optimade/pull/498) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#495](https://github.com/aiidateam/aiida-optimade/pull/495) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#493](https://github.com/aiidateam/aiida-optimade/pull/493) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#491](https://github.com/aiidateam/aiida-optimade/pull/491) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#488](https://github.com/aiidateam/aiida-optimade/pull/488) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#487](https://github.com/aiidateam/aiida-optimade/pull/487) ([CasperWA](https://github.com/CasperWA))
+- Update dependencies [\#475](https://github.com/aiidateam/aiida-optimade/pull/475) ([CasperWA](https://github.com/CasperWA))
 
 ## [v1.1.1](https://github.com/aiidateam/aiida-optimade/tree/v1.1.1) (2023-06-09)
 
@@ -19,6 +25,10 @@
 - Update auto-merge workflow [\#426](https://github.com/aiidateam/aiida-optimade/issues/426)
 - Dependabot configuration file should only use strings [\#418](https://github.com/aiidateam/aiida-optimade/issues/418)
 - Changed `optimade` extra dependency [\#416](https://github.com/aiidateam/aiida-optimade/issues/416)
+
+**Closed issues:**
+
+- `available_api_versions` broken url [\#381](https://github.com/aiidateam/aiida-optimade/issues/381)
 
 **Merged pull requests:**
 
