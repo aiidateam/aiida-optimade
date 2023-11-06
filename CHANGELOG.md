@@ -1,6 +1,19 @@
 # Changelog
 
-## [v1.1.2](https://github.com/aiidateam/aiida-optimade/tree/v1.1.2) (2023-10-25)
+## [v1.2.0](https://github.com/aiidateam/aiida-optimade/tree/v1.2.0) (2023-11-06)
+
+[Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.2...v1.2.0)
+
+**Closed issues:**
+
+- Drop python 3.8 support [\#499](https://github.com/aiidateam/aiida-optimade/issues/499)
+
+**Merged pull requests:**
+
+- Update dependencies [\#505](https://github.com/aiidateam/aiida-optimade/pull/505) ([CasperWA](https://github.com/CasperWA))
+- Drop py38 [\#500](https://github.com/aiidateam/aiida-optimade/pull/500) ([eimrek](https://github.com/eimrek))
+
+## [v1.1.2](https://github.com/aiidateam/aiida-optimade/tree/v1.1.2) (2023-11-06)
 
 [Full Changelog](https://github.com/aiidateam/aiida-optimade/compare/v1.1.1...v1.1.2)
 
