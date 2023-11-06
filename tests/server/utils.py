@@ -14,7 +14,8 @@ from optimade.models import ResponseMeta
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, Iterable, Optional, Type, Union
+    from collections.abc import Iterable
+    from typing import Any, Dict, Optional, Type, Union
 
     import httpx
     from starlette import testclient, types
