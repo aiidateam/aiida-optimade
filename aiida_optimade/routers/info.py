@@ -44,20 +44,23 @@ def get_info(request: Request):
                 api_version=__api_version__,
                 available_api_versions=[
                     {
-                        "url": f"{base_url}{root_path_str}/v{__api_version__.split('-')[0].split('+')[0].split('.')[0]}",
+                        "url": (
+                            f"{base_url}{root_path_str}/v"
+                            f"{__api_version__.split('-')[0].split('+')[0].split('.')[0]}"
+                        ),
                         "version": __api_version__,
                     }
                 ],
                 formats=["json"],
-                entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS.keys())},
+                entry_types_by_format={"json": list(ENTRY_INFO_SCHEMAS)},
                 available_endpoints=[
                     "info",
                     "links",
                     "extensions/docs",
                     "extensions/redoc",
                     "extensions/openapi.json",
-                ]
-                + list(ENTRY_INFO_SCHEMAS.keys()),
+                    *ENTRY_INFO_SCHEMAS,
+                ],
                 is_index=False,
             ),
         ),
@@ -74,12 +77,11 @@ def get_info(request: Request):
 def get_info_entry(request: Request, entry: str):
     from optimade.models import EntryInfoResource
 
-    valid_entry_info_endpoints = ENTRY_INFO_SCHEMAS.keys()
-    if entry not in valid_entry_info_endpoints:
+    if entry not in ENTRY_INFO_SCHEMAS:
         raise HTTPException(
             status_code=404,
             detail=f"Entry info not found for {entry}, valid entry info endpoints are:"
-            f" {valid_entry_info_endpoints}",
+            f" {ENTRY_INFO_SCHEMAS.keys()}",
         )
 
     schema = ENTRY_INFO_SCHEMAS[entry]()

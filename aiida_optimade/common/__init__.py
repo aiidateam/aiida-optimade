@@ -1,5 +1,20 @@
-from .exceptions import *
+from .exceptions import (
+    AiidaEntityNotFound,
+    AiidaError,
+    AiidaOptimadeException,
+    CausationError,
+    OptimadeIntegrityError,
+)
 from .logger import LOGGER
-from .warnings import *
+from .warnings import AiidaOptimadeWarning, NotImplementedWarning
 
-__all__ = ("LOGGER",) + exceptions.__all__ + warnings.__all__
+__all__ = (
+    "LOGGER",
+    "AiidaOptimadeException",
+    "AiidaEntityNotFound",
+    "OptimadeIntegrityError",
+    "CausationError",
+    "AiidaError",
+    "AiidaOptimadeWarning",
+    "NotImplementedWarning",
+)

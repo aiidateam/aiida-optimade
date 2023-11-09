@@ -1,6 +1,5 @@
+"""Warnings for aiida-optimade."""
 from optimade.server.warnings import OptimadeWarning
-
-__all__ = ("AiidaOptimadeWarning", "NotImplementedWarning")
 
 
 class AiidaOptimadeWarning(OptimadeWarning):

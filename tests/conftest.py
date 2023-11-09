@@ -55,7 +55,8 @@ def aiida_profile(top_dir, setup_config) -> TestManager:
             manager.reset_db()
 
             profile = load_profile()
-            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will be used
+            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will
+            # be used
             assert profile.name in ["test_profile", "test_psql_dos"]
             os.environ["AIIDA_PROFILE"] = profile.name
 

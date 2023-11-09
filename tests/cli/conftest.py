@@ -3,9 +3,13 @@ import os
 import signal
 from subprocess import PIPE, Popen, TimeoutExpired
 from time import sleep
+from typing import TYPE_CHECKING
 
 import click
 import pytest
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 
 @pytest.fixture
@@ -26,7 +30,9 @@ def run_cli_command(aiida_test_profile: str):
     from click.testing import Result
 
     def _run_cli_command(
-        command: click.Command, options: list[str] = None, raises: bool = False
+        command: click.Command,
+        options: "Optional[list[str]]" = None,
+        raises: bool = False,
     ) -> Result:
         """Run the command and check the result.
 
@@ -74,7 +80,7 @@ def run_and_terminate_server(aiida_test_profile: str):
     """
 
     def _run_and_terminate_server(
-        command: str, options: list[str] = None
+        command: str, options: "Optional[list[str]]" = None
     ) -> tuple[str, str]:
         """Run the command and check the result.
 

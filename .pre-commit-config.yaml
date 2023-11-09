@@ -56,6 +56,9 @@ repos:
     # We will, e.g., extend the recommended number of branches, statements, function
     # args, etc.
     - --extend-ignore=PLR09
+    # Ignore these, as they conflict with the intended FastAPI way of doing dependency
+    # injection.
+    - --extend-ignore=B008
 
 # ruff is a Python linter, incl. import sorter and formatter
 # It works partly on files in-place

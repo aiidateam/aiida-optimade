@@ -9,7 +9,7 @@ from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator, Iterator
-    from typing import IO, List, Union
+    from typing import IO, List, Optional, Union
 
     from aiida.common.extendeddicts import AttributeDict
 
@@ -200,7 +200,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                 cli=not silent,
                 entries=entries if mongo else None,
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         import traceback
 
         exception = traceback.format_exc()
@@ -226,7 +226,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
 
 
 def read_chunks(
-    file_object: "IO", chunk_size: int = None
+    file_object: "IO", chunk_size: "Optional[int]" = None
 ) -> "Generator[Union[str, bytes], None, None]":
     """Generator to read a file piece by piece
 
@@ -254,17 +254,17 @@ def get_documents(
     rest_chunk = ""
 
     for raw_chunk in chunk_iterator:
-        raw_chunk = rest_chunk + raw_chunk
+        full_raw_chunk = rest_chunk + raw_chunk
         rest_chunk = ""
 
-        curly_start_count = raw_chunk.count("{")
-        curly_end_count = raw_chunk.count("}")
+        curly_start_count = full_raw_chunk.count("{")
+        curly_end_count = full_raw_chunk.count("}")
 
         if curly_start_count == 0 or curly_end_count == 0:
-            rest_chunk = raw_chunk
+            rest_chunk = full_raw_chunk
             continue
 
-        chunk = raw_chunk
+        chunk = full_raw_chunk
         while curly_end_count - curly_start_count != 0:
             chunk = chunk.split("{")
             rest_chunk = "{" + f"{chunk[-1]}{rest_chunk}"

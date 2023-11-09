@@ -1,10 +1,11 @@
-from typing import Any
+from typing import TYPE_CHECKING, ClassVar
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper
 
 from aiida_optimade.translators.entities import AiidaEntityTranslator
 
-__all__ = ("ResourceMapper",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Optional
 
 
 class ResourceMapper(OptimadeResourceMapper):
@@ -13,8 +14,8 @@ class ResourceMapper(OptimadeResourceMapper):
     PROJECT_PREFIX: str = "extras.optimade."
 
     TRANSLATORS: dict[str, AiidaEntityTranslator]
-    REQUIRED_ATTRIBUTES: set[str] = set()
-    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: set[str] = {
+    REQUIRED_ATTRIBUTES: ClassVar[set[str]] = set()
+    TOP_LEVEL_NON_ATTRIBUTES_FIELDS: ClassVar[set[str]] = {
         "id",
         "type",
         "relationships",
@@ -36,7 +37,7 @@ class ResourceMapper(OptimadeResourceMapper):
         )
 
     @classmethod
-    def map_back(cls, entity_properties: dict[str, Any]) -> dict:
+    def map_back(cls, entity_properties: dict[str, "Any"]) -> dict:
         """Map properties from AiiDA to OPTIMADE
 
         Parameters:
@@ -82,7 +83,7 @@ class ResourceMapper(OptimadeResourceMapper):
         retrieved_attributes: dict,
         entry_pk: int,
         node_type: str,
-        missing_attributes: dict = None,
+        missing_attributes: "Optional[dict]" = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 

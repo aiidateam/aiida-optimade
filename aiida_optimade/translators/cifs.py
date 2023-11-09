@@ -5,8 +5,6 @@ from aiida.orm.nodes.data.structure import StructureData
 
 from aiida_optimade.translators.structures import StructureDataTranslator
 
-__all__ = ("CifDataTranslator",)
-
 
 def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
     """Copy of similar named function in AiiDA-Core.
@@ -89,10 +87,9 @@ class CifDataTranslator(StructureDataTranslator):
 
     @property
     def _node(self) -> StructureData:
-        if not self._node_loaded:
+        if not self._node_loaded or getattr(self.__node, "pk", 0) != self._pk:
             self.__node = self._get_unique_node_property("*")
-        elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node = self._get_unique_node_property("*")
+
         if isinstance(self.__node, StructureData):
             return self.__node
 

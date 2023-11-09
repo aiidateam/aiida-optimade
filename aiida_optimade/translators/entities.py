@@ -6,8 +6,6 @@ from aiida.orm.querybuilder import QueryBuilder
 
 from aiida_optimade.common import LOGGER, AiidaEntityNotFound
 
-__all__ = ("AiidaEntityTranslator",)
-
 
 class AiidaEntityTranslator:
     """Create OPTIMADE entry attributes from an AiiDA Entity Node - Base class
@@ -39,10 +37,9 @@ class AiidaEntityTranslator:
 
     @property
     def _node(self) -> Node:
-        if not self._node_loaded:
+        if not self._node_loaded or getattr(self.__node, "pk", 0) != self._pk:
             self.__node = self._get_unique_node_property("*")
-        elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node = self._get_unique_node_property("*")
+
         return self.__node
 
     @_node.setter

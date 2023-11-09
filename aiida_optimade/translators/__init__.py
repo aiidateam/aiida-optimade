@@ -1,11 +1,11 @@
-from .cifs import *
-from .entities import * 
-from .structures import *
-from .utils import *
+from .cifs import CifDataTranslator
+from .entities import AiidaEntityTranslator
+from .structures import StructureDataTranslator
+from .utils import hex_to_floats
 
 __all__ = (
-    entities.__all__
-    + cifs.__all__
-    + structures.__all__
-    + utils.__all__
+    "CifDataTranslator",
+    "AiidaEntityTranslator",
+    "StructureDataTranslator",
+    "hex_to_floats",
 )

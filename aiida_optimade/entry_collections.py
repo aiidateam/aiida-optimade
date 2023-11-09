@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, ClassVar
 
 from aiida.orm import Group
 from aiida.orm.nodes import Node
@@ -17,11 +17,14 @@ from aiida_optimade.mappers import ResourceMapper
 from aiida_optimade.transformers import AiidaTransformer
 from aiida_optimade.utils import retrieve_queryable_properties
 
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Optional, Union
+
 
 class AiidaCollection(EntryCollection):
     """Collection of AiiDA entities"""
 
-    CAST_MAPPING = {
+    CAST_MAPPING: ClassVar = {
         "string": "t",
         "float": "f",
         "integer": "i",
@@ -31,8 +34,8 @@ class AiidaCollection(EntryCollection):
 
     def __init__(
         self,
-        entities: Union[str, list[str]],
-        group: Optional[str],
+        entities: "Union[str, list[str]]",
+        group: "Optional[str]",
         resource_cls: EntryResource,
         resource_mapper: ResourceMapper,
     ):
@@ -130,7 +133,7 @@ class AiidaCollection(EntryCollection):
                 "offset": kwargs.get("offset", None),
             }
         else:
-            for limiting_param in {"filters", "limit", "offset"}:
+            for limiting_param in ("filters", "limit", "offset"):
                 if kwargs.get(limiting_param, None) != self._count.get(
                     limiting_param, None
                 ):
@@ -174,9 +177,9 @@ class AiidaCollection(EntryCollection):
         return self._count.get("count", 0)
 
     def find(
-        self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
+        self, params: "Union[EntryListingQueryParams, SingleEntryQueryParams]"
     ) -> tuple[
-        Union[list[EntryResource], EntryResource, None], int, bool, set[str], set[str]
+        "Union[list[EntryResource], EntryResource, None], int, bool, set[str], set[str]"
     ]:
         self.set_data_available()
 
@@ -243,7 +246,8 @@ class AiidaCollection(EntryCollection):
                         "Unrecognised field(s) for this provider requested in "
                         f"`response_fields`: {bad_provider_fields}."
                     )
-                )
+                ),
+                stacklevel=1,
             )
 
         if bad_optimade_fields:
@@ -266,8 +270,8 @@ class AiidaCollection(EntryCollection):
         )
 
     def _run_db_query(
-        self, criteria: dict[str, Any], single_entry: bool = False
-    ) -> tuple[list[dict[str, Any]], bool]:
+        self, criteria: dict[str, "Any"], single_entry: bool = False
+    ) -> tuple[list[dict[str, "Any"]], bool]:
         """Run the query on the backend and collect the results.
 
         Arguments:
@@ -296,7 +300,7 @@ class AiidaCollection(EntryCollection):
 
     @staticmethod
     def _prepare_query(
-        node_types: list[str], group: Optional[str] = None, **kwargs
+        node_types: list[str], group: "Optional[str]" = None, **kwargs
     ) -> QueryBuilder:
         """Workhorse function to prepare an AiiDA QueryBuilder query"""
         for key in kwargs:
@@ -343,8 +347,8 @@ class AiidaCollection(EntryCollection):
         return res
 
     def handle_query_params(
-        self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
-    ) -> dict[str, Any]:
+        self, params: "Union[EntryListingQueryParams, SingleEntryQueryParams]"
+    ) -> dict[str, "Any"]:
         """Parse and interpret the backend-agnostic query parameter models into a
         dictionary that can be used by AiiDA's QueryBuilder.
 
@@ -430,7 +434,7 @@ class AiidaCollection(EntryCollection):
             )
         return sort_spec
 
-    def _find_extras_fields(self, filters: Union[dict, list]) -> None:
+    def _find_extras_fields(self, filters: "Union[dict, list]") -> None:
         """Collect all properties to be found in AiiDA Node extras.
 
         Parameters:
@@ -440,9 +444,7 @@ class AiidaCollection(EntryCollection):
         """
         from copy import deepcopy
 
-        def __filter_fields_util(
-            _filters: Union[dict, list]
-        ) -> Union[dict, list]:
+        def __filter_fields_util(_filters: "Union[dict, list]") -> "Union[dict, list]":
             if isinstance(_filters, dict):
                 res = {}
                 for key, value in _filters.items():
@@ -473,7 +475,7 @@ class AiidaCollection(EntryCollection):
         __filter_fields_util(deepcopy(filters))
 
     def _check_and_calculate_entities(
-        self, cli: bool = False, entries: list[list[int]] = None
+        self, cli: bool = False, entries: "Optional[list[list[int]]]" = None
     ) -> list[int]:
         """Check all entities have OPTIMADE extras, else calculate them
 
@@ -490,7 +492,7 @@ class AiidaCollection(EntryCollection):
 
         """
 
-        def _update_entities(entities: list[list[Any]], fields: list[str]):
+        def _update_entities(entities: list[list["Any"]], fields: list[str]):
             """Utility function to update entities within this method"""
             optimade_fields = [
                 self.resource_mapper.get_optimade_field(_) for _ in fields

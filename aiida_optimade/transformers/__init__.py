@@ -1,3 +1,3 @@
-from .aiida import *
+from .aiida import AiidaTransformer
 
-__all__ = aiida.__all__
+__all__ = ("AiidaTransformer",)

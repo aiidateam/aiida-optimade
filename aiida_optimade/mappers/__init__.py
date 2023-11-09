@@ -1,4 +1,4 @@
-from .entries import *
-from .structures import *
+from .entries import ResourceMapper
+from .structures import StructureMapper
 
-__all__ = entries.__all__ + structures.__all__
+__all__ = ("ResourceMapper", "StructureMapper")

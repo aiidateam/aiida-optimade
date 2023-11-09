@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
-def update_file(filename: str, sub_line: tuple[str, str], strip: "Optional[str]" = None):
+def update_file(
+    filename: str, sub_line: tuple[str, str], strip: "Optional[str]" = None
+):
     """Utility function for tasks to read, update, and write files"""
     with open(filename) as handle:
         lines = [

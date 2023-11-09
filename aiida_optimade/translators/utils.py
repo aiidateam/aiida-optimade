@@ -1,7 +1,5 @@
 from typing import Union
 
-__all__ = ("hex_to_floats",)
-
 
 def check_floating_round_errors(
     some_list: list[Union[list[float], float]]
@@ -20,9 +18,9 @@ def check_floating_round_errors(
     for item in some_list:
         if isinstance(item, list):
             res.append(check_floating_round_errors(item))
+        elif abs(item) < might_as_well_be_zero:
+            res.append(0.0)
         else:
-            if abs(item) < might_as_well_be_zero:
-                item = 0.0
             res.append(item)
     return res
 
@@ -40,15 +38,16 @@ def floats_to_hex(
         if isinstance(item, list):
             res.append(floats_to_hex(item))
         else:
+            item_updated = item
             if isinstance(item, float):
-                item = item.hex()
-            if not isinstance(item, str):
+                item_updated = item.hex()
+            if not isinstance(item_updated, str):
                 raise TypeError(
                     "Wrong type passed to floats_to_hex method, must be a "
                     "list of either a list of floats or float values. "
                     f"Item: {item!r}. Type: {type(item)}."
                 )
-            res.append(item)
+            res.append(item_updated)
     return res
 
 
@@ -66,19 +65,20 @@ def hex_to_floats(
         if isinstance(item, list):
             res.append(hex_to_floats(item))
         else:
+            item_updated = item
             if isinstance(item, str):
                 try:
-                    item = float.fromhex(item)
+                    item_updated = float.fromhex(item)
                 except ValueError as exc:
                     raise ValueError(
                         f"Could not turn item ({item}) into float from hex. "
                         f"Original exception: {exc!r}"
                     ) from exc
-            if not isinstance(item, float):
+            if not isinstance(item_updated, float):
                 raise TypeError(
                     "Wrong type passed to hex_to_floats method, must be a "
                     "list of either a list of strings or string values. "
                     f"Item: {item!r}. Type: {type(item)}."
                 )
-            res.append(item)
+            res.append(item_updated)
     return res

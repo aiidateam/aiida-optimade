@@ -74,12 +74,11 @@ def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bo
         }
 
         number_of_nodes = STRUCTURES.count(**query_kwargs)
-        if number_of_nodes:
-            if not silent:
-                echo.echo_info(
-                    f"Field{'s' if len(fields) > 1 else ''} found for {number_of_nodes}"
-                    f" Node{'s' if number_of_nodes > 1 else ''}."
-                )
+        if number_of_nodes and not silent:
+            echo.echo_info(
+                f"Field{'s' if len(fields) > 1 else ''} found for {number_of_nodes}"
+                f" Node{'s' if number_of_nodes > 1 else ''}."
+            )
         if not silent:
             echo.echo_info(
                 f"Total number of Nodes in profile {profile!r}: {STRUCTURES.count()}"
@@ -142,7 +141,7 @@ def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bo
     except click.Abort:
         echo.echo_warning("Aborted!")
         return
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         import traceback
 
         exception = traceback.format_exc()

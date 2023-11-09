@@ -59,7 +59,8 @@ class OptimadeTestClient(TestClient):
             if re.match(r"v[0-9](.[0-9]){0,2}", version) is None:
                 warnings.warn(
                     f"Invalid version passed to client: '{version}'. "
-                    f"Will use the default: '/v{__api_version__.split('.')[0]}'"
+                    f"Will use the default: '/v{__api_version__.split('.')[0]}'",
+                    stacklevel=1,
                 )
                 version = f"/v{__api_version__.split('.')[0]}"
         self.version = version
@@ -76,10 +77,10 @@ class OptimadeTestClient(TestClient):
         params: "Optional[httpx._types.QueryParamTypes]" = None,
         headers: "Optional[httpx._types.HeaderTypes]" = None,
         cookies: "Optional[httpx._types.CookieTypes]" = None,
-        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
+        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,  # noqa: E501
         follow_redirects: "Optional[bool]" = None,
         allow_redirects: "Optional[bool]" = None,
-        timeout: "Union[httpx._types.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
+        timeout: "Union[httpx._types.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,  # noqa: E501
         extensions: "Optional[Dict[str, Any]]" = None,
     ) -> Response:
         if (

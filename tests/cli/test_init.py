@@ -360,8 +360,8 @@ def test_filename_aiida(run_cli_command, top_dir):
         "An exception happened while trying to initialize" in result.stdout
     ), result.stdout
     assert (
-        "NotImplementedError('Passing a filename currently only works for a MongoDB backend'"
-        in result.stdout
+        "NotImplementedError('Passing a filename currently only works for a MongoDB "
+        "backend'" in result.stdout
     ), result.stdout
 
 

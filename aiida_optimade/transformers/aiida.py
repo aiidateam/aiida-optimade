@@ -1,16 +1,24 @@
+"""Transformer for converting OPTIMADE filter queries to AiiDA QueryBuilder queries."""
+from typing import TYPE_CHECKING, ClassVar
+
 from lark import v_args
 from optimade.filtertransformers import BaseTransformer, Quantity
 from optimade.server.exceptions import BadRequest
 
-__all__ = ("AiidaTransformer",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Optional
 
 
 class AiidaTransformer(BaseTransformer):
     """Transform OPTIMADE query to AiiDA QueryBuilder queryhelp query"""
 
     # Conversion map from the OPTIMADE operators to the QueryBuilder operators
-    operator_map = {"=": "==", "!=": "!==", "in": "contains"}
-    _reversed_operator_map = {
+    operator_map: ClassVar[dict[str, "Optional[str]"]] = {
+        "=": "==",
+        "!=": "!==",
+        "in": "contains",
+    }
+    _reversed_operator_map: ClassVar[dict[str, str]] = {
         "<": ">",
         "<=": ">=",
         ">": "<",
@@ -18,7 +26,11 @@ class AiidaTransformer(BaseTransformer):
         "!=": "!==",
         "=": "==",
     }
-    list_operator_map = {"<": "shorter", ">": "longer", "=": "of_length"}
+    list_operator_map: ClassVar[dict[str, str]] = {
+        "<": "shorter",
+        ">": "longer",
+        "=": "of_length",
+    }
 
     def value_list(self, arg):
         """value_list: [ OPERATOR ] value ( "," [ OPERATOR ] value )*"""
@@ -138,7 +150,8 @@ class AiidaTransformer(BaseTransformer):
                           ANY value_list |
                           ONLY value_list )
         """
-        if len(arg) == 2:
+        length_value_without_operator = 2
+        if len(arg) == length_value_without_operator:
             # only value without OPERATOR
             return {"contains": [arg[1]]}
 
@@ -169,10 +182,8 @@ class AiidaTransformer(BaseTransformer):
         """
         length_op_rhs: LENGTH [ OPERATOR ] value
         """
-        if len(arg) == 3:
-            operator = arg[1].value
-        else:
-            operator = "="
+        length_including_operator = 3
+        operator = arg[1].value if len(arg) == length_including_operator else "="
 
         if operator in self.list_operator_map:
             return {self.list_operator_map[operator]: arg[-1]}

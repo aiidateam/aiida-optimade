@@ -79,7 +79,9 @@ def test_provider_fields(get_good_response):
     if not provider_fields:
         import warnings
 
-        warnings.warn("No provider-specific fields found for 'structures'!")
+        warnings.warn(
+            "No provider-specific fields found for 'structures'!", stacklevel=1
+        )
         return
 
     for field in provider_fields:
