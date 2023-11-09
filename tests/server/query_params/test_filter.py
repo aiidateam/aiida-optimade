@@ -1,5 +1,4 @@
 """Test the `filters` query parameter."""
-# pylint: disable=missing-function-docstring,protected-access,import-error,too-many-statements
 import os
 
 import pytest

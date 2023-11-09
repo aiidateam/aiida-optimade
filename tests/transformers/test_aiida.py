@@ -1,4 +1,3 @@
-# pylint: disable=import-error
 import pytest
 from lark.exceptions import VisitError
 from optimade.filterparser import LarkParser

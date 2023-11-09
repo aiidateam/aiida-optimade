@@ -173,7 +173,7 @@ class AiidaCollection(EntryCollection):
 
         return self._count.get("count", 0)
 
-    def find(  # pylint: disable=too-many-branches
+    def find(
         self, params: Union[EntryListingQueryParams, SingleEntryQueryParams]
     ) -> tuple[
         Union[list[EntryResource], EntryResource, None], int, bool, set[str], set[str]
@@ -440,7 +440,7 @@ class AiidaCollection(EntryCollection):
         """
         from copy import deepcopy
 
-        def __filter_fields_util(  # pylint: disable=unused-private-member
+        def __filter_fields_util(
             _filters: Union[dict, list]
         ) -> Union[dict, list]:
             if isinstance(_filters, dict):

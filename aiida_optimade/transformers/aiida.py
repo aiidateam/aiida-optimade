@@ -1,4 +1,3 @@
-# pylint: disable=no-self-use,too-many-public-methods
 from lark import v_args
 from optimade.filtertransformers import BaseTransformer, Quantity
 from optimade.server.exceptions import BadRequest

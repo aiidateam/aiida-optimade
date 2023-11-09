@@ -1,4 +1,3 @@
-# pylint: disable=missing-function-docstring
 import urllib
 from typing import Union
 

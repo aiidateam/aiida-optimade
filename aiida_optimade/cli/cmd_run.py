@@ -1,4 +1,3 @@
-# pylint: disable=too-many-arguments
 from typing import TYPE_CHECKING
 
 import click

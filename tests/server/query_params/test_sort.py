@@ -1,5 +1,4 @@
 """Test sort query parameter"""
-# pylint: disable=import-error
 from datetime import datetime, timezone
 
 from aiida import orm

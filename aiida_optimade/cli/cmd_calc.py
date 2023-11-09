@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,too-many-locals,too-many-branches
 from typing import TYPE_CHECKING
 
 import click
@@ -143,7 +142,7 @@ def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bo
     except click.Abort:
         echo.echo_warning("Aborted!")
         return
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         import traceback
 
         exception = traceback.format_exc()

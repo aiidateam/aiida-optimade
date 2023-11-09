@@ -1,5 +1,4 @@
 """Test CLI `aiida-optimade init` command"""
-# pylint: disable=import-error,too-many-locals
 import os
 import re
 

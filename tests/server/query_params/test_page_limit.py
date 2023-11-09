@@ -1,5 +1,4 @@
 """Test the `page_limit` query parameter"""
-# pylint: disable=import-error,protected-access
 
 
 def test_limit(get_good_response):

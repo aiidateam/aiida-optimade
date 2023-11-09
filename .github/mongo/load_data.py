@@ -14,7 +14,7 @@ with open(Path(__file__).parent.joinpath("test_structures_mongo.json")) as handl
 try:
     print(f"Inserting {len(data)} structures into {collection.full_name}")
     collection.insert_many(data, ordered=False)
-except Exception as exc:  # pylint: disable=broad-except
+except Exception as exc:
     print("An error occurred!")
     sys.exit(exc)
 else:

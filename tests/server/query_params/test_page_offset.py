@@ -1,5 +1,4 @@
 """Test the `page_offset` query parameter"""
-# pylint: disable=import-error,protected-access
 
 
 def test_offset(get_good_response):

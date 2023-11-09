@@ -1,4 +1,3 @@
-# pylint: disable=arguments-differ
 from typing import Any
 
 from optimade.server.mappers import BaseResourceMapper as OptimadeResourceMapper

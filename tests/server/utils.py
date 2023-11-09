@@ -1,4 +1,3 @@
-# pylint: disable=no-name-in-module,too-many-arguments,import-error
 import json
 import re
 import warnings
@@ -65,7 +64,7 @@ class OptimadeTestClient(TestClient):
                 version = f"/v{__api_version__.split('.')[0]}"
         self.version = version
 
-    def request(  # pylint: disable=too-many-locals
+    def request(
         self,
         method: str,
         url: "httpx._types.URLTypes",
@@ -73,7 +72,7 @@ class OptimadeTestClient(TestClient):
         content: "Optional[httpx._types.RequestContent]" = None,
         data: "Optional[testclient._RequestData]" = None,
         files: "Optional[httpx._types.RequestFiles]" = None,
-        json: "Any" = None,  # pylint: disable=redefined-outer-name
+        json: "Any" = None,
         params: "Optional[httpx._types.QueryParamTypes]" = None,
         headers: "Optional[httpx._types.HeaderTypes]" = None,
         cookies: "Optional[httpx._types.CookieTypes]" = None,

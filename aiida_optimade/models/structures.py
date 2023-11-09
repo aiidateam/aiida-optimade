@@ -1,4 +1,3 @@
-# pylint: disable=missing-class-docstring,too-few-public-methods
 from datetime import datetime
 
 from optimade.models import StructureResource as OptimadeStructureResource

@@ -1,4 +1,3 @@
-# pylint: disable=missing-function-docstring
 from typing import Union
 
 from fastapi import APIRouter, Depends, Request

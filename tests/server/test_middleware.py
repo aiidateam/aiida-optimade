@@ -1,5 +1,4 @@
 """Test middleware"""
-# pylint: disable=import-error
 import pytest
 from optimade import __api_version__
 

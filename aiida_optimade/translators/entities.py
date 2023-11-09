@@ -9,7 +9,7 @@ from aiida_optimade.common import LOGGER, AiidaEntityNotFound
 __all__ = ("AiidaEntityTranslator",)
 
 
-class AiidaEntityTranslator:  # pylint: disable=too-few-public-methods
+class AiidaEntityTranslator:
     """Create OPTIMADE entry attributes from an AiiDA Entity Node - Base class
 
     For speed and reusability, save attributes in the Node's extras.

@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,too-many-statements
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -201,7 +200,7 @@ def init(obj: "AttributeDict", force: bool, silent: bool, mongo: bool, filename:
                 cli=not silent,
                 entries=entries if mongo else None,
             )
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         import traceback
 
         exception = traceback.format_exc()

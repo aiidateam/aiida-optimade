@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,unused-argument
 import json
 import os
 import signal
