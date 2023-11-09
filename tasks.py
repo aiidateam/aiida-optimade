@@ -79,7 +79,8 @@ def optimade_req(_, ver=""):
 
     optimade_init = requests.get(
         "https://raw.githubusercontent.com/Materials-Consortia/optimade-python-tools"
-        f"/v{ver}/optimade/__init__.py"
+        f"/v{ver}/optimade/__init__.py",
+        timeout=10,
     )
     if optimade_init.status_code != 200:
         raise RuntimeError(f"{ver} does not seem to be published on GitHub")
