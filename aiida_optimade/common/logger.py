@@ -1,5 +1,6 @@
 """Logging to both file and widget"""
 import logging
+import logging.handlers
 import os
 import sys
 from contextlib import contextmanager

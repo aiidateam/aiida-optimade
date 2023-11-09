@@ -1,9 +1,19 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
-from optimade.models import BaseInfoAttributes, EntryInfoResource
+
+if TYPE_CHECKING:
+    from ..conftest import CheckKeys, GetGoodResponse
 
 
-def test_info_endpoint_attributes(get_good_response, check_keys):
+def test_info_endpoint_attributes(
+    get_good_response: GetGoodResponse, check_keys: CheckKeys
+) -> None:
     """Check known properties/attributes for successful response"""
+    from optimade.models import BaseInfoAttributes
+
     response = get_good_response("/info")
 
     assert "data" in response
@@ -14,8 +24,12 @@ def test_info_endpoint_attributes(get_good_response, check_keys):
     check_keys(attributes, response["data"]["attributes"])
 
 
-def test_info_structures_endpoint_data(get_good_response, check_keys):
+def test_info_structures_endpoint_data(
+    get_good_response: GetGoodResponse, check_keys: CheckKeys
+) -> None:
     """Check known properties/attributes for successful response"""
+    from optimade.models import EntryInfoResource
+
     response = get_good_response("/info/structures")
 
     assert "data" in response
@@ -23,7 +37,7 @@ def test_info_structures_endpoint_data(get_good_response, check_keys):
     check_keys(data, response["data"])
 
 
-def test_info_structures_sortable(get_good_response):
+def test_info_structures_sortable(get_good_response: GetGoodResponse) -> None:
     """Check the sortable key is present for all properties"""
     response = get_good_response("/info/structures")
 
@@ -31,7 +45,7 @@ def test_info_structures_sortable(get_good_response):
         assert "sortable" in info_keys
 
 
-def test_sortable_values(get_good_response):
+def test_sortable_values(get_good_response: GetGoodResponse) -> None:
     """Make sure certain properties are and are not sortable"""
     response = get_good_response("/info/structures")
     sortable = ["id", "nelements", "nsites"]
@@ -58,7 +72,7 @@ def test_sortable_values(get_good_response):
         assert sortable_info_value is False
 
 
-def test_info_structures_unit(get_good_response):
+def test_info_structures_unit(get_good_response: GetGoodResponse) -> None:
     """Check the unit key is present for certain properties"""
     response = get_good_response("/info/structures")
     unit_fields = ["lattice_vectors", "cartesian_site_positions"]
@@ -69,7 +83,7 @@ def test_info_structures_unit(get_good_response):
             assert "unit" not in info_keys, f"Field: {field}"
 
 
-def test_provider_fields(get_good_response):
+def test_provider_fields(get_good_response: GetGoodResponse) -> None:
     """Check the presence of AiiDA-specific fields"""
     from optimade.server.config import CONFIG
 
@@ -95,8 +109,12 @@ def test_provider_fields(get_good_response):
 
 
 @pytest.mark.skip("References has not yet been implemented")
-def test_info_references_endpoint_data(get_good_response, check_keys):
+def test_info_references_endpoint_data(
+    get_good_response: GetGoodResponse, check_keys: CheckKeys
+) -> None:
     """Check known properties/attributes for successful response"""
+    from optimade.models import EntryInfoResource
+
     response = get_good_response("/info/reference")
 
     assert "data" in response

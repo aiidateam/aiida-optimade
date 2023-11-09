@@ -101,6 +101,23 @@ repos:
     args: [-r]
     exclude: ^tests/.*$
 
+# mypy is a static typing linter
+# The main code repository can be found at:
+# https://github.com/python/mypy
+# The project's documentation can be found at:
+# https://mypy.readthedocs.io/en/stable/index.html
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.6.1
+  hooks:
+  - id: mypy
+    args: [--explicit-package-bases]
+    additional_dependencies:
+    - types-tqdm
+    - types-simplejson
+    - types-requests
+    - types-invoke
+    - pydantic<2
+
 - repo: local
   hooks:
   - id: codecov-validator

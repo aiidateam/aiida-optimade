@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import TYPE_CHECKING
 
@@ -5,15 +7,47 @@ import pytest
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from typing import Any, Callable, Dict, List, Optional, Union
+    from typing import Any, Protocol
 
     from httpx import Response
+    from optimade.server.config import CONFIG
 
     from .utils import OptimadeTestClient
 
+    class GetGoodResponse(Protocol):
+        def __call__(
+            self, request: str, raw: bool = False
+        ) -> Response | dict[str, Any]:
+            ...
+
+    class CheckKeys(Protocol):
+        def __call__(self, keys: list[str], response_subset: Iterable) -> None:
+            ...
+
+    class CheckResponse(Protocol):
+        def __call__(
+            self,
+            request: str,
+            expected_uuid: list[str],
+            page_limit: int = CONFIG.page_limit,
+            expect_id: bool = False,
+            expected_as_is: bool = False,
+        ) -> None:
+            ...
+
+    class CheckErrorResponse(Protocol):
+        def __call__(
+            self,
+            request: str,
+            expected_status: int | None = None,
+            expected_title: str | None = None,
+            expected_detail: str | None = None,
+        ) -> None:
+            ...
+
 
 @pytest.fixture(scope="module")
-def client() -> "OptimadeTestClient":
+def client() -> OptimadeTestClient:
     """Return TestClient for OPTIMADE server"""
     from .utils import client_factory
 
@@ -21,7 +55,7 @@ def client() -> "OptimadeTestClient":
 
 
 @pytest.fixture(scope="module")
-def remote_client() -> "OptimadeTestClient":
+def remote_client() -> OptimadeTestClient:
     """Return TestClient for OPTIMADE server, mimicking a remote client"""
     from .utils import client_factory
 
@@ -30,13 +64,13 @@ def remote_client() -> "OptimadeTestClient":
 
 @pytest.fixture
 def get_good_response(
-    client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
-) -> "Callable[[str, bool], Union[Response, Dict[str, Any]]]":
+    client: OptimadeTestClient, caplog: pytest.LogCaptureFixture
+) -> GetGoodResponse:
     """Get OPTIMADE response with some sanity checks"""
 
-    def inner(request: str, raw: bool = False) -> "Union[Response, Dict[str, Any]]":
+    def inner(request: str, raw: bool = False) -> Response | dict[str, Any]:
         if TYPE_CHECKING:
-            response: "Union[Response, Dict[str, Any]]"
+            response: Response | dict[str, Any]
 
         try:
             response = client.get(request)
@@ -65,12 +99,12 @@ def get_good_response(
 
 
 @pytest.fixture
-def check_keys() -> "Callable[[list, Iterable], None]":
+def check_keys() -> CheckKeys:
     """Utility function to help validate dict keys"""
 
     def inner(
-        keys: list,
-        response_subset: "Iterable",
+        keys: list[str],
+        response_subset: Iterable,
     ) -> None:
         for key in keys:
             assert (
@@ -82,14 +116,14 @@ def check_keys() -> "Callable[[list, Iterable], None]":
 
 @pytest.fixture
 def check_response(
-    get_good_response: "Callable[[str, bool], Union[Response, Dict[str, Any]]]",
-) -> "Callable[[str, List[str], int, bool, bool], None]":
+    get_good_response: GetGoodResponse,
+) -> CheckResponse:
     """Fixture to check response using client fixture"""
     from optimade.server.config import CONFIG
 
     def inner(
         request: str,
-        expected_uuid: "List[str]",
+        expected_uuid: list[str],
         page_limit: int = CONFIG.page_limit,
         expect_id: bool = False,
         expected_as_is: bool = False,
@@ -123,17 +157,17 @@ def check_response(
 
 @pytest.fixture
 def check_error_response(
-    remote_client: "OptimadeTestClient", caplog: pytest.LogCaptureFixture
-):
+    remote_client: OptimadeTestClient, caplog: pytest.LogCaptureFixture
+) -> CheckErrorResponse:
     """General method for testing expected erroneous response"""
 
     def inner(
         request: str,
-        expected_status: "Optional[int]" = None,
-        expected_title: "Optional[str]" = None,
-        expected_detail: "Optional[str]" = None,
-    ):
-        response: "Optional[Response]" = None
+        expected_status: int | None = None,
+        expected_title: str | None = None,
+        expected_detail: str | None = None,
+    ) -> None:
+        response: Response | None = None
         try:
             response = remote_client.get(request)
 
@@ -163,7 +197,7 @@ def check_error_response(
                 f"\nResponse:\n{response.json()}",
             )
 
-            json_response: "Dict[str, Any]" = response.json()
+            json_response: dict[str, Any] = response.json()
             assert len(json_response["errors"]) == 1, json_response.get(
                 "errors", "'errors' not found"
             )

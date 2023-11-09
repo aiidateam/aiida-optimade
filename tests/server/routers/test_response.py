@@ -1,19 +1,28 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
-from optimade.models import (
-    EntryInfoResponse,
-    InfoResponse,
-    LinksResponse,
-    ReferenceResponseMany,
-    ReferenceResponseOne,
-    ResponseMeta,
-    StructureResponseMany,
-    StructureResponseOne,
-)
+
+if TYPE_CHECKING:
+    from _pytest.mark.structures import ParameterSet
+    from optimade.models import Response
+
+    from ..conftest import CheckKeys, GetGoodResponse
 
 
-@pytest.mark.parametrize(
-    "request_str, ResponseType",
-    [
+def _serialize_response_parameters() -> list[tuple[str, type[Response]] | ParameterSet]:
+    from optimade.models import (
+        EntryInfoResponse,
+        InfoResponse,
+        LinksResponse,
+        ReferenceResponseMany,
+        ReferenceResponseOne,
+        StructureResponseMany,
+        StructureResponseOne,
+    )
+
+    return [
         ("/info", InfoResponse),
         ("/info/structures", EntryInfoResponse),
         ("/links", LinksResponse),
@@ -34,9 +43,16 @@ from optimade.models import (
             ReferenceResponseOne,
             marks=pytest.mark.xfail(reason="References has not yet been implemented"),
         ),
-    ],
+    ]
+
+
+@pytest.mark.parametrize(
+    "request_str, ResponseType",
+    _serialize_response_parameters(),
 )
-def test_serialize_response(get_good_response, request_str, ResponseType):
+def test_serialize_response(
+    get_good_response: GetGoodResponse, request_str: str, ResponseType: type[Response]
+) -> None:
     response = get_good_response(request_str)
 
     ResponseType(**response)
@@ -56,8 +72,12 @@ def test_serialize_response(get_good_response, request_str, ResponseType):
         ),
     ],
 )
-def test_meta_response(request_str, get_good_response, check_keys):
+def test_meta_response(
+    request_str: str, get_good_response: GetGoodResponse, check_keys: CheckKeys
+) -> None:
     """Check `meta` property in response"""
+    from optimade.models import ResponseMeta
+
     response = get_good_response(request_str)
 
     assert "meta" in response

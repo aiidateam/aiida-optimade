@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import click
@@ -7,8 +9,6 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.common.logger import LOGGER, disable_logging
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import Tuple
-
     from aiida.common.extendeddicts import AttributeDict
 
 
@@ -39,7 +39,7 @@ if TYPE_CHECKING:  # pragma: no cover
     help="Suppress informational output.",
 )
 @click.pass_obj
-def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bool):
+def calc(obj: AttributeDict, fields: tuple[str], force_yes: bool, silent: bool):
     """Calculate OPTIMADE fields in the AiiDA database."""
     from aiida import load_profile
     from aiida.cmdline.utils import echo
@@ -49,7 +49,7 @@ def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bo
     echo.CMDLINE_LOGGER.setLevel("INFO")
 
     try:
-        profile: str = obj.profile.name
+        profile: str | None = obj.profile.name
     except AttributeError:
         profile = None
     profile = load_profile(profile).name
@@ -102,7 +102,7 @@ def calc(obj: "AttributeDict", fields: "Tuple[str]", force_yes: bool, silent: bo
                     "This may take several minutes!"
                 )
 
-            all_calculated_nodes = STRUCTURES._find_all(**query_kwargs)
+            all_calculated_nodes: list | tqdm = STRUCTURES._find_all(**query_kwargs)
 
             if not silent:
                 all_calculated_nodes = tqdm(

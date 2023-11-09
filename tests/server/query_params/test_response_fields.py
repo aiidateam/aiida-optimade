@@ -1,4 +1,12 @@
-def test_provider_fields(get_good_response):
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..conftest import CheckErrorResponse, GetGoodResponse
+
+
+def test_provider_fields(get_good_response: GetGoodResponse) -> None:
     """Ensure provider fields can be requested"""
     from optimade.server.config import CONFIG
 
@@ -17,7 +25,7 @@ def test_provider_fields(get_good_response):
     }
 
 
-def test_non_provider_fields(get_good_response):
+def test_non_provider_fields(get_good_response: GetGoodResponse) -> None:
     """Ensure provider fields are excluded when not requested"""
     non_provider_specific_field = "elements"
     request = f"/structures?response_fields={non_provider_specific_field}"
@@ -31,7 +39,7 @@ def test_non_provider_fields(get_good_response):
     }
 
 
-def test_wrong_alias_provider_fields(check_error_response):
+def test_wrong_alias_provider_fields(check_error_response: CheckErrorResponse) -> None:
     """Ensure wrongly aliased provider fields raise a 400 Bad Request"""
     from optimade.server.config import CONFIG
 

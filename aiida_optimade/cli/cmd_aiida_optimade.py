@@ -49,7 +49,7 @@ def cli(ctx: "VerdiContext", profile: "Profile", dev: bool):  # pragma: no cover
     # Set config
     if (
         not os.getenv("OPTIMADE_CONFIG_FILE")
-        or not Path(os.getenv("OPTIMADE_CONFIG_FILE")).exists()
+        or not Path(os.getenv("OPTIMADE_CONFIG_FILE", "")).exists()
     ):
         os.environ["OPTIMADE_CONFIG_FILE"] = str(
             Path(__file__).parent.parent.joinpath("config.json").resolve()

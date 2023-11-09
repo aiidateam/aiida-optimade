@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import itertools
 from math import fsum
-from typing import Any, Union
+from typing import TYPE_CHECKING
 
 from aiida.orm.nodes.data.structure import StructureData
 from optimade.models.utils import ANONYMOUS_ELEMENTS
@@ -12,6 +14,9 @@ from aiida_optimade.translators.utils import (
     floats_to_hex,
     hex_to_floats,
 )
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any
 
 
 class StructureDataTranslator(AiidaEntityTranslator):
@@ -26,10 +31,10 @@ class StructureDataTranslator(AiidaEntityTranslator):
     AIIDA_ENTITY = StructureData
 
     # StructureData specific properties
-    def __init__(self, pk: str):
+    def __init__(self, pk: int):
         super().__init__(pk)
 
-        self.__properties = None
+        self.__properties: dict[str, Any] | None = None
 
     @property
     def _kinds(self) -> list:
@@ -172,7 +177,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "elements_ratios"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         ratios = self.get_symbol_weights()
 
@@ -232,7 +237,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def chemical_formula_hill(self) -> str:
+    def chemical_formula_hill(self) -> str | None:
         """The chemical formula for a structure in Hill form
 
         With element symbols followed by integer chemical proportion numbers.
@@ -333,16 +338,16 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "lattice_vectors"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         res = check_floating_round_errors(self._cell)
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
         # and return value
         self.new_attributes[attribute] = floats_to_hex(res)
-        return res
+        return res  # type: ignore[return-value]
 
-    def cartesian_site_positions(self) -> list[list[Union[float, None]]]:
+    def cartesian_site_positions(self) -> list[list[float | None]]:
         """Cartesian positions of each site.
 
         A site is an atom, a site potentially occupied by an atom,
@@ -352,15 +357,15 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "cartesian_site_positions"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         sites = [list(site["position"]) for site in self._sites]
-        res = check_floating_round_errors(sites)
+        res = check_floating_round_errors(sites)  # type: ignore[arg-type]
 
         # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
         # and return value
         self.new_attributes[attribute] = floats_to_hex(res)
-        return res
+        return res  # type: ignore[return-value]
 
     def nsites(self) -> int:
         """An integer specifying the length of the cartesian_site_positions property."""
@@ -450,7 +455,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         self.new_attributes[attribute] = res
         return res
 
-    def assemblies(self) -> Union[list[dict], None]:
+    def assemblies(self) -> list[dict] | None:
         """A description of groups of sites that are statistically correlated.
 
         NOTE: Currently not supported.
@@ -477,7 +482,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = []
+        res: list[str] = []
 
         # Figure out if there are partial occupancies
         if not self.has_partial_occupancy():

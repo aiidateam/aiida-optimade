@@ -1,13 +1,35 @@
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING
 
 import pytest
-from optimade.models import (
-    ReferenceResource,
-    StructureResponseMany,
-    StructureResponseOne,
-)
 
 from ..utils import EndpointTests
+
+if TYPE_CHECKING:
+    from optimade.models import (
+        StructureResponseMany,
+        StructureResponseOne,
+    )
+
+    from ..conftest import GetGoodResponse
+    from ..utils import OptimadeTestClient
+
+
+def _get_optimade_structure_response_model(
+    model_name: str,
+) -> type[StructureResponseOne] | type[StructureResponseMany]:
+    from optimade.models import (
+        StructureResponseMany,
+        StructureResponseOne,
+    )
+
+    if model_name == "StructureResponseMany":
+        return StructureResponseMany
+    if model_name == "StructureResponseOne":
+        return StructureResponseOne
+    raise ValueError(f"Unknown model name: {model_name}")
 
 
 @pytest.mark.skipif(
@@ -15,7 +37,7 @@ from ..utils import EndpointTests
     != "./tests/static/test_data_curation_config.json",
     reason="Test is not for data curation",
 )
-def test_structures_endpoint_data(get_good_response):
+def test_structures_endpoint_data(get_good_response: GetGoodResponse) -> None:
     """Check known properties/attributes for successful response"""
     from optimade.server.config import CONFIG
 
@@ -28,7 +50,9 @@ def test_structures_endpoint_data(get_good_response):
     assert response["meta"]["more_data_available"]
 
 
-def test_get_next_responses(get_good_response, client):
+def test_get_next_responses(
+    get_good_response: GetGoodResponse, client: OptimadeTestClient
+) -> None:
     """Check pagination"""
     response = get_good_response("/structures")
 
@@ -60,7 +84,7 @@ def test_get_next_responses(get_good_response, client):
 
 
 @pytest.mark.skip("Profile database mess up by tests in cli tests")
-def test_structures_id_endpoint_data(get_good_response):
+def test_structures_id_endpoint_data(get_good_response: GetGoodResponse) -> None:
     """Check known properties/attributes for successful response"""
     from optimade.server.config import CONFIG
 
@@ -76,7 +100,7 @@ def test_structures_id_endpoint_data(get_good_response):
     )
 
 
-def test_structures_missing_endpoint_data(get_good_response):
+def test_structures_missing_endpoint_data(get_good_response: GetGoodResponse) -> None:
     """Check known properties/attributes for successful response"""
     test_id = "0"
     response = get_good_response(f"/structures/{test_id}")
@@ -94,10 +118,13 @@ class TestSingleStructureWithRelationships(EndpointTests):
 
     test_id = "1"
     request_str = f"/structures/{test_id}"
-    response_cls = StructureResponseOne
+    response_cls = _get_optimade_structure_response_model("StructureResponseOne")
 
-    def test_structures_endpoint_data(self):
+    def test_structures_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
+        from optimade.models import ReferenceResource
+
+        assert isinstance(self.json_response, dict)
         assert "data" in self.json_response
         assert self.json_response["data"]["id"] == self.test_id
         assert self.json_response["data"]["type"] == "structures"
@@ -119,12 +146,13 @@ class TestMultiStructureWithSharedRelationships(EndpointTests):
     """Tests for /structures for entries with shared relationships"""
 
     request_str = "/structures?filter=id=mpf_1 OR id=mpf_2"
-    response_cls = StructureResponseMany
+    response_cls = _get_optimade_structure_response_model("StructureResponseMany")
 
-    def test_structures_endpoint_data(self):
+    def test_structures_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
         # mpf_1 and mpf_2 both contain the same reference relationship,
         # so the response should not duplicate it
+        assert isinstance(self.json_response, dict)
         assert "data" in self.json_response
         assert len(self.json_response["data"]) == 2
         assert "included" in self.json_response
@@ -136,11 +164,12 @@ class TestMultiStructureWithRelationships(EndpointTests):
     """Tests for /structures for mixed entries with and without relationships"""
 
     request_str = "/structures?filter=id=mpf_1 OR id=mpf_23"
-    response_cls = StructureResponseMany
+    response_cls = _get_optimade_structure_response_model("StructureResponseMany")
 
-    def test_structures_endpoint_data(self):
+    def test_structures_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
         # mpf_23 contains no relationships, which shouldn't break anything
+        assert isinstance(self.json_response, dict)
         assert "data" in self.json_response
         assert len(self.json_response["data"]) == 2
         assert "included" in self.json_response
@@ -156,10 +185,11 @@ class TestMultiStructureWithOverlappingRelationships(EndpointTests):
     """
 
     request_str = "/structures?filter=id=mpf_1 OR id=mpf_3"
-    response_cls = StructureResponseMany
+    response_cls = _get_optimade_structure_response_model("StructureResponseMany")
 
-    def test_structures_endpoint_data(self):
+    def test_structures_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
+        assert isinstance(self.json_response, dict)
         assert "data" in self.json_response
         assert len(self.json_response["data"]) == 2
         assert "included" in self.json_response

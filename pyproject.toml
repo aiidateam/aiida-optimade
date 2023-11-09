@@ -23,3 +23,13 @@ filterwarnings = [
     "ignore:.*Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated.*:DeprecationWarning",
     "ignore:Parsing optional attribute.*:UserWarning",
 ]
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+scripts_are_modules = true
+warn_unused_configs = true
+show_error_codes = true
+allow_redefinition = true
+check_untyped_defs = true
+plugins = ["pydantic.mypy"]

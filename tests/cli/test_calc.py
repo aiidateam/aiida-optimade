@@ -1,20 +1,36 @@
 """Test CLI `aiida-optimade calc` command"""
+from __future__ import annotations
+
 import os
-import re
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from aiida.manage.tests import TestManager
+
+    from .conftest import RunCliCommand
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_all_new(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
     By "non-existent" the meaning is calculating fields that don't already exist for
     any Nodes.
     """
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -104,7 +120,9 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc(run_cli_command, aiida_profile, top_dir):
+def test_calc(
+    run_cli_command: RunCliCommand, aiida_profile: TestManager, top_dir: Path
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works."""
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -166,8 +184,15 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_partially_init(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 

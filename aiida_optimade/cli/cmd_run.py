@@ -6,6 +6,8 @@ from aiida_optimade.cli.cmd_aiida_optimade import cli
 from aiida_optimade.cli.options import LOGGING_LEVELS
 
 if TYPE_CHECKING:  # pragma: no cover
+    from typing import Optional
+
     from aiida.common.extendeddicts import AttributeDict
 
 
@@ -81,7 +83,7 @@ def run(
         from aiida import load_profile
 
         try:
-            profile: str = obj.profile.name
+            profile: "Optional[str]" = obj.profile.name
         except AttributeError:
             profile = None
         profile_name: str = load_profile(profile).name

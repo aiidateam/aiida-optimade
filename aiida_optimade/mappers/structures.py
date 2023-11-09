@@ -7,7 +7,6 @@ from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.mappers.entries import ResourceMapper
 from aiida_optimade.models import StructureResource, StructureResourceAttributes
 from aiida_optimade.translators import (
-    AiidaEntityTranslator,
     CifDataTranslator,
     StructureDataTranslator,
     hex_to_floats,
@@ -16,11 +15,13 @@ from aiida_optimade.translators import (
 if TYPE_CHECKING:  # pragma: no cover
     from typing import Optional
 
+    from aiida_optimade.translators import AiidaEntityTranslator
+
 
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
-    TRANSLATORS: ClassVar[dict[str, AiidaEntityTranslator]] = {
+    TRANSLATORS: ClassVar[dict[str, type["AiidaEntityTranslator"]]] = {
         "data.core.cif.CifData.": CifDataTranslator,
         "data.core.structure.StructureData.": StructureDataTranslator,
     }
@@ -81,7 +82,6 @@ class StructureMapper(ResourceMapper):
                 except AttributeError as exc:
                     if CONFIG.database_backend != SupportedBackend.MONGODB:
                         if attribute in cls.REQUIRED_ATTRIBUTES:
-                            translator = None
                             raise NotImplementedError(
                                 f"Parsing required attribute {attribute!r} from "
                                 f"{translator.__class__.__name__} has not yet been "

@@ -1,15 +1,36 @@
 """Pytest fixtures for command line interface tests."""
-import os
-import signal
-from subprocess import PIPE, Popen, TimeoutExpired
-from time import sleep
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-import click
 import pytest
 
 if TYPE_CHECKING:
-    from typing import Optional
+    from typing import Protocol
+
+    from click import Command
+    from click.testing import Result
+
+    class RunCliCommand(Protocol):
+        """Protocol for `run_cli_command` fixture"""
+
+        def __call__(
+            self,
+            command: Command,
+            options: list[str] | None = None,
+            raises: bool = False,
+        ) -> Result:
+            ...
+
+    class RunAndTerminateServer(Protocol):
+        """Protocol for `run_and_terminate_server` fixture"""
+
+        def __call__(
+            self,
+            command: str,
+            options: list[str] | None = None,
+        ) -> tuple[str, str]:
+            ...
 
 
 @pytest.fixture
@@ -21,17 +42,19 @@ def aiida_test_profile() -> str:
 
 
 @pytest.fixture
-def run_cli_command(aiida_test_profile: str):
+def run_cli_command(aiida_test_profile: str) -> RunCliCommand:
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
     is non-zero.
     """
-    from click.testing import Result
+    import os
+
+    import click.testing
 
     def _run_cli_command(
-        command: click.Command,
-        options: "Optional[list[str]]" = None,
+        command: Command,
+        options: list[str] | None = None,
         raises: bool = False,
     ) -> Result:
         """Run the command and check the result.
@@ -72,15 +95,19 @@ def run_cli_command(aiida_test_profile: str):
 
 
 @pytest.fixture
-def run_and_terminate_server(aiida_test_profile: str):
+def run_and_terminate_server(aiida_test_profile: str) -> RunAndTerminateServer:
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
     is non-zero.
     """
+    import os
+    import signal
+    from subprocess import PIPE, Popen, TimeoutExpired
+    from time import sleep
 
     def _run_and_terminate_server(
-        command: str, options: "Optional[list[str]]" = None
+        command: str, options: list[str] | None = None
     ) -> tuple[str, str]:
         """Run the command and check the result.
 

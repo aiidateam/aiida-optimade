@@ -1,10 +1,15 @@
-from typing import Any, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from aiida import orm
 from aiida.orm.nodes import Node
 from aiida.orm.querybuilder import QueryBuilder
 
 from aiida_optimade.common import LOGGER, AiidaEntityNotFound
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any
 
 
 class AiidaEntityTranslator:
@@ -19,12 +24,10 @@ class AiidaEntityTranslator:
 
     def __init__(self, pk: int):
         self._pk = pk
-        self.new_attributes = {}
+        self.new_attributes: dict[str, Any] = {}
         self.__node = None
 
-    def _get_unique_node_property(
-        self, project: Union[list[str], str]
-    ) -> Union[Node, Any]:
+    def _get_unique_node_property(self, project: list[str] | str) -> Node | Any:
         query = QueryBuilder(limit=1)
         query.append(self.AIIDA_ENTITY, filters={"id": self._pk}, project=project)
         if query.count() != 1:
@@ -43,7 +46,7 @@ class AiidaEntityTranslator:
         return self.__node
 
     @_node.setter
-    def _node(self, value: Union[None, Node]):
+    def _node(self, value: None | Node):
         if self._node_loaded:
             del self.__node
         self.__node = value
@@ -52,7 +55,7 @@ class AiidaEntityTranslator:
     def _node_loaded(self):
         return bool(self.__node)
 
-    def _get_optimade_extras(self) -> Union[None, dict]:
+    def _get_optimade_extras(self) -> None | dict:
         if self._node_loaded:
             return self._node.extras.get(self.EXTRAS_KEY, None)
         return self._get_unique_node_property(f"extras.{self.EXTRAS_KEY}")

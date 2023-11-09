@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from optimade.models import DataType
 
 OPEN_API_ENDPOINTS = {
@@ -6,9 +8,12 @@ OPEN_API_ENDPOINTS = {
     "openapi": "/extensions/openapi.json",
 }
 
+if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Iterable
+
 
 def retrieve_queryable_properties(
-    schema: dict, queryable_properties: list
+    schema: dict, queryable_properties: "Iterable[str]"
 ) -> tuple[dict, dict]:
     """Get all queryable properties from an OPTIMADE schema"""
     properties = {}

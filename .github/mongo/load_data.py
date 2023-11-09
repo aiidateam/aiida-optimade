@@ -16,6 +16,6 @@ try:
     collection.insert_many(data, ordered=False)
 except Exception as exc:
     print("An error occurred!")
-    sys.exit(exc)
+    sys.exit(str(exc))
 else:
     print("Done!")

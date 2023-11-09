@@ -61,9 +61,11 @@ def get_single_structure(
     request: Request, entry_id: int, params: SingleEntryQueryParams = Depends()
 ):
     return get_single_entry(
-        collection=STRUCTURES_MONGO
-        if CONFIG.database_backend == SupportedBackend.MONGODB
-        else STRUCTURES,
+        collection=(
+            STRUCTURES_MONGO
+            if CONFIG.database_backend == SupportedBackend.MONGODB
+            else STRUCTURES
+        ),
         entry_id=entry_id,
         response=StructureResponseOne,
         request=request,

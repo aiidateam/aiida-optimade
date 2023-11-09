@@ -13,7 +13,7 @@ class ResourceMapper(OptimadeResourceMapper):
 
     PROJECT_PREFIX: str = "extras.optimade."
 
-    TRANSLATORS: dict[str, AiidaEntityTranslator]
+    TRANSLATORS: ClassVar[dict[str, type[AiidaEntityTranslator]]]
     REQUIRED_ATTRIBUTES: ClassVar[set[str]] = set()
     TOP_LEVEL_NON_ATTRIBUTES_FIELDS: ClassVar[set[str]] = {
         "id",
@@ -83,7 +83,7 @@ class ResourceMapper(OptimadeResourceMapper):
         retrieved_attributes: dict,
         entry_pk: int,
         node_type: str,
-        missing_attributes: "Optional[dict]" = None,
+        missing_attributes: "Optional[set]" = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
@@ -96,3 +96,4 @@ class ResourceMapper(OptimadeResourceMapper):
         :param node_type: The AiiDA Node's type
         :type node_type: str
         """
+        raise NotImplementedError("Should be implemented in a sub-class.")
