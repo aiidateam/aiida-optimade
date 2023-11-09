@@ -34,7 +34,7 @@ repos:
   hooks:
   - id: ruff
     name: ruff core code base
-    exclude: ^(.*\.py|(\.github|tests)/.*)$
+    exclude: ^([^/]*\.py|(\.github|tests)/.*)$
     # Fix what can be fixed in-place and exit with non-zero status if files were
     # changed and/or there are rules violations.
     args:
