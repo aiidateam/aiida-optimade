@@ -1,0 +1,25 @@
+[tool.ruff.lint]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+  # ruff
+  "RUF",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*PY_SSIZE_T_CLEAN will be required for '#' formats.*:DeprecationWarning",
+    'ignore:.*"@coroutine" decorator is deprecated since Python 3.8, use "async def" instead.*:DeprecationWarning',
+    "ignore:.*Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated.*:DeprecationWarning",
+    "ignore:Parsing optional attribute.*:UserWarning",
+]

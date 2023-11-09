@@ -7,6 +7,7 @@ repos:
     args: [--markdown-linebreak-ext=md]
   - id: check-yaml
   - id: check-json
+  - id: check-toml
   - id: end-of-file-fixer
 
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
@@ -23,7 +24,56 @@ repos:
   rev: 23.11.0
   hooks:
   - id: black
-    name: Blacken
+
+# ruff is a Python linter, incl. import sorter and formatter
+# It works partly on files in-place
+# More information can be found in its documentation:
+# https://docs.astral.sh/ruff/
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.5
+  hooks:
+  - id: ruff
+    name: ruff core code base
+    exclude: ^(.*\.py|(\.github|tests)/.*)$
+    # Fix what can be fixed in-place and exit with non-zero status if files were
+    # changed and/or there are rules violations.
+    args:
+    - --fix
+    - --exit-non-zero-on-fix
+    - --show-fixes
+    - --no-unsafe-fixes
+    # Extend rule set to include:
+    #   flake8-bandit
+    - --extend-select=S
+    #   flake8-blind-except
+    - --extend-select=BLE
+    #   pylint
+    - --extend-select=PL
+    # Self assignment of variable
+    - --extend-ignore=PLW0127
+    # too-many-* rules
+    # Ignore these, as they are not relevant for our code base
+    # We will, e.g., extend the recommended number of branches, statements, function
+    # args, etc.
+    - --extend-ignore=PLR09
+
+# ruff is a Python linter, incl. import sorter and formatter
+# It works partly on files in-place
+# More information can be found in its documentation:
+# https://docs.astral.sh/ruff/
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.5
+  hooks:
+  - id: ruff
+    name: ruff non-core code base
+    exclude: ^aiida_optimade/.*$
+    # Fix what can be fixed in-place and exit with non-zero status if files were
+    # changed and/or there are rules violations.
+    args:
+    - --fix
+    - --exit-non-zero-on-fix
+    - --show-fixes
+    - --no-unsafe-fixes
 
 - repo: local
   hooks:
@@ -36,14 +86,3 @@ repos:
         .codecov.yml
       )$
     language: system
-
-- repo: https://github.com/pycqa/flake8
-  rev: 6.1.0
-  hooks:
-  - id: flake8
-
-- repo: https://github.com/timothycrosley/isort
-  rev: 5.12.0
-  hooks:
-  - id: isort
-    args: [--profile, black, --filter-files, --skip-gitignore]
