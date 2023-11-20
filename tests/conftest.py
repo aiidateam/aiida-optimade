@@ -1,20 +1,29 @@
-# pylint: disable=unused-argument,redefined-outer-name,import-error
-import os
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import pytest
-from aiida.manage.tests import TestManager
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
+
+    from aiida.manage.tests import TestManager
 
 
 @pytest.fixture(scope="session")
 def top_dir() -> Path:
     """Return Path instance for the repository's top (root) directory"""
+    from pathlib import Path
+
     return Path(__file__).parent.parent.resolve()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_config(top_dir) -> None:
+def setup_config(top_dir: Path) -> Generator[None, None, None]:
     """Method that runs before pytest collects tests so no modules are imported"""
+    import os
+
     filename = top_dir / "tests/static/test_config.json"
 
     original_env_var = os.getenv("OPTIMADE_CONFIG_FILE")
@@ -32,11 +41,15 @@ def setup_config(top_dir) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def aiida_profile(top_dir, setup_config) -> TestManager:
+def aiida_profile(
+    top_dir: Path, setup_config: None
+) -> Generator[TestManager, None, None]:
     """Load test data for AiiDA test profile
 
     It is necessary to remove `AIIDA_PROFILE`, since it clashes with the test profile
     """
+    import os
+
     from aiida import load_profile
     from aiida.manage.tests import (
         get_test_backend_name,
@@ -56,7 +69,8 @@ def aiida_profile(top_dir, setup_config) -> TestManager:
             manager.reset_db()
 
             profile = load_profile()
-            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will be used
+            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will
+            # be used
             assert profile.name in ["test_profile", "test_psql_dos"]
             os.environ["AIIDA_PROFILE"] = profile.name
 

@@ -1,4 +1,5 @@
-# pylint: disable=no-name-in-module,too-many-arguments,import-error
+from __future__ import annotations
+
 import json
 import re
 import warnings
@@ -13,9 +14,9 @@ from optimade import __api_version__
 from optimade.models import ResponseMeta
 from pydantic import BaseModel
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterable
-    from typing import Any, Dict, Optional, Type, Union
+    from typing import Any
 
     import httpx
     from starlette import testclient, types
@@ -31,13 +32,13 @@ class OptimadeTestClient(TestClient):
 
     def __init__(
         self,
-        app: "types.ASGIApp",
+        app: types.ASGIApp,
         base_url: str = "http://example.org",
         raise_server_exceptions: bool = True,
         root_path: str = "",
         backend: str = "asyncio",
-        backend_options: "Optional[Dict[str, Any]]" = None,
-        cookies: "Optional[httpx._types.CookieTypes]" = None,
+        backend_options: dict[str, Any] | None = None,
+        cookies: httpx._types.CookieTypes | None = None,
         version: str = "",
     ) -> None:
         optional_kwargs = {"cookies": cookies}
@@ -60,28 +61,33 @@ class OptimadeTestClient(TestClient):
             if re.match(r"v[0-9](.[0-9]){0,2}", version) is None:
                 warnings.warn(
                     f"Invalid version passed to client: '{version}'. "
-                    f"Will use the default: '/v{__api_version__.split('.')[0]}'"
+                    f"Will use the default: '/v{__api_version__.split('.')[0]}'",
+                    stacklevel=1,
                 )
                 version = f"/v{__api_version__.split('.')[0]}"
         self.version = version
 
-    def request(  # pylint: disable=too-many-locals
+    def request(
         self,
         method: str,
-        url: "httpx._types.URLTypes",
+        url: httpx._types.URLTypes,
         *,
-        content: "Optional[httpx._types.RequestContent]" = None,
-        data: "Optional[testclient._RequestData]" = None,
-        files: "Optional[httpx._types.RequestFiles]" = None,
-        json: "Any" = None,  # pylint: disable=redefined-outer-name
-        params: "Optional[httpx._types.QueryParamTypes]" = None,
-        headers: "Optional[httpx._types.HeaderTypes]" = None,
-        cookies: "Optional[httpx._types.CookieTypes]" = None,
-        auth: "Union[httpx._types.AuthTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
-        follow_redirects: "Optional[bool]" = None,
-        allow_redirects: "Optional[bool]" = None,
-        timeout: "Union[httpx._types.TimeoutTypes, httpx._client.UseClientDefault]" = USE_CLIENT_DEFAULT,
-        extensions: "Optional[Dict[str, Any]]" = None,
+        content: httpx._types.RequestContent | None = None,
+        data: testclient._RequestData | None = None,
+        files: httpx._types.RequestFiles | None = None,
+        json: Any = None,
+        params: httpx._types.QueryParamTypes | None = None,
+        headers: httpx._types.HeaderTypes | None = None,
+        cookies: httpx._types.CookieTypes | None = None,
+        auth: (
+            httpx._types.AuthTypes | httpx._client.UseClientDefault
+        ) = USE_CLIENT_DEFAULT,
+        follow_redirects: bool | None = None,
+        allow_redirects: bool | None = None,
+        timeout: (
+            httpx._types.TimeoutTypes | httpx._client.UseClientDefault
+        ) = USE_CLIENT_DEFAULT,
+        extensions: dict[str, Any] | None = None,
     ) -> Response:
         if (
             re.match(r"/?v[0-9](.[0-9]){0,2}/", str(url)) is None
@@ -111,11 +117,11 @@ class OptimadeTestClient(TestClient):
 class EndpointTests:
     """Base class for common tests of endpoints"""
 
-    request_str: "Optional[str]" = None
-    response_cls: "Optional[Type[BaseModel]]" = None
+    request_str: str | None = None
+    response_cls: type[BaseModel] | None = None
 
-    response: "Optional[Response]" = None
-    json_response: "Optional[Dict[str, Any]]" = None
+    response: Response | None = None
+    json_response: dict[str, Any] | None = None
 
     @pytest.fixture(autouse=True)
     def get_response(self, client):
@@ -127,7 +133,7 @@ class EndpointTests:
         self.json_response = None
 
     @staticmethod
-    def check_keys(keys: list, response_subset: "Iterable"):
+    def check_keys(keys: list, response_subset: Iterable):
         """Utility function to help validate dict keys"""
         for key in keys:
             assert (
@@ -167,7 +173,7 @@ def client_factory():
     """Return TestClient for OPTIMADE server"""
 
     def inner(
-        version: "Optional[str]" = None, raise_server_exceptions: bool = True
+        version: str | None = None, raise_server_exceptions: bool = True
     ) -> OptimadeTestClient:
         from aiida_optimade.main import APP
 
@@ -190,10 +196,10 @@ def client_factory():
 class NoJsonEndpointTests:
     """A simplified mixin class for tests on non-JSON endpoints."""
 
-    request_str: "Optional[str]" = None
-    response_cls: "Optional[Type[BaseModel]]" = None
+    request_str: str | None = None
+    response_cls: type[BaseModel] | None = None
 
-    response: "Optional[Response]" = None
+    response: Response | None = None
 
     @pytest.fixture(autouse=True)
     def get_response(self, client: OptimadeTestClient):

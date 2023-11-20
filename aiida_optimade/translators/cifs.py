@@ -1,11 +1,15 @@
-from typing import Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from aiida.orm.nodes.data.cif import CifData
 from aiida.orm.nodes.data.structure import StructureData
 
+from aiida_optimade.common.exceptions import AiidaEntityNotFound
 from aiida_optimade.translators.structures import StructureDataTranslator
 
-__all__ = ("CifDataTranslator",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any
 
 
 def _get_aiida_structure_pymatgen_inline(cif, **kwargs) -> StructureData:
@@ -79,22 +83,26 @@ class CifDataTranslator(StructureDataTranslator):
 
     AIIDA_ENTITY = CifData
 
-    def __init__(self, pk: str):
+    def __init__(self, pk: int):
         super().__init__(pk)
 
-        self.__kinds = None
-        self.__sites = None
-        self.__pbc = None
-        self.__cell = None
+        self.__kinds: list[dict[str, Any]] | None = None
+        self.__sites: list[dict[str, Any]] | None = None
+        self.__pbc: list[int] | None = None
+        self.__cell: list[list[float]] | None = None
 
     @property
     def _node(self) -> StructureData:
-        if not self._node_loaded:
+        if not self._node_loaded or getattr(self.__node, "pk", 0) != self._pk:
             self.__node = self._get_unique_node_property("*")
-        elif getattr(self.__node, "pk", 0) != self._pk:
-            self.__node = self._get_unique_node_property("*")
+
         if isinstance(self.__node, StructureData):
             return self.__node
+
+        if self.__node is None:
+            raise AiidaEntityNotFound(
+                f"Could not find {self.AIIDA_ENTITY} with PK {self._pk}."
+            )
 
         extras = self.__node.extras.copy()
         self.__node = _get_aiida_structure_pymatgen_inline(cif=self.__node)
@@ -102,31 +110,31 @@ class CifDataTranslator(StructureDataTranslator):
         return self.__node
 
     @_node.setter
-    def _node(self, value: Union[None, CifData, StructureData]):
+    def _node(self, value: None | CifData | StructureData):
         if self._node_loaded:
             del self.__node
         self.__node = value
 
     @property
-    def _kinds(self) -> list:
+    def _kinds(self) -> list[dict[str, Any]]:
         if not self.__kinds or self.__kinds is None:
             self.__kinds = [_.get_raw() for _ in self._node.kinds]
         return self.__kinds
 
     @property
-    def _sites(self) -> list:
+    def _sites(self) -> list[dict[str, Any]]:
         if not self.__sites or self.__sites is None:
             self.__sites = [_.get_raw() for _ in self._node.sites]
         return self.__sites
 
     @property
-    def _pbc(self) -> list:
+    def _pbc(self) -> list[int]:
         if not self.__pbc:
             self.__pbc = [int(_) for _ in self._node.pbc]
         return self.__pbc
 
     @property
-    def _cell(self) -> list:
+    def _cell(self) -> list[list[float]]:
         if not self.__cell:
-            self.__cell = self._node.cell.copy()
-        return self.__cell
+            self.__cell = self._node.cell
+        return self.__cell  # type: ignore[return-value]

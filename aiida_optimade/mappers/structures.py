@@ -1,4 +1,5 @@
 import warnings
+from typing import TYPE_CHECKING, ClassVar
 
 from optimade.server.config import CONFIG, SupportedBackend
 
@@ -6,23 +7,27 @@ from aiida_optimade.common import NotImplementedWarning
 from aiida_optimade.mappers.entries import ResourceMapper
 from aiida_optimade.models import StructureResource, StructureResourceAttributes
 from aiida_optimade.translators import (
-    AiidaEntityTranslator,
     CifDataTranslator,
     StructureDataTranslator,
     hex_to_floats,
 )
 
-__all__ = ("StructureMapper",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Optional
+
+    from aiida_optimade.translators import AiidaEntityTranslator
 
 
 class StructureMapper(ResourceMapper):
     """Map 'structure' resources from OPTIMADE to AiiDA"""
 
-    TRANSLATORS: dict[str, AiidaEntityTranslator] = {
+    TRANSLATORS: ClassVar[dict[str, type["AiidaEntityTranslator"]]] = {
         "data.core.cif.CifData.": CifDataTranslator,
         "data.core.structure.StructureData.": StructureDataTranslator,
     }
-    REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
+    REQUIRED_ATTRIBUTES: ClassVar[set[str]] = set(
+        StructureResourceAttributes.schema().get("required")
+    )
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
     ENTRY_RESOURCE_CLASS = StructureResource
 
@@ -32,7 +37,7 @@ class StructureMapper(ResourceMapper):
         retrieved_attributes: dict,
         entry_pk: int,
         node_type: str,
-        missing_attributes: set = None,
+        missing_attributes: "Optional[set]" = None,
     ) -> dict:
         """Build attributes dictionary for OPTIMADE structure resource
 
@@ -77,7 +82,6 @@ class StructureMapper(ResourceMapper):
                 except AttributeError as exc:
                     if CONFIG.database_backend != SupportedBackend.MONGODB:
                         if attribute in cls.REQUIRED_ATTRIBUTES:
-                            translator = None
                             raise NotImplementedError(
                                 f"Parsing required attribute {attribute!r} from "
                                 f"{translator.__class__.__name__} has not yet been "
@@ -89,6 +93,7 @@ class StructureMapper(ResourceMapper):
                             f"{translator.__class__.__name__} has not yet been "
                             "implemented.",
                             NotImplementedWarning,
+                            stacklevel=1,
                         )
                     else:
                         warnings.warn(
@@ -97,6 +102,7 @@ class StructureMapper(ResourceMapper):
                             "implemented. This may be a mistake, but may also be fine, "
                             "since a MongoDB is used.",
                             NotImplementedWarning,
+                            stacklevel=1,
                         )
                 else:
                     res[attribute] = create_attribute()

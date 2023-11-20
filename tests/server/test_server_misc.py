@@ -1,4 +1,12 @@
-def test_last_modified(get_good_response):
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import GetGoodResponse
+
+
+def test_last_modified(get_good_response: GetGoodResponse) -> None:
     """Ensure last_modified does not change upon requests"""
     from time import sleep
 

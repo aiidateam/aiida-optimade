@@ -1,17 +1,24 @@
 """Test sort query parameter"""
-# pylint: disable=import-error
-from datetime import datetime, timezone
+from __future__ import annotations
 
-from aiida import orm
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from ..conftest import CheckResponse, GetGoodResponse
 
 
 def fmt_datetime(object_: datetime) -> str:
     """Parse datetime into pydantic's JSON encoded datetime string"""
+    from datetime import timezone
+
     return object_.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def test_int_asc(get_good_response):
+def test_int_asc(get_good_response: GetGoodResponse) -> None:
     """Ascending sort (integer)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
@@ -51,8 +58,9 @@ def test_int_asc(get_good_response):
     assert nelements_list == expected_nelements
 
 
-def test_int_desc(get_good_response):
+def test_int_desc(get_good_response: GetGoodResponse) -> None:
     """Descending sort (integer)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     limit = 5
@@ -92,8 +100,9 @@ def test_int_desc(get_good_response):
     assert nelements_list == expected_nelements
 
 
-def test_str_asc(check_response):
+def test_str_asc(check_response: CheckResponse) -> None:
     """Ascending sort (string)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=immutable_id&page_limit=5"
@@ -125,8 +134,9 @@ def test_str_asc(check_response):
     )
 
 
-def test_str_desc(check_response):
+def test_str_desc(check_response: CheckResponse) -> None:
     """Descending sort (string)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-immutable_id&page_limit=5"
@@ -158,8 +168,9 @@ def test_str_desc(check_response):
     )
 
 
-def test_datetime_asc(get_good_response):
+def test_datetime_asc(get_good_response: GetGoodResponse) -> None:
     """Ascending sort (datetime)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=last_modified&page_limit=5"
@@ -191,8 +202,9 @@ def test_datetime_asc(get_good_response):
     assert last_modified_list == expected_mtime
 
 
-def test_datetime_desc(get_good_response):
+def test_datetime_desc(get_good_response: GetGoodResponse) -> None:
     """Descending sort (datetime)"""
+    from aiida import orm
     from optimade.server.config import CONFIG, SupportedBackend
 
     request = "/structures?sort=-last_modified&page_limit=5"

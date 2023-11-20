@@ -1,16 +1,34 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
-from optimade.models import ReferenceResponseMany, ReferenceResponseOne
 
 from ..utils import EndpointTests
 
+if TYPE_CHECKING:
+    from optimade.models import ReferenceResponseMany, ReferenceResponseOne
+
 pytestmark = pytest.mark.skip("References has not yet been implemented")
+
+
+def _get_optimade_reference_response_model(
+    name: str,
+) -> type[ReferenceResponseMany] | type[ReferenceResponseOne]:
+    from optimade.models import ReferenceResponseMany, ReferenceResponseOne
+
+    if name == "ReferenceResponseMany":
+        return ReferenceResponseMany
+    if name == "ReferenceResponseOne":
+        return ReferenceResponseOne
+    raise ValueError(f"Unknown response model name: {name}")
 
 
 class TestReferencesEndpoint(EndpointTests):
     """Tests for /references"""
 
     request_str = "/references"
-    response_cls = ReferenceResponseMany
+    response_cls = _get_optimade_reference_response_model("ReferenceResponseMany")
 
 
 class TestSingleReferenceEndpoint(EndpointTests):
@@ -18,7 +36,7 @@ class TestSingleReferenceEndpoint(EndpointTests):
 
     test_id = "dijkstra1968"
     request_str = f"/references/{test_id}"
-    response_cls = ReferenceResponseOne
+    response_cls = _get_optimade_reference_response_model("ReferenceResponseOne")
 
 
 class TestSingleReferenceEndpointDifficult(EndpointTests):
@@ -27,7 +45,7 @@ class TestSingleReferenceEndpointDifficult(EndpointTests):
 
     test_id = "dummy/20.19"
     request_str = f"/references/{test_id}"
-    response_cls = ReferenceResponseOne
+    response_cls = _get_optimade_reference_response_model("ReferenceResponseOne")
 
 
 class TestMissingSingleReferenceEndpoint(EndpointTests):
@@ -35,10 +53,11 @@ class TestMissingSingleReferenceEndpoint(EndpointTests):
 
     test_id = "random_string_that_is_not_in_test_data"
     request_str = f"/references/{test_id}"
-    response_cls = ReferenceResponseOne
+    response_cls = _get_optimade_reference_response_model("ReferenceResponseOne")
 
-    def test_references_endpoint_data(self):
+    def test_references_endpoint_data(self) -> None:
         """Check known properties/attributes for successful response"""
+        assert isinstance(self.json_response, dict)
         assert "data" in self.json_response
         assert "meta" in self.json_response
         assert self.json_response["data"] is None

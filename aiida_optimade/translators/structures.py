@@ -1,7 +1,8 @@
-# pylint: disable=line-too-long,too-many-public-methods
+from __future__ import annotations
+
 import itertools
 from math import fsum
-from typing import Any, Union
+from typing import TYPE_CHECKING
 
 from aiida.orm.nodes.data.structure import StructureData
 from optimade.models.utils import ANONYMOUS_ELEMENTS
@@ -14,7 +15,8 @@ from aiida_optimade.translators.utils import (
     hex_to_floats,
 )
 
-__all__ = ("StructureDataTranslator",)
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Any
 
 
 class StructureDataTranslator(AiidaEntityTranslator):
@@ -22,16 +24,17 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
     Each OPTIMADE field is a method in this class.
 
-    NOTE: This class succeeds in *never* loading the actual AiiDA Node for optimization purposes.
+    NOTE: This class succeeds in *never* loading the actual AiiDA Node for optimization
+    purposes.
     """
 
     AIIDA_ENTITY = StructureData
 
     # StructureData specific properties
-    def __init__(self, pk: str):
+    def __init__(self, pk: int):
         super().__init__(pk)
 
-        self.__properties = None
+        self.__properties: dict[str, Any] | None = None
 
     @property
     def _kinds(self) -> list:
@@ -104,7 +107,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
                     break
             else:
                 raise AiidaError(
-                    f"kind with name {site['kind_name']} cannot be found amongst the kinds {self._kinds}"
+                    f"kind with name {site['kind_name']} cannot be found amongst the "
+                    f"kinds {self._kinds}"
                 )
             symbol_list.append(get_symbols_string(kind["symbols"], kind["weights"]))
 
@@ -122,7 +126,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
         return occupation
 
     def has_partial_occupancy(self) -> bool:
-        """Check for partial occupancies (first vacancies, next through element ratios)"""
+        """Check for partial occupancies (first vacancies, next through element
+        ratios)"""
         if self.has_vacancies():
             return True
 
@@ -131,15 +136,12 @@ class StructureDataTranslator(AiidaEntityTranslator):
             if not occ.is_integer():
                 return True
 
-        for kind in self._kinds:
-            if len(kind["weights"]) > 1:
-                return True
-
-        return False
+        return any(len(kind["weights"]) > 1 for kind in self._kinds)
 
     # Start creating fields
     def elements(self) -> list[str]:
-        """Names of elements found in the structure as a list of strings, in alphabetical order."""
+        """Names of elements found in the structure as a list of strings, in
+        alphabetical order."""
         attribute = "elements"
 
         if attribute in self.new_attributes:
@@ -151,7 +153,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if "X" in res:
             res.remove("X")
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -164,7 +167,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = len(self.elements())
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -173,19 +177,21 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "elements_ratios"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         ratios = self.get_symbol_weights()
 
         total_weight = fsum(ratios.values())
         res = [ratios[symbol] / total_weight for symbol in self.elements()]
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = floats_to_hex(res)
         return res
 
     def chemical_formula_descriptive(self) -> str:
-        """The chemical formula for a structure as a string in a form chosen by the API implementation."""
+        """The chemical formula for a structure as a string in a form chosen by the API
+        implementation."""
         attribute = "chemical_formula_descriptive"
 
         if attribute in self.new_attributes:
@@ -193,7 +199,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = self.get_formula()
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -203,9 +210,10 @@ class StructureDataTranslator(AiidaEntityTranslator):
         As a string with element symbols and integer chemical proportion numbers.
         The proportion number MUST be omitted if it is 1.
 
-        NOTE: For structures with partial occupation, the chemical proportion numbers are integers
-        that within reasonable approximation indicate the correct chemical proportions.
-        The precise details of how to perform the rounding is chosen by the API implementation.
+        NOTE: For structures with partial occupation, the chemical proportion numbers
+        are integers that within reasonable approximation indicate the correct chemical
+        proportions. The precise details of how to perform the rounding is chosen by
+        the API implementation.
         """
         attribute = "chemical_formula_reduced"
 
@@ -224,40 +232,41 @@ class StructureDataTranslator(AiidaEntityTranslator):
                 occupation[symbol] = "" if rounded_weight in (0, 1) else rounded_weight
         res = "".join([f"{symbol}{occupation[symbol]}" for symbol in self.elements()])
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
-    def chemical_formula_hill(self) -> str:
+    def chemical_formula_hill(self) -> str | None:
         """The chemical formula for a structure in Hill form
 
         With element symbols followed by integer chemical proportion numbers.
         The proportion number MUST be omitted if it is 1.
 
         NOTE: If the system has sites with partial occupation and the total occupations
-        of each element do not all sum up to integers, then the Hill formula SHOULD be handled as unset.
+        of each element do not all sum up to integers, then the Hill formula SHOULD be
+        handled as unset.
 
-        NOTE: This will always be equal to chemical_formula_descriptive if it should not be handled as unset.
+        NOTE: This will always be equal to chemical_formula_descriptive if it should not
+        be handled as unset.
         """
         attribute = "chemical_formula_hill"
 
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        if self.has_partial_occupancy():
-            res = None
-        else:
-            res = self.get_formula(mode="hill")
+        res = None if self.has_partial_occupancy() else self.get_formula(mode="hill")
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
     def chemical_formula_anonymous(self) -> str:
         """The anonymous formula is the chemical_formula_reduced
 
-        But where the elements are instead first ordered by their chemical proportion number,
-        and then, in order left to right, replaced by anonymous symbols:
+        But where the elements are instead first ordered by their chemical proportion
+        number, and then, in order left to right, replaced by anonymous symbols:
         A, B, C, ..., Z, Aa, Ba, ..., Za, Ab, Bb, ... and so on.
         """
         attribute = "chemical_formula_anonymous"
@@ -267,17 +276,25 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         weights = [weight for _, weight in self.get_symbol_weights().items()]
 
-        assert len(ANONYMOUS_ELEMENTS) >= len(
-            weights
-        ), f"Not enough generated anonymous elements to create `chemical_formula_anonymous` for Node <PK={self._pk}>. Found elements: {len(self.elements())}. Generated anonymous elements: {len(ANONYMOUS_ELEMENTS)}."
+        if len(ANONYMOUS_ELEMENTS) < len(weights):
+            raise ValueError(
+                "Not enough generated anonymous elements to create "
+                f"`chemical_formula_anonymous` for Node <PK={self._pk}>. Found "
+                "elements: {len(self.elements())}. Generated anonymous elements: "
+                f"{len(ANONYMOUS_ELEMENTS)}."
+            )
 
         res = ""
         min_occupation = min(weights) if weights else None
         for index, occupation in enumerate(sorted(weights, reverse=True)):
             rounded_weight = round(occupation / min_occupation)
-            res += f"{ANONYMOUS_ELEMENTS[index]}{'' if rounded_weight in (0, 1) else rounded_weight}"
+            res += (
+                f"{ANONYMOUS_ELEMENTS[index]}"
+                f"{'' if rounded_weight in (0, 1) else rounded_weight}"
+            )
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -285,9 +302,10 @@ class StructureDataTranslator(AiidaEntityTranslator):
         """List of three integers.
 
         For each of the three directions indicated by the three lattice vectors
-        (see property lattice_vectors). This list indicates if the direction is periodic (value 1)
-        or non-periodic (value 0). Note: the elements in this list each refer to the direction
-        of the corresponding entry in property lattice_vectors and not the Cartesian x, y, z directions.
+        (see property lattice_vectors). This list indicates if the direction is periodic
+        (value 1) or non-periodic (value 0). Note: the elements in this list each refer
+        to the direction of the corresponding entry in property lattice_vectors and not
+        the Cartesian x, y, z directions.
         """
         attribute = "dimension_types"
 
@@ -296,7 +314,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = self._pbc
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -309,7 +328,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = sum(self._pbc)
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -318,31 +338,34 @@ class StructureDataTranslator(AiidaEntityTranslator):
         attribute = "lattice_vectors"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         res = check_floating_round_errors(self._cell)
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = floats_to_hex(res)
-        return res
+        return res  # type: ignore[return-value]
 
-    def cartesian_site_positions(self) -> list[list[Union[float, None]]]:
+    def cartesian_site_positions(self) -> list[list[float | None]]:
         """Cartesian positions of each site.
 
         A site is an atom, a site potentially occupied by an atom,
-        or a placeholder for a virtual mixture of atoms (e.g., in a virtual crystal approximation).
+        or a placeholder for a virtual mixture of atoms (e.g., in a virtual crystal
+        approximation).
         """
         attribute = "cartesian_site_positions"
 
         if attribute in self.new_attributes:
-            return hex_to_floats(self.new_attributes[attribute])
+            return hex_to_floats(self.new_attributes[attribute])  # type: ignore[return-value]
 
         sites = [list(site["position"]) for site in self._sites]
-        res = check_floating_round_errors(sites)
+        res = check_floating_round_errors(sites)  # type: ignore[arg-type]
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = floats_to_hex(res)
-        return res
+        return res  # type: ignore[return-value]
 
     def nsites(self) -> int:
         """An integer specifying the length of the cartesian_site_positions property."""
@@ -353,7 +376,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = len(self.cartesian_site_positions())
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -361,7 +385,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
         """Name of the species at each site
 
         (Where values for sites are specified with the same order of the property
-        cartesian_site_positions). The properties of the species are found in the property species.
+        cartesian_site_positions). The properties of the species are found in the
+        property species.
         """
         attribute = "species_at_sites"
 
@@ -370,7 +395,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = [site["kind_name"] for site in self._sites]
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -378,7 +404,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
         """A list describing the species of the sites of this structure.
 
         Species can be pure chemical elements, or virtual-crystal atoms
-        representing a statistical occupation of a given site by multiple chemical elements.
+        representing a statistical occupation of a given site by multiple chemical
+        elements.
         """
         import re
 
@@ -416,18 +443,19 @@ class StructureDataTranslator(AiidaEntityTranslator):
                     species["mass"].append(0.0)
 
                 # Calculate vacancy concentration
-                if 0.0 <= kind_weight_sum <= 1.0:
+                if 0.0 <= kind_weight_sum <= 1.0:  # noqa: PLR2004
                     species["concentration"].append(1.0 - kind_weight_sum)
                 else:
                     raise ValueError("kind_weight_sum must be in the interval [0;1]")
 
             res.append(species)
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
-    def assemblies(self) -> Union[list[dict], None]:
+    def assemblies(self) -> list[dict] | None:
         """A description of groups of sites that are statistically correlated.
 
         NOTE: Currently not supported.
@@ -439,7 +467,8 @@ class StructureDataTranslator(AiidaEntityTranslator):
 
         res = None
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res
 
@@ -453,7 +482,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if attribute in self.new_attributes:
             return self.new_attributes[attribute]
 
-        res = []
+        res: list[str] = []
 
         # Figure out if there are partial occupancies
         if not self.has_partial_occupancy():
@@ -468,15 +497,16 @@ class StructureDataTranslator(AiidaEntityTranslator):
         for item in species:
             if key not in item:
                 raise OptimadeIntegrityError(
-                    f'The required key {key} was not found for {item} in the "species" attribute'
+                    f'The required key {key} was not found for {item} in the "species"'
+                    " attribute"
                 )
             if len(item[key]) > 1:
                 res.append("disorder")
                 break
 
         # * Unknown positions *
-        # This flag MUST be present if at least one component of the cartesian_site_positions
-        # list of lists has value null.
+        # This flag MUST be present if at least one component of the
+        # cartesian_site_positions list of lists has value null.
         cartesian_site_positions = self.cartesian_site_positions()
         for site in cartesian_site_positions:
             if float("NaN") in site:
@@ -488,6 +518,7 @@ class StructureDataTranslator(AiidaEntityTranslator):
         if self.assemblies():
             res.append("assemblies")
 
-        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node and return value
+        # Finally, save OPTIMADE attribute for later storage in extras for AiiDA Node
+        # and return value
         self.new_attributes[attribute] = res
         return res

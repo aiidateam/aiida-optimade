@@ -1,8 +1,15 @@
 """Test the `page_limit` query parameter"""
-# pylint: disable=import-error,protected-access
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pytest
+
+    from ..conftest import CheckErrorResponse, GetGoodResponse
 
 
-def test_limit(get_good_response):
+def test_limit(get_good_response: GetGoodResponse) -> None:
     """Check page_limit is respected"""
     page_limit = [5, 10]
     for limit in page_limit:
@@ -12,7 +19,7 @@ def test_limit(get_good_response):
         assert len(response["data"]) == limit
 
 
-def test_count_limit(caplog):
+def test_count_limit(caplog: pytest.LogCaptureFixture) -> None:
     """Test EntryCollection.count() when changing limit"""
     from aiida_optimade.routers.structures import STRUCTURES
 
@@ -61,7 +68,9 @@ def test_count_limit(caplog):
     }
 
 
-def test_page_limit_max(get_good_response, check_error_response):
+def test_page_limit_max(
+    get_good_response: GetGoodResponse, check_error_response: CheckErrorResponse
+) -> None:
     """Ensure the configuration page_limit_max is respected"""
     from optimade.server.config import CONFIG
 

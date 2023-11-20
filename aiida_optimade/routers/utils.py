@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import urllib.parse
 from typing import TYPE_CHECKING
@@ -12,28 +14,29 @@ from optimade.server.routers.utils import handle_response_fields, meta_values
 from aiida_optimade.entry_collections import AiidaCollection
 
 if TYPE_CHECKING:  # pragma: no cover
-    from typing import Type, Union
+    from typing import Any
 
 
 def handle_pagination(
     request: Request, more_data_available: bool, nresults: int
-) -> dict:
+) -> dict[str, Any]:
     """Handle pagination for request with number of results equal nresults"""
     from optimade.server.routers.utils import get_base_url
 
-    pagination = {}
+    pagination: dict[str, Any] = {}
 
     # "prev"
     parse_result = urllib.parse.urlparse(str(request.url))
     base_url = get_base_url(parse_result)
     query = urllib.parse.parse_qs(parse_result.query)
-    query["page_offset"] = int(query.get("page_offset", ["0"])[0]) - int(
+    page_offset = int(query.get("page_offset", ["0"])[0]) - int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     )
+    query["page_offset"] = [str(page_offset)]
     urlencoded_prev = None
-    if query["page_offset"] > 0:
+    if page_offset > 0:  # type: ignore[operator]
         urlencoded_prev = urllib.parse.urlencode(query, doseq=True)
-    elif query["page_offset"] == 0 or abs(query["page_offset"]) < int(
+    elif page_offset == 0 or abs(page_offset) < int(
         query.get("page_limit", [CONFIG.page_limit])[0]
     ):
         prev_query = query.copy()
@@ -45,11 +48,13 @@ def handle_pagination(
 
     # "next"
     if more_data_available:
-        query["page_offset"] = (
-            int(query.get("page_offset", 0))
-            + nresults
-            + int(query.get("page_limit", [CONFIG.page_limit])[0])
-        )
+        query["page_offset"] = [
+            str(
+                page_offset
+                + nresults
+                + int(query.get("page_limit", [CONFIG.page_limit])[0])
+            )
+        ]
         urlencoded_next = urllib.parse.urlencode(query, doseq=True)
         pagination["next"] = f"{base_url}{parse_result.path}"
         if urlencoded_next:
@@ -61,8 +66,8 @@ def handle_pagination(
 
 
 def get_entries(
-    collection: "Union[AiidaCollection, MongoCollection]",
-    response: "Type[EntryResponseMany]",
+    collection: AiidaCollection | MongoCollection,
+    response: type[EntryResponseMany],
     request: Request,
     params: EntryListingQueryParams,
 ) -> EntryResponseMany:
@@ -112,9 +117,9 @@ def get_entries(
 
 
 def get_single_entry(
-    collection: "Union[AiidaCollection, MongoCollection]",
-    entry_id: str,
-    response: "Type[EntryResponseOne]",
+    collection: AiidaCollection | MongoCollection,
+    entry_id: int,
+    response: type[EntryResponseOne],
     request: Request,
     params: SingleEntryQueryParams,
 ) -> EntryResponseOne:

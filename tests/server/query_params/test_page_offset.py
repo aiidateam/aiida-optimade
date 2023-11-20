@@ -1,8 +1,15 @@
 """Test the `page_offset` query parameter"""
-# pylint: disable=import-error,protected-access
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pytest
+
+    from ..conftest import GetGoodResponse
 
 
-def test_offset(get_good_response):
+def test_offset(get_good_response: GetGoodResponse) -> None:
     """Apply low offset, comparing two requests with and without offset"""
     page_limit = 5
     request = f"/structures?page_offset=0&page_limit={page_limit}&sort=immutable_id"
@@ -23,7 +30,7 @@ def test_offset(get_good_response):
     assert expected_uuids == [_["attributes"]["immutable_id"] for _ in response["data"]]
 
 
-def test_count_offset(caplog):
+def test_count_offset(caplog: pytest.LogCaptureFixture) -> None:
     """Test EntryCollection.count() when changing offset"""
     from aiida_optimade.routers.structures import STRUCTURES
 

@@ -1,31 +1,38 @@
-# pylint: disable=import-error
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
-from lark.exceptions import VisitError
-from optimade.filterparser import LarkParser
-from optimade.server.exceptions import BadRequest
 
-from aiida_optimade.transformers import AiidaTransformer
-
-VERSION = (1, 1, 0)
-VARIANT = "default"
-
-PARSER = LarkParser(version=VERSION, variant=VARIANT)
-TRANSFORMER = AiidaTransformer()
+if TYPE_CHECKING:
+    from typing import Any
 
 
-def transform(filter_value: str):
+def transform(filter_value: str) -> Any:
     """Transform `filter` value using TRANSFORMER and PARSER"""
+    from optimade.filterparser import LarkParser
+
+    from aiida_optimade.transformers import AiidaTransformer
+
+    VERSION = (1, 1, 0)
+    VARIANT = "default"
+
+    PARSER = LarkParser(version=VERSION, variant=VARIANT)
+    TRANSFORMER = AiidaTransformer()
+
     return TRANSFORMER.transform(PARSER.parse(filter_value))
 
 
-def test_empty():
+def test_empty() -> None:
     """Check passing "empty" strings"""
     assert transform(" ") is None
     assert transform("") is None
 
 
-def test_property_names():
+def test_property_names() -> None:
     """Check `property` names"""
+    from optimade.server.exceptions import BadRequest
+
     assert transform("band_gap = 1") == {"band_gap": {"==": 1}}
     assert transform("cell_length_a = 1") == {"cell_length_a": {"==": 1}}
     assert transform("cell_volume = 1") == {"cell_volume": {"==": 1}}
@@ -49,7 +56,7 @@ def test_property_names():
     }
 
 
-def test_string_values():
+def test_string_values() -> None:
     """Check various string values validity"""
     assert transform('author="Sąžininga Žąsis"') == {
         "author": {"==": "Sąžininga Žąsis"}
@@ -59,8 +66,10 @@ def test_string_values():
     }
 
 
-def test_number_values():
+def test_number_values() -> None:
     """Check various number values validity"""
+    from optimade.server.exceptions import BadRequest
+
     assert transform("a = 12345") == {"a": {"==": 12345}}
     assert transform("b = +12") == {"b": {"==": 12}}
     assert transform("c = -34") == {"c": {"==": -34}}
@@ -91,7 +100,7 @@ def test_number_values():
         transform("number=0.0.1")
 
 
-def test_simple_comparisons():
+def test_simple_comparisons() -> None:
     """Check simple comparisons"""
     assert transform("a<3") == {"a": {"<": 3}}
     assert transform("a<=3") == {"a": {"<=": 3}}
@@ -101,7 +110,7 @@ def test_simple_comparisons():
     assert transform("a!=3") == {"a": {"!==": 3}}
 
 
-def test_id():
+def test_id() -> None:
     """Test `id` valued `property` name"""
     assert transform('id="example/1"') == {"id": {"==": "example/1"}}
     assert transform('"example/1" = id') == {"id": {"==": "example/1"}}
@@ -110,8 +119,10 @@ def test_id():
     }
 
 
-def test_operators():
+def test_operators() -> None:
     """Test OPTIMADE filter operators"""
+    from lark.exceptions import VisitError
+
     # Basic boolean operations
     # TODO: {"!and": [{"a": {"<": 3}}]} can be simplified to {"a": {">=": 3}}
     assert transform("NOT a<3") == {"!and": [{"a": {"<": 3}}]}
@@ -263,7 +274,7 @@ def test_operators():
 
 
 @pytest.mark.skip("Relationships have not yet been implemented")
-def test_filtering_on_relationships():
+def test_filtering_on_relationships() -> None:
     """Test the nested properties with special names like "structures",
     "references" etc. are applied to the relationships field"""
 
@@ -323,9 +334,11 @@ def test_filtering_on_relationships():
     # )
 
 
-def test_not_implemented():
+def test_not_implemented() -> None:
     """Test list properties that are currently not implemented give a sensible
     response"""
+    from lark.exceptions import VisitError
+
     # NOTE: Lark catches underlying filtertransformer exceptions and
     # raises VisitErrors, most of these actually correspond to NotImplementedError
     with pytest.raises(VisitError, match="not been implemented"):
@@ -362,7 +375,7 @@ def test_not_implemented():
         )
 
 
-def test_unaliased_length_operator():
+def test_unaliased_length_operator() -> None:
     """Check unaliased LENGTH lists"""
 
     assert transform("cartesian_site_positions LENGTH 3") == (
@@ -382,7 +395,7 @@ def test_unaliased_length_operator():
     )
 
 
-def test_list_properties():
+def test_list_properties() -> None:
     """Test the HAS ALL, ANY and optional ONLY queries"""
     # NOTE: HAS ONLY has not yet been implemented.
     # assert transform('elements HAS ONLY "H","He","Ga","Ta"') == (
@@ -422,7 +435,7 @@ def test_list_properties():
     # )
 
 
-def test_properties():
+def test_properties() -> None:
     """Filtering on Properties with unknown value"""
     # The { !and: [{ >: 1.99 }] } is different from the <= operator.
     # { <=: 1.99 } returns only the documents where price field exists and its
@@ -444,7 +457,7 @@ def test_properties():
     }
 
 
-def test_precedence():
+def test_precedence() -> None:
     """Check OPERATOR precedence"""
     assert transform('NOT a > b OR c = 100 AND f = "C2 H6"') == (
         {
@@ -462,7 +475,7 @@ def test_precedence():
     )
 
 
-def test_special_cases():
+def test_special_cases() -> None:
     """Check special cases"""
     assert transform("te < st") == {"te": {"<": "st"}}
     assert transform('spacegroup="P2"') == {"spacegroup": {"==": "P2"}}

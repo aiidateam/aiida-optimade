@@ -1,20 +1,35 @@
 """Test CLI `aiida-optimade init` command"""
-# pylint: disable=import-error,too-many-locals
+from __future__ import annotations
+
 import os
-import re
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from aiida.manage.tests import TestManager
+
+    from .conftest import RunCliCommand
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
     """
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -91,8 +106,15 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
+    import re
+
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
 
@@ -144,11 +166,18 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata_mongo(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init --mongo` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
     """
+    import re
+
     import bson.json_util
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -233,8 +262,15 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata_mongo(
+    run_cli_command: RunCliCommand,
+    aiida_profile: TestManager,
+    top_dir: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
+    import re
+
     import bson.json_util
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -291,7 +327,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     STRUCTURES_MONGO.collection.insert_many(data)
 
 
-def test_get_documents(top_dir):
+def test_get_documents(top_dir: Path) -> None:
     """Test get_documents()"""
     import bson.json_util
 
@@ -316,11 +352,13 @@ def test_get_documents(top_dir):
 @pytest.mark.parametrize(
     "bad_file", ["", '[{ {"key": "value"}]', '[/{"key": "value"}]']
 )
-def test_get_documents_bad_file(bad_file):
+def test_get_documents_bad_file(bad_file: str) -> None:
     """Test get_documents() with syntactically bad files"""
     import tempfile
 
-    def load_documents(handle, all_loaded_documents):
+    def load_documents(
+        handle: tempfile._TemporaryFileWrapper[str], all_loaded_documents: list[dict]
+    ) -> None:
         """Helper function for test"""
         import bson.json_util
 
@@ -336,7 +374,7 @@ def test_get_documents_bad_file(bad_file):
         handle.seek(0, 0)
         assert handle.tell() == 0
 
-        all_loaded_documents = []
+        all_loaded_documents: list[dict] = []
         if "/" in bad_file:
             with pytest.raises(
                 SyntaxError, match=r"^Chunk found, but it is not self-consistent.*"
@@ -347,7 +385,7 @@ def test_get_documents_bad_file(bad_file):
         assert not all_loaded_documents
 
 
-def test_filename_aiida(run_cli_command, top_dir):
+def test_filename_aiida(run_cli_command: RunCliCommand, top_dir: Path) -> None:
     """Ensure init excepts when using --filename without --mongo"""
     from aiida_optimade.cli import cmd_init
 
@@ -361,15 +399,15 @@ def test_filename_aiida(run_cli_command, top_dir):
         "An exception happened while trying to initialize" in result.stdout
     ), result.stdout
     assert (
-        "NotImplementedError('Passing a filename currently only works for a MongoDB backend'"
-        in result.stdout
+        "NotImplementedError('Passing a filename currently only works for a MongoDB "
+        "backend'" in result.stdout
     ), result.stdout
 
 
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_filename_mongo(run_cli_command, top_dir):
+def test_filename_mongo(run_cli_command: RunCliCommand, top_dir: Path) -> None:
     """Ensure --filename works with --mongo"""
     import bson.json_util
 

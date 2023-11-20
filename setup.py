@@ -18,7 +18,7 @@ with open(MODULE_DIR.joinpath("requirements_dev.txt")) as handle:
     DEV = [f"{_.strip()}" for _ in handle.readlines()] + TESTING
 
 setup(
-    long_description=open(MODULE_DIR.joinpath("README.md")).read(),
+    long_description=(MODULE_DIR / "README.md").read_text(encoding="utf8"),
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["tests", "profiles"]),
     python_requires=">=3.9",

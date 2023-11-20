@@ -1,5 +1,10 @@
 ---
+# To install the git pre-commit hook run:
+#   pre-commit install
 repos:
+# pre-commit-hooks supplies a multitude of small hooks
+# To get an overview of them all as well as the ones used here, please see
+# https://github.com/pre-commit/pre-commit-hooks#hooks-available
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.5.0
   hooks:
@@ -7,6 +12,7 @@ repos:
     args: [--markdown-linebreak-ext=md]
   - id: check-yaml
   - id: check-json
+  - id: check-toml
   - id: end-of-file-fixer
 
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
@@ -19,11 +25,98 @@ repos:
     - --offset=0
     exclude: ^.github/dependabot.yml$
 
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.15.0
+  hooks:
+  - id: pyupgrade
+    args: [--py39-plus]
+
+# Black is a code style and formatter
+# It works on files in-place
 - repo: https://github.com/ambv/black
   rev: 23.11.0
   hooks:
   - id: black
-    name: Blacken
+
+# ruff is a Python linter, incl. import sorter and formatter
+# It works partly on files in-place
+# More information can be found in its documentation:
+# https://docs.astral.sh/ruff/
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.5
+  hooks:
+  - id: ruff
+    name: ruff core code base
+    exclude: ^([^/]*\.py|(\.github|tests)/.*)$
+    # Fix what can be fixed in-place and exit with non-zero status if files were
+    # changed and/or there are rules violations.
+    args:
+    - --fix
+    - --exit-non-zero-on-fix
+    - --show-fixes
+    - --no-unsafe-fixes
+    # Extend rule set to include:
+    #   flake8-bandit
+    - --extend-select=S
+    #   flake8-blind-except
+    - --extend-select=BLE
+    #   pylint
+    - --extend-select=PL
+    # Self assignment of variable
+    - --extend-ignore=PLW0127
+    # too-many-* rules
+    # Ignore these, as they are not relevant for our code base
+    # We will, e.g., extend the recommended number of branches, statements, function
+    # args, etc.
+    - --extend-ignore=PLR09
+    # Ignore these, as they conflict with the intended FastAPI way of doing dependency
+    # injection.
+    - --extend-ignore=B008
+
+# ruff is a Python linter, incl. import sorter and formatter
+# It works partly on files in-place
+# More information can be found in its documentation:
+# https://docs.astral.sh/ruff/
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.5
+  hooks:
+  - id: ruff
+    name: ruff non-core code base
+    exclude: ^aiida_optimade/.*$
+    # Fix what can be fixed in-place and exit with non-zero status if files were
+    # changed and/or there are rules violations.
+    args:
+    - --fix
+    - --exit-non-zero-on-fix
+    - --show-fixes
+    - --no-unsafe-fixes
+
+# Bandit is a security linter
+# More information can be found in its documentation:
+# https://bandit.readthedocs.io/en/latest/
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.7.5
+  hooks:
+  - id: bandit
+    args: [-r]
+    exclude: ^tests/.*$
+
+# mypy is a static typing linter
+# The main code repository can be found at:
+# https://github.com/python/mypy
+# The project's documentation can be found at:
+# https://mypy.readthedocs.io/en/stable/index.html
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.6.1
+  hooks:
+  - id: mypy
+    args: [--explicit-package-bases]
+    additional_dependencies:
+    - types-tqdm
+    - types-simplejson
+    - types-requests
+    - types-invoke
+    - pydantic<2
 
 - repo: local
   hooks:
@@ -36,14 +129,3 @@ repos:
         .codecov.yml
       )$
     language: system
-
-- repo: https://github.com/pycqa/flake8
-  rev: 6.1.0
-  hooks:
-  - id: flake8
-
-- repo: https://github.com/timothycrosley/isort
-  rev: 5.12.0
-  hooks:
-  - id: isort
-    args: [--profile, black, --filter-files, --skip-gitignore]
