@@ -3,7 +3,8 @@ import os
 from pathlib import Path
 
 import pytest
-from aiida.manage.tests import TestManager
+
+pytest_plugins = ["aiida.manage.tests.pytest_fixtures"]
 
 
 @pytest.fixture(scope="session")
@@ -32,56 +33,42 @@ def setup_config(top_dir) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def aiida_profile(top_dir, setup_config) -> TestManager:
-    """Load test data for AiiDA test profile
-
-    It is necessary to remove `AIIDA_PROFILE`, since it clashes with the test profile
-    """
-    from aiida import load_profile
-    from aiida.manage.tests import (
-        get_test_backend_name,
-        get_test_profile_name,
-        test_manager,
-    )
+def aiida_profile_populated(top_dir, setup_config, aiida_profile):
+    """Load test data for AiiDA test profile"""
     from aiida.tools.archive.imports import import_archive
 
     org_env_var = os.getenv("AIIDA_PROFILE")
     test_env_var = os.getenv("PYTEST_OPTIMADE_CONFIG_FILE")
 
     try:
-        # Setup profile
-        with test_manager(
-            backend=get_test_backend_name(), profile_name=get_test_profile_name()
-        ) as manager:
-            manager.reset_db()
+        aiida_profile.clear_profile()
 
-            profile = load_profile()
-            # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will be used
-            assert profile.name in ["test_profile", "test_psql_dos"]
-            os.environ["AIIDA_PROFILE"] = profile.name
+        # If test locally `AIIDA_TEST_PROFILE` may not set and `test_profile` will be used
+        # assert profile.name in ["test_profile", "test_psql_dos"]
+        os.environ["AIIDA_PROFILE"] = aiida_profile.name
 
-            # Use AiiDA DB
-            import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
+        # Use AiiDA DB
+        import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
 
-            if test_env_var:
-                # Use MongoDB
-                assert os.getenv("OPTIMADE_CONFIG_FILE", "") == test_env_var, (
-                    "Config file env var not set prior to updating the MongoDB! Found "
-                    "it to be a MongoDB backend, since PYTEST_OPTIMADE_CONFIG_FILE is "
-                    f"set to {test_env_var}"
-                )
-                import bson.json_util
+        if test_env_var:
+            # Use MongoDB
+            assert os.getenv("OPTIMADE_CONFIG_FILE", "") == test_env_var, (
+                "Config file env var not set prior to updating the MongoDB! Found "
+                "it to be a MongoDB backend, since PYTEST_OPTIMADE_CONFIG_FILE is "
+                f"set to {test_env_var}"
+            )
+            import bson.json_util
 
-                from aiida_optimade.routers.structures import STRUCTURES_MONGO
+            from aiida_optimade.routers.structures import STRUCTURES_MONGO
 
-                STRUCTURES_MONGO.collection.drop()
-                with open(
-                    top_dir.joinpath("tests/static/test_structures_mongo.json")
-                ) as handle:
-                    data = bson.json_util.loads(handle.read())
-                STRUCTURES_MONGO.collection.insert_many(data)
+            STRUCTURES_MONGO.collection.drop()
+            with open(
+                top_dir.joinpath("tests/static/test_structures_mongo.json")
+            ) as handle:
+                data = bson.json_util.loads(handle.read())
+            STRUCTURES_MONGO.collection.insert_many(data)
 
-            yield manager
+        yield aiida_profile
     finally:
         if org_env_var is not None:
             os.environ["AIIDA_PROFILE"] = org_env_var

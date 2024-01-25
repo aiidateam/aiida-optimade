@@ -10,7 +10,7 @@ import pytest
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_all_new(run_cli_command, aiida_profile_populated, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for non-existent fields.
 
     By "non-existent" the meaning is calculating fields that don't already exist for
@@ -23,7 +23,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_archive(archive)
 
@@ -96,7 +96,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     ), caplog.text
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_archive(original_data)
 
@@ -105,7 +105,7 @@ def test_calc_all_new(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc(run_cli_command, aiida_profile, top_dir):
+def test_calc(run_cli_command, aiida_profile_populated, top_dir):
     """Test `aiida-optimade -p profile_name calc` works."""
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -114,7 +114,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_archive(archive)
 
@@ -158,7 +158,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     assert n_structure_data == n_updated_structure_data
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_archive(original_data)
 
@@ -167,7 +167,7 @@ def test_calc(run_cli_command, aiida_profile, top_dir):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
+def test_calc_partially_init(run_cli_command, aiida_profile_populated, top_dir, caplog):
     """Test `aiida-optimade -p profile_name calc` works for a partially initalized DB"""
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -176,7 +176,7 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database and get initialized_structure_nodes.aiida
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     archive = top_dir.joinpath("tests/cli/static/initialized_structure_nodes.aiida")
     import_archive(archive)
 
@@ -255,6 +255,6 @@ def test_calc_partially_init(run_cli_command, aiida_profile, top_dir, caplog):
     ), caplog.text
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_archive(original_data)

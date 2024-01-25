@@ -10,7 +10,7 @@ import pytest
 
 
 @pytest.fixture
-def aiida_test_profile() -> str:
+def aiida_test_profile_name() -> str:
     """Return AiiDA test profile used for AiiDA-OPTIMADE"""
     from aiida_optimade.cli.cmd_aiida_optimade import AIIDA_OPTIMADE_TEST_PROFILE
 
@@ -18,7 +18,7 @@ def aiida_test_profile() -> str:
 
 
 @pytest.fixture
-def run_cli_command(aiida_test_profile: str):
+def run_cli_command(aiida_test_profile_name: str):
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
@@ -42,10 +42,10 @@ def run_cli_command(aiida_test_profile: str):
         import traceback
 
         runner = click.testing.CliRunner()
-        profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
+        profile = os.getenv("AIIDA_PROFILE", aiida_test_profile_name)
         if profile == "test_profile":
             # This is for local tests only
-            profile = aiida_test_profile
+            profile = aiida_test_profile_name
         result = runner.invoke(command, options or [], env={"AIIDA_PROFILE": profile})
 
         if raises:
@@ -67,7 +67,7 @@ def run_cli_command(aiida_test_profile: str):
 
 
 @pytest.fixture
-def run_and_terminate_server(aiida_test_profile: str):
+def run_and_terminate_server(aiida_test_profile_name: str):
     """Run a `click` command with the given options.
 
     The call will raise if the command triggered an exception or the exit code returned
@@ -88,10 +88,10 @@ def run_and_terminate_server(aiida_test_profile: str):
         :param raises: Whether the command is expected to raise an exception
         :return: Test result
         """
-        profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
+        profile = os.getenv("AIIDA_PROFILE", aiida_test_profile_name)
         if profile == "test_profile":
             # This is for local tests only
-            profile = aiida_test_profile
+            profile = aiida_test_profile_name
 
         args = ["aiida-optimade", "-p", profile]
         args.append(command)
