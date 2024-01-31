@@ -1,4 +1,5 @@
 """Test CLI `aiida-optimade calc` command"""
+
 # pylint: disable=unused-argument,too-many-locals,import-error
 import os
 import re
