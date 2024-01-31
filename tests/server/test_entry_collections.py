@@ -1,4 +1,5 @@
 """Tests for aiida_optimade.entry_collections."""
+
 # pylint: disable=protected-access
 from typing import Any, Callable
 

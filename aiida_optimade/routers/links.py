@@ -1,4 +1,5 @@
 """Reusing the optimade-python-tools /links endpoint"""
+
 # pylint: disable=missing-function-docstring
 from typing import Union
 
