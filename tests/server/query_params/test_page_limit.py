@@ -1,4 +1,5 @@
 """Test the `page_limit` query parameter"""
+
 # pylint: disable=import-error,protected-access
 
 

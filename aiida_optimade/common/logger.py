@@ -1,4 +1,5 @@
 """Logging to both file and widget"""
+
 import logging
 import os
 import sys

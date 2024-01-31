@@ -1,4 +1,5 @@
 """Pytest fixtures for command line interface tests."""
+
 # pylint: disable=redefined-outer-name,import-error
 import os
 import signal

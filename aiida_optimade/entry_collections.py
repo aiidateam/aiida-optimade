@@ -458,9 +458,11 @@ class AiidaCollection(EntryCollection):
                 }
             elif isinstance(_filters, list):
                 res = [
-                    __filter_fields_util(item)
-                    if isinstance(item, (dict, list))
-                    else item
+                    (
+                        __filter_fields_util(item)
+                        if isinstance(item, (dict, list))
+                        else item
+                    )
                     for item in _filters
                 ]
             else:
