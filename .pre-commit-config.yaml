@@ -20,7 +20,7 @@ repos:
     exclude: ^.github/dependabot.yml$
 
 - repo: https://github.com/ambv/black
-  rev: 24.1.1
+  rev: 24.2.0
   hooks:
   - id: black
     name: Blacken
