@@ -10,17 +10,17 @@ import requests
 
 
 @pytest.fixture
-def run_server(aiida_test_profile: str):
+def run_server(aiida_test_profile_name: str):
     """Run the server using `aiida-optimade run`
 
     :param options: the list of command line options to pass to `aiida-optimade run`
         invocation
     :param raises: whether `aiida-optimade run` is expected to raise an exception
     """
-    profile = os.getenv("AIIDA_PROFILE", aiida_test_profile)
+    profile = os.getenv("AIIDA_PROFILE", aiida_test_profile_name)
     if profile == "test_profile":
         # This is for local tests only
-        profile = aiida_test_profile
+        profile = aiida_test_profile_name
 
     args = ["aiida-optimade", "-p", profile, "run"]
     env = dict(os.environ)
@@ -115,7 +115,7 @@ def test_logging_precedence(run_and_terminate_server):
     ), f"output: {output!r}, errors: {errors!r}"
 
 
-def test_env_var_is_set(run_and_terminate_server, aiida_test_profile: str):
+def test_env_var_is_set(run_and_terminate_server, aiida_test_profile_name: str):
     """Test the AIIDA_PROFILE env var is set
 
     The issue with this test, is that the set "AIIDA_PROFILE" environment variable
@@ -131,7 +131,7 @@ def test_env_var_is_set(run_and_terminate_server, aiida_test_profile: str):
     assert fixture_profile is not None
     if fixture_profile == "test_profile":
         # This is for local tests only
-        fixture_profile = aiida_test_profile
+        fixture_profile = aiida_test_profile_name
     output, errors = run_and_terminate_server(command="run")
     assert fixture_profile in output, f"output: {output!r}, errors: {errors!r}"
 

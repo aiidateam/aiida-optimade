@@ -21,6 +21,12 @@ class ResourceMapper(OptimadeResourceMapper):
         "relationships",
         "links",
         "meta",
+        "description",
+        "related",
+        "structures",
+        "data",
+        "self",
+        "references",
     }
 
     @classmethod

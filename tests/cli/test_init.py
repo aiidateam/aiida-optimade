@@ -11,7 +11,7 @@ import pytest
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata(run_cli_command, aiida_profile_populated, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
@@ -23,7 +23,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
 
     archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
     import_archive(archive)
@@ -83,7 +83,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     ), caplog.text
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_archive(original_data)
 
@@ -92,7 +92,7 @@ def test_init_structuredata(run_cli_command, aiida_profile, top_dir, caplog):
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is not None,
     reason="Test is not for MongoDB",
 )
-def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata(run_cli_command, aiida_profile_populated, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
     from aiida import orm
     from aiida.tools.archive.imports import import_archive
@@ -101,7 +101,7 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear database
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
 
     archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
     import_archive(archive)
@@ -137,7 +137,7 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
     ), caplog.text
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     original_data = top_dir.joinpath("tests/static/test_structures.aiida")
     import_archive(original_data)
 
@@ -145,7 +145,9 @@ def test_init_cifdata(run_cli_command, aiida_profile, top_dir, caplog):
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_structuredata_mongo(
+    run_cli_command, aiida_profile_populated, top_dir, caplog
+):
     """Test `aiida-optimade -p profile_name init --mongo` works for StructureData Nodes.
 
     Also, check the `-f/--force` option.
@@ -159,7 +161,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear databases
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     STRUCTURES_MONGO.collection.drop()
 
     archive = top_dir.joinpath("tests/cli/static/structure_data_nodes.aiida")
@@ -223,7 +225,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
     ), caplog.text
 
     # Repopulate databases with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
     STRUCTURES_MONGO.collection.drop()
     with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:
@@ -234,7 +236,7 @@ def test_init_structuredata_mongo(run_cli_command, aiida_profile, top_dir, caplo
 @pytest.mark.skipif(
     os.getenv("PYTEST_OPTIMADE_CONFIG_FILE") is None, reason="Test is only for MongoDB"
 )
-def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
+def test_init_cifdata_mongo(run_cli_command, aiida_profile_populated, top_dir, caplog):
     """Test `aiida-optimade -p profile_name init` works for CifData Nodes."""
     import bson.json_util
     from aiida import orm
@@ -245,7 +247,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     from aiida_optimade.translators.entities import AiidaEntityTranslator
 
     # Clear databases
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     STRUCTURES_MONGO.collection.drop()
 
     archive = top_dir.joinpath("tests/cli/static/cif_data_nodes.aiida")
@@ -284,7 +286,7 @@ def test_init_cifdata_mongo(run_cli_command, aiida_profile, top_dir, caplog):
     ), caplog.text
 
     # Repopulate database with the "proper" test data
-    aiida_profile.reset_db()
+    aiida_profile_populated.clear_profile()
     import_archive(top_dir.joinpath("tests/static/test_structures.aiida"))
     STRUCTURES_MONGO.collection.drop()
     with open(top_dir.joinpath("tests/static/test_structures_mongo.json")) as handle:

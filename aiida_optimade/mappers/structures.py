@@ -22,7 +22,9 @@ class StructureMapper(ResourceMapper):
         "data.core.cif.CifData.": CifDataTranslator,
         "data.core.structure.StructureData.": StructureDataTranslator,
     }
-    REQUIRED_ATTRIBUTES = set(StructureResourceAttributes.schema().get("required"))
+    REQUIRED_ATTRIBUTES = set(
+        StructureResourceAttributes.model_json_schema().get("required")
+    )
     # This should be REQUIRED_FIELDS, but should be set as such in `optimade`
     ENTRY_RESOURCE_CLASS = StructureResource
 
