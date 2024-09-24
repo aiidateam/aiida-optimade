@@ -3,17 +3,18 @@ FROM python:3.9
 WORKDIR /app
 
 # Install specific optimade and aiida-core versions
-ARG OPTIMADE_TOOLS_VERSION=0.25.3
-ARG AIIDA_VERSION=2.4.0
+#ARG OPTIMADE_TOOLS_VERSION=0.25.3
+#ARG AIIDA_VERSION=2.4.0
 
 # Copy repo contents
 COPY setup.py setup.json README.md requirements*.txt ./
 COPY aiida_optimade ./aiida_optimade
 
-RUN pip install -U pip setuptools wheel \
-    && pip install optimade==${OPTIMADE_TOOLS_VERSION} \
-    && pip install aiida-core==${AIIDA_VERSION} \
-    && pip install -e .
+RUN pip install -r requirements_mcloud.txt
+
+RUN pip install -U pip setuptools wheel
+
+RUN pip install -e .
 
 COPY .docker/run.sh ./
 
