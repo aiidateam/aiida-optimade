@@ -1,7 +1,7 @@
 ---
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
   - id: trailing-whitespace
     args: [--markdown-linebreak-ext=md]
@@ -20,7 +20,7 @@ repos:
     exclude: ^.github/dependabot.yml$
 
 - repo: https://github.com/ambv/black
-  rev: 24.4.2
+  rev: 24.10.0
   hooks:
   - id: black
     name: Blacken
@@ -38,7 +38,7 @@ repos:
     language: system
 
 - repo: https://github.com/pycqa/flake8
-  rev: 7.1.0
+  rev: 7.1.1
   hooks:
   - id: flake8
 
